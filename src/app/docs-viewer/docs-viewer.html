@@ -1,0 +1,116 @@
+<!-- app/features/docs-viewer/docs-viewer.html -->
+
+<div class="docs-viewer" #docsViewer>
+
+  <!-- Header -->
+  <header class="dv-header">
+    <div class="dv-title">{{ $currentDocId() }}</div>
+
+    <nav class="dv-nav">
+      <div class="dv-actions">
+
+        <!-- Theme toggle (should become its own component) -->
+        <app-theme-toggle ($toggleTheme)="onToggleTheme($event)">
+        </app-theme-toggle>
+        <div class="dv-button">
+          <button (click)="backToIndex()">Index</button>
+          <button (click)="reloadDoc()">Reload</button>
+          <button (click)="toggleArtifacts()">Artifacts</button>
+          <button (click)="toggleDebugOverlay()">Debug Overlay</button>
+
+          <button (click)="toggleDebugMermaid()">Debug Mermaid</button>
+
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Optional progress bar -->
+  <div class="progress-bar">
+    <!-- <div class="progress-bar_fill" [style.width.%]="100"> </div> -->
+    <div class="progress-bar_fill" [style.width.%]="scrollService.scrollPercent()"></div>
+
+  </div>
+
+  <!-- Body -->
+  <div class="dv-body">
+
+    <aside class="dv-toc" #dvToc>
+
+      <!-- Resizer (layout-level, not inside scroll container) -->
+      <div appTocResizerDirective [dvTocResizer]="$dvTocRef()?.nativeElement" class="dv-toc-resizer"></div>
+
+      <!-- Title -->
+      <h2>{{ `${$currentDocId()}.md` }}</h2>
+      <h3 [style.padding-left.px]="7">Table of Contents</h3>
+
+      <!-- OVERLAY (layout-level, above scroll container) -->
+      <div #tocOverlay class="toc-overlay hidden"></div>
+
+      <!-- SCROLL CONTAINER -->
+      <div class="toc-wrapper">
+        <!-- RENDER CONTAINER -->
+        <ul class="toc-root">
+          @for (node of $tocTree(); track node.entry.slug) {
+          <ng-container *ngTemplateOutlet="tocNode; context: { $implicit: node }">
+          </ng-container>
+          }
+        </ul>
+      </div>
+
+      <hr>
+      <button (click)="backToPrevDoc()">
+        To Previous Doc – {{ this.$prevDocId() }}
+      </button>
+
+    </aside>
+
+    <!-- Main Content -->
+    <main class="dv-content">
+      <div #hostWrapper class="host-wrapper"> <!-- ULDE host container -->
+        <div #hostOverlay class="host-overlay hidden"></div>
+        <div class="dv-host"></div> <!-- pure render target / styling -->
+      </div>
+    </main>
+
+  </div>
+
+  <div class="dv-debugoverlay-panel" [class.visible]="$showDebugOverlay()"></div>
+
+  <div class="dv-artifacts-panel" [class.visible]="$showArtifacts()"></div>
+
+  <div class="dv-mermaid-debug-panel" [class.visible]="$showDebugMermaid()? true: false">
+    <header>
+      {{"Debug Mermaid Panel"}}
+    </header>
+    <ol class="dv-mermaid-debug-panel-content"></ol>
+  </div>
+</div>
+
+<ng-template #tocNode let-node>
+  <li class="toc-item" [style.padding-left.px]="(node.entry.level - 1) * 16"
+    [class.active]="$activeHeading() === node.entry.slug" [class.parent-active]="isParentActive(node)">
+
+    <div class="toc-line">
+      @if (node.children.length > 0) {
+      <button class="toc-collapse-btn" (click)="node.collapsed = !node.collapsed">
+        {{ node.collapsed ? '▶' : '▼' }}
+      </button>
+      } @else {
+      &nbsp;&nbsp;&nbsp;
+      }
+
+      <a (click)="scrollTo(node.entry.slug)">
+        {{ node.entry.text }}
+      </a>
+    </div>
+
+    @if (!node.collapsed && node.children.length > 0) {
+    <ul class="toc-children">
+      @for (child of node.children; track child.entry.slug) {
+      <ng-container *ngTemplateOutlet="tocNode; context: { $implicit: child }"></ng-container>
+      }
+    </ul>
+    }
+  </li>
+</ng-template>

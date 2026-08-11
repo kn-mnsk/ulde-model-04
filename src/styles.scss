@@ -1,0 +1,493 @@
+/* styles.scss */
+
+/* ---------------------------------------------------------
+   Angular Material (must be first)
+--------------------------------------------------------- */
+@use '@angular/material' as mat;
+
+/* ---------------------------------------------------------
+   Theme System (SCSS partials)
+--------------------------------------------------------- */
+@use './styles/theme/variables';
+@use './styles/theme/light';
+@use './styles/theme/dark';
+
+/* ---------------------------------------------------------
+   Unified Devtools System (SCSS partials)
+--------------------------------------------------------- */
+@use './styles/devtools/devtools';
+
+/* ---------------------------------------------------------
+   global z-index layers
+--------------------------------------------------------- */
+@use './styles/z-index.scss';
+
+/* ---------------------------------------------------------
+   DocsViewer Theme Aware Layout (SCSS partials)
+--------------------------------------------------------- */
+@use './styles/docs-viewer/theme.aware.layout.scss';
+
+
+
+/* ---------------------------------------------------------
+   Angular Material Core (after theme definitions)
+--------------------------------------------------------- */
+@include mat.core();
+
+/* ---------------------------------------------------------
+   Global App Styles
+--------------------------------------------------------- */
+
+html {
+  scroll-behavior: smooth; // all scrolls to be smooth:
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  transition: background-color 0.7s ease-in-out, color 0.7s ease-in-out;
+}
+
+/* Fade-in animation */
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+
+  60% {
+    opacity: 0.5;
+    transform: scale(1.01);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+/* Links */
+a {
+  color: var(--link-color);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--link-hover-color);
+    text-decoration: underline;
+  }
+}
+
+
+/* ---------------------------------------------------------
+   Global UI elements
+--------------------------------------------------------- */
+
+.tooltip {
+  position: fixed;
+  z-index: var(--z-tooltip);
+}
+
+.popover {
+  position: absolute;
+  z-index: var(--z-popover);
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal-backdrop);
+}
+
+.modal {
+  position: fixed;
+  z-index: var(--z-modal);
+}
+
+
+/* ---------------------------------------------------------
+   Angular Material Overrides
+--------------------------------------------------------- */
+
+.mat-button,
+.mat-raised-button {
+  display: inline-block !important;
+}
+
+.mat-button {
+  animation: fade-in 0.4s ease-in-out;
+}
+
+.mat-icon {
+  transition: color 0.4s ease-in-out, opacity 0.4s ease-in-out;
+}
+
+.mat-button:hover,
+.mat-raised-button:hover {
+  background-color: red !important;
+  transform: scale(1.1);
+  box-shadow: 0px 0px 20px rgba(255, 0, 0, 0.5);
+}
+
+/* Fade body on theme switch */
+body[data-theme="dark"],
+body[data-theme="light"] {
+  opacity: 0;
+  animation: fade-in 0.7s forwards ease-in-out;
+}
+
+/* ---------------------------------------------------------
+   Theme Toggle Buttons (unchanged)
+--------------------------------------------------------- */
+
+// .theme-toggle-btn {
+//   width: 36px;
+//   height: 36px;
+//   border: none;
+//   border-radius: 50%;
+//   background: transparent;
+//   display: flex;
+//   align-items: center;
+//   justify-content: center;
+//   cursor: pointer;
+//   transition: background 0.25s ease;
+// }
+
+// .theme-toggle-btn:hover {
+//   background: rgba(0, 0, 0, 0.1);
+// }
+
+// [data-theme="dark"] .theme-toggle-btn:hover {
+//   background: rgba(255, 255, 255, 0.1);
+// }
+
+// .theme-icon {
+//   width: 22px;
+//   height: 22px;
+//   border-radius: 50%;
+//   position: relative;
+//   transition: background 0.35s ease, transform 0.35s ease, box-shadow 0.35s ease;
+// }
+
+// [data-theme="light"] .theme-icon {
+//   background: #ffcc33;
+//   box-shadow:
+//     0 -8px 0 #ffcc33,
+//     0 8px 0 #ffcc33,
+//     8px 0 0 #ffcc33,
+//     -8px 0 0 #ffcc33,
+//     6px 6px 0 #ffcc33,
+//     -6px 6px 0 #ffcc33,
+//     6px -6px 0 #ffcc33,
+//     -6px -6px 0 #ffcc33;
+// }
+
+// [data-theme="dark"] .theme-icon {
+//   background: #f0f0f0;
+//   box-shadow: inset -6px -6px 0 0 #000;
+// }
+
+/* ---------------------------------------------------------
+   VS Code Toggle (unchanged)
+--------------------------------------------------------- */
+
+// .vscode-toggle {
+//   border: none;
+//   background: transparent;
+//   padding: 0;
+//   cursor: pointer;
+// }
+
+// .vscode-toggle-track {
+//   width: 48px;
+//   height: 24px;
+//   border-radius: 24px;
+//   display: flex;
+//   align-items: center;
+//   background: var(--toggle-track-bg);
+//   transition: background 0.25s ease;
+// }
+
+// .vscode-toggle-thumb {
+//   width: 22px;
+//   height: 22px;
+//   border-radius: 50%;
+//   background: var(--toggle-thumb-bg);
+//   position: absolute;
+//   left: 1px;
+//   top: 1px;
+//   display: flex;
+//   align-items: center;
+//   justify-content: center;
+//   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), background 0.25s ease;
+// }
+
+// .vscode-toggle-thumb .icon {
+//   position: absolute;
+//   font-size: 14px;
+//   opacity: 0;
+//   transition: opacity 0.2s ease;
+// }
+
+// [data-theme="light"] {
+//   --toggle-track-bg: #e0e0e0;
+//   --toggle-thumb-bg: #ffffff;
+// }
+
+// [data-theme="light"] .vscode-toggle-thumb {
+//   transform: translateX(0);
+// }
+
+// [data-theme="light"] .vscode-toggle-thumb .sun {
+//   opacity: 1;
+// }
+
+// [data-theme="dark"] {
+//   --toggle-track-bg: #3a3a3a;
+//   --toggle-thumb-bg: #1e1e1e;
+// }
+
+// [data-theme="dark"] .vscode-toggle-thumb {
+//   transform: translateX(24px);
+// }
+
+// [data-theme="dark"] .vscode-toggle-thumb .moon {
+//   opacity: 1;
+// }
+
+/* ---------------------------------------------------------
+   Katex
+--------------------------------------------------------- */
+
+/* Katex Stylesheet Trouble Shouting: refer to body in the index.html*/
+.katex-version {
+  display: none;
+}
+
+.katex-version::after {
+  content: "0.10.2 or earlier";
+}
+
+/* Katex CSS customization: refer to https://katex.org/docs/issues*/
+.katex-display {
+  overflow: auto hidden
+}
+
+.katex-display>.katex {
+  white-space: normal
+}
+
+/* Add space between broken lines: */
+.katex-display>.base {
+  margin: 0.25em 0
+}
+
+/* Compensate by reducing space around display math */
+.katex-display {
+  margin: 0.5em 0;
+}
+
+.katex {
+  font-size: 1.1em;
+}
+
+
+/* ---------------------------------------------
+   LEFT-SIDE COLLAPSIBLE SIDEBAR
+--------------------------------------------- */
+
+.dv-artifacts-panel {
+  position: fixed;
+  top: 120px; //0px;
+  // right: 24px;
+  left: 5%;
+  width: 350px;
+  // height: auto;
+  max-height: 70vh;
+  padding-top: 25px;
+  // background: var(--ap-hover);
+  background: var(--ap-bg);
+  border: 3px solid var(--ap-border);
+  // border-right: 5px solid var(--ap-border);
+  border-radius: 8px;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.25);
+  overflow-y: auto;
+  font-size: 13px;
+  line-height: 1.4;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1000;
+
+  &.theme-enter {
+    transition:
+      opacity 0.25s ease;
+  }
+
+  &.collapsed {
+
+    width: 50px;
+    left: 100px;
+    transform: translateX(-100%);
+  }
+
+  &.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+}
+
+/* Collapse toggle button */
+.dv-artifacts-panel-toggle {
+  position: fixed;
+  // top: 12px;
+  // left: 12px;
+  width: auto; //50px;
+  height: auto; //28px;
+  color: var(--ap-fg);
+  border-radius: 4px;
+  background: var(--ap-bg);
+  border: 1px solid var(--ap-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1000;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: var(--ap-hover);
+  }
+}
+
+.chevron {
+  // position: fixed;
+  z-index: 2000;
+  background: red; //var(--ap-color);
+
+  &:hover {
+    scale: 2.0;
+    background: red; //var(--ap-hover);
+  }
+}
+
+// .dv-artifacts-hover {
+//   background: var(--ap-hover);
+// }
+
+// .dv-artifacts-chevron {
+//   background: red;
+//   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+// }
+
+//
+// .dv-artifacts-dv-artifacts-chevron {
+//   transform: rotate(180deg);
+// }
+
+
+
+
+/* ---------------------------------------------
+   Debug Overlay Root
+--------------------------------------------- */
+
+// .ulde-debug-overlay-content {
+//   font-family: system-ui, sans-serif;
+//   padding: 0;
+//   margin: 0;
+//   color: var(--ap-fg);
+//   background: var(--ap-bg);
+//   height: 100%;
+//   overflow-y: auto;
+// }
+
+.dv-debugoverlay-panel {
+  position: fixed;
+  top: 120px;
+  left: 40%; //20px;
+  width: 350px;
+  // height: auto;
+  height: 70vh;
+  overflow-y: auto;
+  background: var(--ap-bg);
+  border: 3px solid var(--ap-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  font-size: 13px;
+  line-height: 1.4;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1000;
+  transition: opacity 0.25s ease;
+
+  &.theme-enter {
+    transition:
+      opacity 0.25s ease;
+  }
+
+  &.collapsed {
+
+    width: 50px;
+    left: 100px;
+    transform: translateX(-100%);
+  }
+  
+  &.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+/* ---------------------------------------------------------
+   Mermaid Debug Panel (Hidden by Default)
+--------------------------------------------------------- */
+
+.dv-mermaid-debug-panel {
+  position: fixed;
+  top: 120px;
+  // bottom: 60%;
+  right: 50px;
+  width: 320px;
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--bg-color); //rgba(0, 0, 0, 0.75);
+  color: var(--text-color); // #fff;
+  font-size: 12px;
+  padding: 8px;
+  padding: 8px;
+  border-radius: 6px;
+  border: solid 5px var(--ap-border);
+  border-radius: 8px;
+  z-index: 1000; //999999;
+  opacity: 0;
+  white-space: pre-wrap;
+  font-family: monospace;
+
+  // opacity: 0.8;
+  &.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+}
+
+.dv-mermaid-debug-panel header {
+  position: relative;
+  display: block;
+  text-align: center;
+  background: var(--bg-color);
+  font-size: 13px;
+  font-weight: bolder;
+  border-bottom: solid 2px var(--ap-border);
+  margin: 0.5rem;
+}
