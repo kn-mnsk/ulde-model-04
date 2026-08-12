@@ -203,9 +203,8 @@ A smooth, low‑risk path:
 
 ---
 
-# 2. Define the unified lifecycle diagram**
+# 2. Define the unified lifecycle diagram
 
-Excellent — starting with **Option A: the Unified Lifecycle Diagram** is absolutely the right move.  
 This is the backbone of your entire documentation system + ULDE integration, and once we lock this down, every plugin, overlay, and rendering pipeline will fall neatly into place.
 
 Because you thrive on **explicit, layered, visual documentation**, I’ll give you a clean, modular, contributor‑friendly lifecycle model that can be turned into:
@@ -410,7 +409,7 @@ This is the **canonical sequence** for your system.
 
 ---
 
-# 3. Turning the unified lifecycle into full visual diagrams** 
+# 3. Turning the unified lifecycle into full visual diagrams 
 
 - a **sequence diagram**  
 - a **timeline diagram**  
