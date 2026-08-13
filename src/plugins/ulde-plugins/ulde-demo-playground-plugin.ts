@@ -1,4 +1,4 @@
-// src/plugins/ulde-plugins/ulde-demo-plugins.ts
+// src/plugins/ulde-plugins/ulde-demo-playground-plugins.ts
 
 
 import { DocsPlugin } from "../../core/ulde/ulde-plugin-registry.service";

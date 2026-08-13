@@ -1,1 +1,60 @@
+<!-- src/core/ulde/ulde-overlay/ulde-overlay.html -->
+
 <p>ulde-overlay works!</p>
+
+<div class="ulde-overlay" [class.hidden]="!visible">
+  <!-- Phase Timeline -->
+  <section class="phase-timeline">
+    <div class="phase" *ngFor="let p of phases()" [style.flex]="p.duration"
+      [class.warn]="p.duration > thresholds.phaseWarn" [class.error]="p.duration > thresholds.phaseError"
+      (click)="filterByPhase(p.name)">
+      <span class="label">{{ p.name }}</span>
+      <span class="duration">{{ p.duration | number:'1.0-1' }}ms</span>
+    </div>
+  </section>
+
+  <!-- Plugin Timings -->
+  <section class="plugin-timings">
+    <h3>Plugin Timings</h3>
+    <div class="plugin-row" *ngFor="let t of filteredPluginTimings()" (click)="highlightPlugin(t.pluginName)">
+      <span class="plugin">{{ t.pluginName }}</span>
+      <span class="hook">{{ t.hookName }}</span>
+      <span class="phase">{{ t.phase }}</span>
+      <span class="duration">{{ t.duration | number:'1.0-1' }}ms</span>
+    </div>
+  </section>
+
+  <!-- Frame Sparkline -->
+  <section class="sparkline">
+    <svg width="100%" height="40">
+      <polyline [attr.points]="sparklinePoints()" class="sparkline-line"></polyline>
+    </svg>
+  </section>
+
+  <!-- Diagnostics -->
+  <section class="diagnostics">
+    <h3>Diagnostics</h3>
+    <div class="diag-row" *ngFor="let d of diagnostics()">
+      <span class="level" [class.warn]="d.level === 'warn'" [class.error]="d.level === 'error'">
+        {{ d.level }}
+      </span>
+      <span class="message">{{ d.message }}</span>
+    </div>
+  </section>
+
+  <!-- Controls -->
+  <section class="controls">
+    <button (click)="toggle()">Toggle Overlay</button>
+    <button (click)="pin()">Pin</button>
+    <input type="range" min="0.2" max="1" step="0.1" [(ngModel)]="opacity" />
+  </section>
+
+  <section class="timeline-panel">
+    <!-- use debug.buildTimeline() -->
+  </section>
+
+  <section class="heatmap-panel">
+    <!-- use debug.buildHeatmap() -->
+  </section>
+
+</div>

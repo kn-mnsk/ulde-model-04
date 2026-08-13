@@ -11,6 +11,7 @@ export class LayoutEngineService {
   prepare(pageId: string) {
     /* choose layout, gather metadata */
   }
+  
   render(astOrHtml: any): string | SafeHtml {
     /* apply layout */
 

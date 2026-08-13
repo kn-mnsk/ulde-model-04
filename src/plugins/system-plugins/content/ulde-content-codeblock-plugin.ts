@@ -7,16 +7,16 @@ export const CodeBlockEnhancer: DocsPlugin = {
   description: "Enhances fenced code blocks with metadata",
   hooks: {
     async onPageLoad(ctx) {
-      ctx.rawContent = ctx.rawContent.replace(/```(\w+)/g, (m, lang) => {
+      ctx.rawContent = ctx.rawContent.replace(/```(\w+)/g, ((m: any, lang: any) => {
         return `\`\`\`${lang} data-lang="${lang}"`;
-      });
+      }));
     },
 
     async onBeforeRender(ctx) {
       ctx.html = ctx.html.replace(
         /<pre><code class="language-(\w+)">/g,
-        (m, lang) => `<pre data-lang="${lang}"><code class="language-${lang}">`
-      );
+        ((m: any, lang: any) => `<pre data-lang="${lang}"><code class="language-${lang}">`
+      ));
     }
   }
 };

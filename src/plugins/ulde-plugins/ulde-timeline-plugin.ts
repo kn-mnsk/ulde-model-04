@@ -1,4 +1,4 @@
-// src/plugins/ulde-plugins/ulde-timeline-plugins.ts
+// src/plugins/ulde-plugins/ulde-timeline-plugin.ts
 
 import { DocsPlugin } from "../../core/ulde/ulde-plugin-registry.service";
 

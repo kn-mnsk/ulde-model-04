@@ -1,4 +1,4 @@
-// src/plugins/system-plugins/navigation/ulde-navigation-plugins.ts
+// src/plugins/system-plugins/navigation/ulde-navigation-Breadcrumbs-plugins.ts
 
 import { DocsPlugin } from "../../../core/ulde/ulde-plugin-registry.service";
 

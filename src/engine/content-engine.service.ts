@@ -12,12 +12,12 @@ export class ContentEngineService {
 
   title = "ContentEngineService";
 
-  async load(docId: string) {
+  async load(pageId: string): Promise<string | undefined> {
     /* existing loader */
 
-    console.log(`Log: ${this.title} load \nid=`, docId);
+    console.log(`Log: ${this.title} load \nid=`, pageId);
 
-    const url = `assets/${docId}.md`;
+    const url = `assets/${pageId}.md`;
 
     try {
       const response = await fetch(url);
@@ -28,19 +28,21 @@ export class ContentEngineService {
         throw new Error(`Invalid URL: ${url}`);
       }
 
-      const markdown = await response.text();
-      await this.ulde.renderMarkdown(markdown);
+      const raw = await response.text();
+
+      return raw;
+
     } catch (err) {
       console.error('${component} loadAndRender error:', err);
+      return undefined;
     }
 
-
-
-
   }
-  transform(docId: string) {
+  transform(docId: string): Promise<any> {
     /* existing parser */
 
+
+    return new Promise<any>(() => { });
 
   }
 }
