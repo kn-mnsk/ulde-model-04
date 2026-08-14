@@ -2,13 +2,7 @@
 import { Injectable } from '@angular/core';
 import { ULDEOverlayService } from './ulde-overlay/ulde-overlay.service';
 import { ULDEPluginRegistryService } from './ulde-plugin-registry.service';
-
-export type ULDEPhaseName =
-  | 'init'
-  | 'load'
-  | 'render'
-  | 'hydrate'
-  | 'afterRender';
+import { ULDELifecycleName } from '../types/ulde.types';
 
 @Injectable({ providedIn: 'root' })
 export class ULDELifecycleService {
@@ -20,38 +14,38 @@ export class ULDELifecycleService {
   /**
    * Start a lifecycle phase.
    */
-  startPhase(name: ULDEPhaseName) {
-    this.overlay.startPhase(name);
+  startPhase(lifecycleName: ULDELifecycleName) {
+    this.overlay.startPhase(lifecycleName);
   }
 
   /**
    * End a lifecycle phase.
    */
-  endPhase(name: ULDEPhaseName) {
-    this.overlay.endPhase(name);
+  endPhase(lifecycleName: ULDELifecycleName) {
+    this.overlay.endPhase(lifecycleName);
   }
 
   /**
    * Run a lifecycle phase with plugin hooks.
    */
   async runPhase(
-    name: ULDEPhaseName,
+    lifecycleName: ULDELifecycleName,
     hookName?: keyof ULDEPluginRegistryService['hookMap'],
     ctx?: any
   ) {
     try {
-      this.startPhase(name);
+      this.startPhase(lifecycleName);
 
       if (hookName) {
         await this.plugins.run(hookName, ctx);
       }
 
-      this.endPhase(name);
+      this.endPhase(lifecycleName);
     } catch (err) {
       this.overlay.addDiagnostic({
         level: 'error',
-        message: `Error in phase "${name}": ${String(err)}`,
-        phase: name
+        message: `Error in phase "${lifecycleName}": ${String(err)}`,
+        lifecycleName: lifecycleName
       });
     }
   }

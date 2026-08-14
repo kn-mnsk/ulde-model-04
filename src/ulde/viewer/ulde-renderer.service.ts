@@ -2,7 +2,7 @@
 
 import { Injectable, ElementRef } from '@angular/core';
 import { createUldeRenderer } from './ulde-renderer-api';
-import type {UldeRendererHandle, UldeRendererConfig, UldeRendererEvents, UldeRendererState } from './ulde-renderer-api';
+import type { UldeRendererHandle, UldeRendererConfig, UldeRendererEvents, UldeRendererState } from './ulde-renderer-api';
 
 @Injectable({ providedIn: 'root' })
 export class UldeRendererService {

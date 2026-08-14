@@ -2,7 +2,7 @@
 
 import { inject, Injectable } from '@angular/core';
 
-import { navigate } from '../app/global.utils/global.utils';
+import { navigate } from '../../app/global.utils/global.utils';
 import { Router } from '@angular/router';
 
 @Injectable({

@@ -4,7 +4,7 @@ I’m giving you both artifacts in clean Markdown, with **Guided Links** embedde
 
 ---
 
-# **ULDE README.md**
+# ULDE README.md
 
 ```md
 # Unified Lifecycle‑Driven Engine (ULDE)
@@ -26,7 +26,7 @@ ULDE is the core subsystem that powers lifecycle management, plugin execution, a
 
 ## 📦 Project Structure
 
-```
+```Code
 src/
   core/
     ulde/
@@ -160,11 +160,9 @@ Contributions follow the ULDE plugin model.
 See:  
 - Plugin Examples
 
-```
-
 ---
 
-# **ULDE Architecture Diagram (Mermaid)**
+# ULDE Architecture Diagram (Mermaid)
 
 Below is a full architecture diagram showing:
 
@@ -230,9 +228,6 @@ flowchart TD
 ```
 
 ---
-
-
-
 
 
 If you want, I can also generate:

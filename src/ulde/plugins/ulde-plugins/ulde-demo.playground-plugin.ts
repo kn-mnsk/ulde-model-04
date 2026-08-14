@@ -1,7 +1,7 @@
 // src/plugins/ulde-plugins/ulde-demo-playground-plugins.ts
 
 
-import { DocsPlugin } from "../../core/ulde/ulde-plugin-registry.service";
+import { DocsPlugin } from "../../core/ulde-plugin-registry.service";
 
 export const PlaygroundInjector: DocsPlugin = {
   name: "demo.playground",

@@ -1,12 +1,12 @@
 // src/engine/docs-engine.service.ts
 
 import { Injectable } from '@angular/core';
-import { ULDELifecycleService } from '../core/ulde/ulde-lifecycle.service';
+import { ULDELifecycleService } from '../core/ulde-lifecycle.service';
 import { ContentEngineService } from './content-engine.service';
 import { LayoutEngineService } from './layout-engine.service';
 import { InteractiveEngineService } from './interactive-engine.service';
-import { ULDEPluginRegistryService } from '../core/ulde/ulde-plugin-registry.service';
-import { ULDERuntimeService } from '../core/ulde/ulde-runtime.service';
+import { ULDEPluginRegistryService } from '../core/ulde-plugin-registry.service';
+import { ULDERuntimeService } from '../core/ulde-runtime.service';
 
 @Injectable({
   providedIn: 'root',

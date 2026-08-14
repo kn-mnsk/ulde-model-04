@@ -39,7 +39,7 @@ export const routes: Routes = [
   {
     path: 'viewer-demo',
     loadComponent: () =>
-      import('./ulde-viewer/ulde-viewer')
+      import('../ulde/viewer/ulde-viewer')
         .then(m => m.UldeViewer)
   },
   {

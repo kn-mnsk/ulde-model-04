@@ -1,33 +1,5 @@
 import { Injectable, signal, computed } from '@angular/core';
-import { ULDEPhaseName } from '../ulde-lifecycle.service';
-
-export interface ULDEPhase {
-  name: ULDEPhaseName;
-  startTime: number;
-  endTime: number;
-  duration: number;
-}
-
-export interface ULDEPluginTiming {
-  pluginName: string;
-  hookName: string;
-  phase: string;
-  duration: number;
-}
-
-export interface ULDEFrame {
-  id: string;
-  timestamp: number;
-  phases: ULDEPhase[];
-  pluginTimings: ULDEPluginTiming[];
-}
-
-export interface ULDEDiagnostic {
-  level: 'info' | 'warn' | 'error';
-  message: string;
-  phase?: string;
-  pluginName?: string;
-}
+import { ULDEPhase, ULDEPluginTiming, ULDEFrame, ULDEDiagnostic, ULDELifecyclePhase } from '../../types/ulde.types';
 
 @Injectable({ providedIn: 'root' })
 export class ULDEOverlayService {
@@ -72,7 +44,7 @@ export class ULDEOverlayService {
     const timings = this.pluginTimings();
 
     if (!phase) return timings;
-    return timings.filter(t => t.phase === phase.name);
+    return timings.filter(t => t.pluginPhase === phase.);
   });
 
   // Overlay control methods
@@ -89,9 +61,9 @@ export class ULDEOverlayService {
   }
 
   // Lifecycle event handlers
-  startPhase(name: ULDEPhaseName) {
+  startPhase(lifecycleName: ULDELifecyclePhase) {
     this.currentPhase.set({
-      name,
+      lifecyclePhase,
       startTime: performance.now(),
       endTime: 0,
       duration: 0,
@@ -100,7 +72,7 @@ export class ULDEOverlayService {
 
   endPhase(name: string) {
     const phase = this.currentPhase();
-    if (!phase || phase.name !== name) return;
+    if (!phase || phase.lifecyclePhase !== name) return;
 
     const end = performance.now();
     const duration = end - phase.startTime;

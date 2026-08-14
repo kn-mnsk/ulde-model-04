@@ -8,7 +8,7 @@
   },
   "include": [
     "src/**/*.ts",
-    "types/*.d.ts"
+    "src/ulde/types/*.d.ts"
   ],
   "exclude": [
     "src/**/*.spec.ts"

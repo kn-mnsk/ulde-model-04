@@ -1,6 +1,6 @@
 // src/plugins/system-plugins/navigation/ulde-navigation-Breadcrumbs-plugins.ts
 
-import { DocsPlugin } from "../../../core/ulde/ulde-plugin-registry.service";
+import { DocsPlugin } from "../../../core/ulde-plugin-registry.service";
 
 export const Breadcrumbs: DocsPlugin = {
   name: "nav.breadcrumbs",

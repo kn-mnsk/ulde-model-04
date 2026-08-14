@@ -8,10 +8,14 @@ import { SafeHtml } from '@angular/platform-browser';
 })
 export class LayoutEngineService {
 
-  prepare(pageId: string) {
+  prepare(pageId: string): any {
     /* choose layout, gather metadata */
+
+    const layout: any = {};
+
+    return layout;
   }
-  
+
   render(astOrHtml: any): string | SafeHtml {
     /* apply layout */
 

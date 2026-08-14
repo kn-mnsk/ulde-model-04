@@ -1,9 +1,9 @@
 // src/plugins/ulde-plugins/ulde-diagnostic-plugins.ts
 
-import { DocsPlugin } from "../../core/ulde/ulde-plugin-registry.service";
+import { DocsPlugin } from "../../core/ulde-plugin-registry.service";
 
 export const SlowPluginDetector: DocsPlugin = {
-  name: "ulde.slow-plugin-detector",
+  name: "diagnostic.slow-detector",
   description: "Warns when plugin execution exceeds threshold",
   hooks: {
     async onAfterRender(ctx) {

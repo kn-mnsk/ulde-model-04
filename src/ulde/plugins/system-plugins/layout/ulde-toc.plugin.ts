@@ -1,9 +1,10 @@
-// src/plugins/system-plugins/layout/ulde-layout-plugins.ts
+// src/plugins/system-plugins/layout/ulde-toc.plugins.ts
 
-import { DocsPlugin } from "../../../core/ulde/ulde-plugin-registry.service";
+import { ULDEPlugin } from "../../../types/ulde.types";
 
-export const AutoTOC: DocsPlugin = {
-  name: "layout.toc",
+export const AutoTOC: ULDEPlugin = {
+  pluginPhase: 'layout',
+  pluginName: "AutoTOC",
   description: "Generates a table of contents from headings",
   hooks: {
     async onBeforeRender(ctx) {

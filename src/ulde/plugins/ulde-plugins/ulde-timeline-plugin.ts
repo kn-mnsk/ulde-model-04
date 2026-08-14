@@ -1,10 +1,10 @@
 // src/plugins/ulde-plugins/ulde-timeline-plugin.ts
 
-import { DocsPlugin } from "../../core/ulde/ulde-plugin-registry.service";
+import { DocsPlugin } from "../../core/ulde-plugin-registry.service";
 
 
 export const TimelineProfiler: DocsPlugin = {
-  name: "ulde.timeline",
+  name: "timeline",
   description: "Logs ULDE phase durations to console",
   hooks: {
     onInit() {

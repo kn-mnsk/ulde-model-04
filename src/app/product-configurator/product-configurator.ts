@@ -13,7 +13,7 @@ You don’t need any of that here.
  */
 
 import { Component } from '@angular/core';
-import { UldeViewer } from '../ulde-viewer/ulde-viewer';
+import { UldeViewer } from '../../ulde/viewer/ulde-viewer';
 
 @Component({
   selector: 'product-configurator',

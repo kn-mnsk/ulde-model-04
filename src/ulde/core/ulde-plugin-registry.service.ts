@@ -1,45 +1,10 @@
 import { Injectable } from '@angular/core';
 import { ULDEOverlayService } from './ulde-overlay/ulde-overlay.service';
-import { ULDEPhaseName } from './ulde-lifecycle.service';
-import { SafeHtml } from '@angular/platform-browser';
-
-export interface DocsPlugin {
-  name: string;
-  version?: string;
-  description?: string;
-  enabled?: boolean;
-  hooks: PluginHooks;
-}
-
-export interface ULDEPageContext  {
-  pageId: string;
-  route: string;
-  frontmatter: Record<string, any>;
-  rawContent: string;
-}
-
-export interface ULDEPluginContext {
-  phase: ULDEPhaseName
-  pageId?: string;
-  rawContent?: string;
-  ast?: any;
-  html?: string | SafeHtml;
-  layout?: string;
-}
-
-export interface PluginHooks {
-  onInit?(): void | Promise<void>;
-  onPageLoad?(ctx: ULDEPluginContext): void | Promise<void>;
-  onBeforeRender?(ctx: ULDEPluginContext): void | Promise<void>;
-  onAfterRender?(ctx: ULDEPluginContext): void | Promise<void>;
-  onDestroy?(): void | Promise<void>;
-}
-
-
+import { ULDEPlugin, ULDEPluginHooks, ULDELifecyclePhase, ULDEPluginContext} from '../types/ulde.types';
 
 @Injectable({ providedIn: 'root' })
 export class ULDEPluginRegistryService {
-  private plugins: DocsPlugin[] = [];
+  private plugins: ULDEPlugin[] = [];
 
   /**
    * Hook map for lifecycle service convenience.
@@ -52,23 +17,23 @@ export class ULDEPluginRegistryService {
     onDestroy: 'onDestroy'
   } as const;
 
-  constructor(private overlay: ULDEOverlayService) {}
+  constructor(private overlay: ULDEOverlayService) { }
 
   /**
    * Register a plugin.
    */
-  register(plugin: DocsPlugin) {
+  register(plugin: ULDEPlugin) {
     if (!plugin.enabled && plugin.enabled !== undefined) return;
 
     this.plugins.push(plugin);
-    this.plugins.sort((a, b) => a.name.localeCompare(b.name)); // deterministic order
+    this.plugins.sort((a, b) => a.pluginTitle.localeCompare(b.pluginTitle)); // deterministic order
   }
 
   /**
    * Run a specific hook across all plugins.
    */
   async run(
-    hookName: keyof PluginHooks,
+    hookName: keyof ULDEPluginHooks,
     ctx: ULDEPluginContext
   ): Promise<void> {
     for (const plugin of this.plugins) {
@@ -82,17 +47,17 @@ export class ULDEPluginRegistryService {
       } catch (err) {
         this.overlay.addDiagnostic({
           level: 'error',
-          message: `Plugin "${plugin.name}" failed in hook "${hookName}": ${String(err)}`,
-          pluginName: plugin.name
+          message: `Plugin "${plugin.pluginTitle}" failed in hook "${hookName}": ${String(err)}`,
+          pluginTitle: plugin.pluginTitle
         });
       }
 
       const end = performance.now();
 
       this.overlay.recordPluginTiming({
-        pluginName: plugin.name,
+        pluginTitle: plugin.pluginTitle,
         hookName,
-        phase: ctx?.phase ?? 'unknown',
+        pluginPhase: ctx?.pluginPhase ?? 'unknown',
         duration: end - start
       });
     }
@@ -113,17 +78,17 @@ export class ULDEPluginRegistryService {
       } catch (err) {
         this.overlay.addDiagnostic({
           level: 'error',
-          message: `Plugin "${plugin.name}" failed in onDestroy: ${String(err)}`,
-          pluginName: plugin.name
+          message: `Plugin "${plugin.pluginTitle}" failed in onDestroy: ${String(err)}`,
+          pluginTitle: plugin.pluginTitle
         });
       }
 
       const end = performance.now();
 
       this.overlay.recordPluginTiming({
-        pluginName: plugin.name,
+        pluginTitle: plugin.pluginTitle,
         hookName: 'onDestroy',
-        phase: 'destroy',
+        pluginPhase: 'destroy',
         duration: end - start
       });
     }
