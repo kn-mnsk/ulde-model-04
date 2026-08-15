@@ -3,8 +3,8 @@
 import { ULDEPlugin } from "../../../types/ulde.types";
 
 export const FrontmatterNormalizer: ULDEPlugin = {
-  pluginPhase: 'content',
-  pluginName: "FrontmatterNormalizer",
+  pluginKind: 'content',
+  name: "FrontmatterNormalizer",
   description: "Normalizes frontmatter fields",
   hooks: {
     onPageLoad(ctx) {

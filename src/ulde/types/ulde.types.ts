@@ -1,6 +1,8 @@
-// src/ulde/types/ulde.types.ts
+// /src/ulde/types/ulde-types.ts
 
-import { SafeHtml } from '@angular/platform-browser';
+// ---------------------------------------------------------
+// ULDE Lifecycle Phases
+// ---------------------------------------------------------
 
 export type ULDELifecyclePhase =
   | 'init'
@@ -9,24 +11,53 @@ export type ULDELifecyclePhase =
   | 'hydrate'
   | 'afterRender';
 
+export interface ULDELifecyclePhaseTiming {
+  lifecyclePhase: ULDELifecyclePhase;
+  startTime: number;
+  endTime: number;
+  duration: number;
+}
+
+// ---------------------------------------------------------
+// ULDE Plugin Kinds
+// ---------------------------------------------------------
+
+export type ULDEPluginKind =
+  | 'content'
+  | 'layout'
+  | 'interactive'
+  | 'navigation'
+  | 'demo'
+  | 'ulde';
+
+// ---------------------------------------------------------
+// ULDE Plugin Definition
+// ---------------------------------------------------------
 
 export interface ULDEPlugin {
-  pluginPhase: ULDEPluginPhase,
-  pluginTitle: string;
+  pluginKind: ULDEPluginKind;
+  name: string;
   version?: string;
   description?: string;
   enabled?: boolean;
   hooks: ULDEPluginHooks;
 }
 
+// ---------------------------------------------------------
+// ULDE Plugin Hooks
+// ---------------------------------------------------------
 
 export interface ULDEPluginHooks {
   onInit?(): void | Promise<void>;
-  onPageLoad?(ctx: ULDEPluginContext): void | Promise<void>;
-  onBeforeRender?(ctx: ULDEPluginContext): void | Promise<void>;
-  onAfterRender?(ctx: ULDEPluginContext): void | Promise<void>;
+  onPageLoad?(ctx: ULDEPageContext): void | Promise<void>;
+  onBeforeRender?(ctx: ULDERenderContext): void | Promise<void>;
+  onAfterRender?(ctx: ULDERenderContext): void | Promise<void>;
   onDestroy?(): void | Promise<void>;
 }
+
+// ---------------------------------------------------------
+// ULDE Context Objects
+// ---------------------------------------------------------
 
 export interface ULDEPageContext {
   pageId: string;
@@ -35,44 +66,64 @@ export interface ULDEPageContext {
   rawContent: string;
 }
 
-export type ULDEPluginPhase = "content" | "layout" | "interactive" | "navigation" | "diagnostic" | 'destroy'
-
-export interface ULDEPluginContext {
-  lifecyclePhase: ULDELifecyclePhase
-  pluginPhase: ULDEPluginPhase,
-  pageId?: string;
-  rawContent?: string;
-  ast?: any;
-  htmlStr?: string;
-  html?: SafeHtml;
-  layout?: string;
+export interface ULDERenderContext {
+  pageId: string;
+  ast: any;
+  html: string;
+  layout: string;
 }
 
-
-export interface ULDEPhase {
-  lifecyclePhase: ULDELifecyclePhase;
-  startTime: number;
-  endTime: number;
-  duration: number;
-}
+// ---------------------------------------------------------
+// ULDE Plugin Timing
+// ---------------------------------------------------------
 
 export interface ULDEPluginTiming {
-  pluginTitle: string;
-  hookName: string;
-  pluginPhase: ULDEPluginPhase;
+  pluginName: string;
+  pluginKind: ULDEPluginKind;
+  hookName: keyof ULDEPluginHooks;
+  lifecyclePhase: ULDELifecyclePhase;
   duration: number;
 }
+
+// ---------------------------------------------------------
+// ULDE Frame
+// ---------------------------------------------------------
 
 export interface ULDEFrame {
   id: string;
   timestamp: number;
-  phases: ULDEPhase[];
+  phases: ULDELifecyclePhaseTiming[];
   pluginTimings: ULDEPluginTiming[];
 }
+
+// ---------------------------------------------------------
+// ULDE Diagnostics
+// ---------------------------------------------------------
 
 export interface ULDEDiagnostic {
   level: 'info' | 'warn' | 'error';
   message: string;
-  pluginPhase?: ULDEPluginPhase;
-  pluginTitle?: string;
+  lifecyclePhase?: ULDELifecyclePhase;
+  pluginName?: string;
 }
+
+// ---------------------------------------------------------
+// ULDE Debug Tools Types
+// ---------------------------------------------------------
+
+export interface ULDETimelinePoint {
+  frameId: string;
+  totalDuration: number;
+  phases: {
+    lifecyclePhase: ULDELifecyclePhase;
+    duration: number;
+  }[];
+}
+
+export interface ULDEHeatmapCell {
+  pluginName: string;
+  pluginKind: ULDEPluginKind;
+  hookName: keyof ULDEPluginHooks;
+  intensity: number; // normalized 0–1
+}
+

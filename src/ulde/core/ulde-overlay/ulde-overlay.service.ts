@@ -1,5 +1,13 @@
+// /src/ulde/core/ulde-overlay/ulde-overlay.service.ts
+
 import { Injectable, signal, computed } from '@angular/core';
-import { ULDEPhase, ULDEPluginTiming, ULDEFrame, ULDEDiagnostic, ULDELifecyclePhase } from '../../types/ulde.types';
+import {
+  ULDELifecyclePhaseTiming,
+  ULDEPluginTiming,
+  ULDEFrame,
+  ULDEDiagnostic,
+  ULDELifecyclePhase,
+} from '../../types/ulde.types';
 
 @Injectable({ providedIn: 'root' })
 export class ULDEOverlayService {
@@ -9,8 +17,8 @@ export class ULDEOverlayService {
   opacity = signal(1);
 
   // Lifecycle state
-  phases = signal<ULDEPhase[]>([]);
-  currentPhase = signal<ULDEPhase | null>(null);
+  phases = signal<ULDELifecyclePhaseTiming[]>([]);
+  currentPhase = signal<ULDELifecyclePhaseTiming | null>(null);
 
   // Plugin timings
   pluginTimings = signal<ULDEPluginTiming[]>([]);
@@ -34,17 +42,20 @@ export class ULDEOverlayService {
     if (!history.length) return '';
 
     return history
-      .map((f, i) => `${i * 10},${40 - Math.min(f.phases.reduce((a, p) => a + p.duration, 0), 40)}`)
+      .map((f, i) => {
+        const total = f.phases.reduce((a, p) => a + p.duration, 0);
+        return `${i * 10},${40 - Math.min(total, 40)}`;
+      })
       .join(' ');
   });
 
-  // Derived: filtered plugin timings by phase
+  // Derived: filtered plugin timings by lifecycle phase
   filteredPluginTimings = computed(() => {
     const phase = this.currentPhase();
     const timings = this.pluginTimings();
 
     if (!phase) return timings;
-    return timings.filter(t => t.pluginPhase === phase.);
+    return timings.filter(t => t.lifecyclePhase === phase.lifecyclePhase);
   });
 
   // Overlay control methods
@@ -61,7 +72,7 @@ export class ULDEOverlayService {
   }
 
   // Lifecycle event handlers
-  startPhase(lifecycleName: ULDELifecyclePhase) {
+  startPhase(lifecyclePhase: ULDELifecyclePhase) {
     this.currentPhase.set({
       lifecyclePhase,
       startTime: performance.now(),
@@ -70,14 +81,14 @@ export class ULDEOverlayService {
     });
   }
 
-  endPhase(name: string) {
+  endPhase(lifecyclePhase: ULDELifecyclePhase) {
     const phase = this.currentPhase();
-    if (!phase || phase.lifecyclePhase !== name) return;
+    if (!phase || phase.lifecyclePhase !== lifecyclePhase) return;
 
     const end = performance.now();
     const duration = end - phase.startTime;
 
-    const updatedPhase: ULDEPhase = {
+    const updatedPhase: ULDELifecyclePhaseTiming = {
       ...phase,
       endTime: end,
       duration,
@@ -114,3 +125,4 @@ export class ULDEOverlayService {
     this.diagnostics.update(list => [...list, diag]);
   }
 }
+

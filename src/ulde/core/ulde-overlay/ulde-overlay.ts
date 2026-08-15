@@ -1,31 +1,83 @@
-import { Component, signal, Signal, WritableSignal } from '@angular/core';
-import { ULDEPhaseName } from '../ulde-lifecycle.service';
-import { ULDEPhase, ULDEPluginTiming, ULDEFrame, ULDEDiagnostic, ULDEOverlayService } from './ulde-overlay.service';
+// /src/ulde/core/ulde-overlay/ulde-overlay.ts
+import { Component, ChangeDetectionStrategy } from '@angular/core';
+import {
+  ULDELifecyclePhaseTiming,
+  ULDEPluginTiming,
+  ULDEFrame,
+  ULDEDiagnostic
+} from '../../types/ulde.types';
+import { ULDEOverlayService } from './ulde-overlay.service';
 
 @Component({
-  selector: 'app-ulde-overlay',
-  imports: [],
+  selector: 'ulde-overlay',
   templateUrl: './ulde-overlay.html',
-  styleUrl: './ulde-overlay.scss',
+  styleUrls: ['./ulde-overlay.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class UldeOverlay {
+export class ULDEOverlayComponent {
+  // Declare fields (uninitialized)
+  phases!: typeof this.store.phases;
+  pluginTimings!: typeof this.store.pluginTimings;
+  frameHistory!: typeof this.store.frames;
+  diagnostics!: typeof this.store.diagnostics;
 
-  phases!: Signal<ULDEPhase[]>;
-  currentPhase!: Signal<ULDEPhase | null>;
-  pluginTimings!: Signal<ULDEPluginTiming[]>;
-  frames!: Signal<ULDEFrame[]>;
-  currentFrame!: Signal<ULDEFrame | null>;
-  diagnostics = signal<ULDEDiagnostic[]>([]);
+  currentPhase!: typeof this.store.currentPhase;
+  currentFrame!: typeof this.store.currentFrame;
 
-  constructor(
-    private store: ULDEOverlayService
-  ) {
-    this.phases = this.store.phases;
-    this.currentPhase = this.store.currentPhase;
-    this.pluginTimings = this.store.pluginTimings;
-    this.frames = this.store.frames;
-    this.diagnostics = this.store.diagnostics;
+  sparklinePoints!: typeof this.store.sparklinePoints;
+  filteredPluginTimings!: typeof this.store.filteredPluginTimings;
+
+  visible!: typeof this.store.visible;
+  pinned!: typeof this.store.pinned;
+  opacity!: typeof this.store.opacity;
+
+  thresholds!: typeof this.store.thresholds;
+
+  constructor(private store: ULDEOverlayService) {
+    // Assign AFTER DI is ready
+    this.phases = store.phases;
+    this.pluginTimings = store.pluginTimings;
+    this.frameHistory = store.frames;
+    this.diagnostics = store.diagnostics;
+
+    this.currentPhase = store.currentPhase;
+    this.currentFrame = store.currentFrame;
+
+    this.sparklinePoints = store.sparklinePoints;
+    this.filteredPluginTimings = store.filteredPluginTimings;
+
+    this.visible = store.visible;
+    this.pinned = store.pinned;
+    this.opacity = store.opacity;
+
+    this.thresholds = store.thresholds;
+
   }
 
+  // UI actions
+  toggleOverlay() {
+    this.store.toggle();
+  }
 
+  pinOverlay() {
+    this.store.pin();
+  }
+
+  setOverlayOpacity(value: number) {
+    this.store.setOpacity(value);
+  }
+
+  // Phase selection (for filtering plugin timings)
+  selectPhase(phase: ULDELifecyclePhaseTiming) {
+    this.store.currentPhase.set(phase);
+  }
+
+  clearPhaseSelection() {
+    this.store.currentPhase.set(null);
+  }
+
+  // Frame selection (for timeline/sparkline)
+  selectFrame(frame: ULDEFrame) {
+    this.store.currentFrame.set(frame);
+  }
 }

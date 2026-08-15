@@ -1,11 +1,11 @@
 // src/plugins/system-plugins/content/ulde-content-codeblock.plugins.ts
 
-import { ULDEPlugin } from "../../../types/ulde.types";
+import { ULDEPlugin, } from "../../../types/ulde.types";
 
 export const CodeBlockEnhancer: ULDEPlugin = {
-  pluginPhase: 'content',
-  pluginTitle: "CodeblockEnhancer",
-  description: "Enhances fenced code blocks with metadata",
+  pluginKind: 'content',
+  name: "CodeblockEnhancer",
+  description: "Markdown Code Block Enhancer: Enhances fenced code blocks with metadata",
   hooks: {
     async onPageLoad(ctx) {
       if (ctx.rawContent === undefined) return;

@@ -1,32 +1,39 @@
+// /src/ulde/core/ulde-plugin-registry.service.ts
 import { Injectable } from '@angular/core';
+import {
+  ULDEPlugin,
+  ULDEPluginHooks,
+  ULDEPluginTiming,
+  ULDEPluginKind,
+  ULDELifecyclePhase,
+} from '../types/ulde.types';
 import { ULDEOverlayService } from './ulde-overlay/ulde-overlay.service';
-import { ULDEPlugin, ULDEPluginHooks, ULDELifecyclePhase, ULDEPluginContext} from '../types/ulde.types';
 
 @Injectable({ providedIn: 'root' })
-export class ULDEPluginRegistryService {
+export class ULDEPluginRegistry {
   private plugins: ULDEPlugin[] = [];
 
   /**
    * Hook map for lifecycle service convenience.
    */
-  hookMap = {
+  hookMap: { [K in keyof ULDEPluginHooks]: K } = {
     onInit: 'onInit',
     onPageLoad: 'onPageLoad',
     onBeforeRender: 'onBeforeRender',
     onAfterRender: 'onAfterRender',
-    onDestroy: 'onDestroy'
-  } as const;
+    onDestroy: 'onDestroy',
+  };
 
-  constructor(private overlay: ULDEOverlayService) { }
+  constructor(private overlay: ULDEOverlayService) {}
 
   /**
    * Register a plugin.
    */
   register(plugin: ULDEPlugin) {
-    if (!plugin.enabled && plugin.enabled !== undefined) return;
+    if (plugin.enabled === false) return;
 
     this.plugins.push(plugin);
-    this.plugins.sort((a, b) => a.pluginTitle.localeCompare(b.pluginTitle)); // deterministic order
+    this.plugins.sort((a, b) => a.name.localeCompare(b.name)); // deterministic order
   }
 
   /**
@@ -34,7 +41,7 @@ export class ULDEPluginRegistryService {
    */
   async run(
     hookName: keyof ULDEPluginHooks,
-    ctx: ULDEPluginContext
+    ctx?: { lifecyclePhase?: ULDELifecyclePhase } & Record<string, any>,
   ): Promise<void> {
     for (const plugin of this.plugins) {
       const hook = plugin.hooks[hookName];
@@ -43,23 +50,27 @@ export class ULDEPluginRegistryService {
       const start = performance.now();
 
       try {
-        await hook(ctx);
+        await hook(ctx as any);
       } catch (err) {
         this.overlay.addDiagnostic({
           level: 'error',
-          message: `Plugin "${plugin.pluginTitle}" failed in hook "${hookName}": ${String(err)}`,
-          pluginTitle: plugin.pluginTitle
+          message: `Plugin "${plugin.name}" failed in hook "${hookName}": ${String(err)}`,
+          pluginName: plugin.name,
+          lifecyclePhase: ctx?.lifecyclePhase,
         });
       }
 
       const end = performance.now();
 
-      this.overlay.recordPluginTiming({
-        pluginTitle: plugin.pluginTitle,
+      const timing: ULDEPluginTiming = {
+        pluginName: plugin.name,
+        pluginKind: plugin.pluginKind as ULDEPluginKind,
         hookName,
-        pluginPhase: ctx?.pluginPhase ?? 'unknown',
-        duration: end - start
-      });
+        lifecyclePhase: ctx?.lifecyclePhase ?? 'init',
+        duration: end - start,
+      };
+
+      this.overlay.recordPluginTiming(timing);
     }
   }
 
@@ -78,18 +89,19 @@ export class ULDEPluginRegistryService {
       } catch (err) {
         this.overlay.addDiagnostic({
           level: 'error',
-          message: `Plugin "${plugin.pluginTitle}" failed in onDestroy: ${String(err)}`,
-          pluginTitle: plugin.pluginTitle
+          message: `Plugin "${plugin.name}" failed in onDestroy: ${String(err)}`,
+          pluginName: plugin.name,
         });
       }
 
       const end = performance.now();
 
       this.overlay.recordPluginTiming({
-        pluginTitle: plugin.pluginTitle,
+        pluginName: plugin.name,
+        pluginKind: plugin.pluginKind,
         hookName: 'onDestroy',
-        pluginPhase: 'destroy',
-        duration: end - start
+        lifecyclePhase: 'afterRender',
+        duration: end - start,
       });
     }
   }

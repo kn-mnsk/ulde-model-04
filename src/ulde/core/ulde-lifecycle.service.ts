@@ -1,51 +1,51 @@
-// src/core/ulde/ulde-lifecycle.service.ts
+// src/ulde/core/ulde-lifecycle.service.ts
 import { Injectable } from '@angular/core';
+import {
+  ULDELifecyclePhase,
+  ULDEPageContext,
+  ULDERenderContext,
+} from '../types/ulde.types';
 import { ULDEOverlayService } from './ulde-overlay/ulde-overlay.service';
-import { ULDEPluginRegistryService } from './ulde-plugin-registry.service';
-import { ULDELifecycleName } from '../types/ulde.types';
+import { ULDEPluginRegistry } from './ulde-plugin-registry.service';
+import { ULDERuntimeService } from './ulde-runtime.service';
 
 @Injectable({ providedIn: 'root' })
 export class ULDELifecycleService {
   constructor(
     private overlay: ULDEOverlayService,
-    private plugins: ULDEPluginRegistryService
-  ) { }
+    private plugins: ULDEPluginRegistry,
+    private runtime: ULDERuntimeService,
+  ) {}
 
-  /**
-   * Start a lifecycle phase.
-   */
-  startPhase(lifecycleName: ULDELifecycleName) {
-    this.overlay.startPhase(lifecycleName);
+  startPhase(lifecyclePhase: ULDELifecyclePhase) {
+    this.overlay.startPhase(lifecyclePhase);
   }
 
-  /**
-   * End a lifecycle phase.
-   */
-  endPhase(lifecycleName: ULDELifecycleName) {
-    this.overlay.endPhase(lifecycleName);
+  endPhase(lifecyclePhase: ULDELifecyclePhase) {
+    this.overlay.endPhase(lifecyclePhase);
   }
 
-  /**
-   * Run a lifecycle phase with plugin hooks.
-   */
   async runPhase(
-    lifecycleName: ULDELifecycleName,
-    hookName?: keyof ULDEPluginRegistryService['hookMap'],
-    ctx?: any
+    lifecyclePhase: ULDELifecyclePhase,
+    hookName?: keyof ULDEPluginRegistry['hookMap'],
+    ctx?: ULDEPageContext | ULDERenderContext | Record<string, any>,
   ) {
     try {
-      this.startPhase(lifecycleName);
+      this.startPhase(lifecyclePhase);
 
       if (hookName) {
-        await this.plugins.run(hookName, ctx);
+        await this.plugins.run(hookName, {
+          ...(ctx || {}),
+          lifecyclePhase,
+        });
       }
 
-      this.endPhase(lifecycleName);
+      this.endPhase(lifecyclePhase);
     } catch (err) {
       this.overlay.addDiagnostic({
         level: 'error',
-        message: `Error in phase "${lifecycleName}": ${String(err)}`,
-        lifecycleName: lifecycleName
+        message: `Error in phase "${lifecyclePhase}": ${String(err)}`,
+        lifecyclePhase,
       });
     }
   }
@@ -53,22 +53,26 @@ export class ULDELifecycleService {
   /**
    * Full lifecycle execution for a page.
    */
-  async executeLifecycle(pageId: string, contexts: any) {
+  async executeLifecycle(
+    pageContext: ULDEPageContext,
+    renderContextBuilder: () => Promise<ULDERenderContext>,
+  ) {
     // INIT
     await this.runPhase('init', 'onInit');
 
     // LOAD
-    await this.runPhase('load', 'onPageLoad', contexts.load);
+    await this.runPhase('load', 'onPageLoad', pageContext);
 
     // RENDER
-    await this.runPhase('render', 'onBeforeRender', contexts.render);
+    const renderContext = await renderContextBuilder();
+    await this.runPhase('render', 'onBeforeRender', renderContext);
 
     // HYDRATE
-    await this.runPhase('hydrate', 'onAfterRender', contexts.hydrate);
+    await this.runPhase('hydrate', 'onAfterRender', renderContext);
 
     // AFTER RENDER
     this.startPhase('afterRender');
-    this.overlay.finalizeFrame();
+    this.runtime.finalizeFrameAndAnalyze();
     this.endPhase('afterRender');
   }
 }

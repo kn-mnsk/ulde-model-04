@@ -1,9 +1,7 @@
-import type { UldePlugin } from '../app/ulde/core/registry/ulde-plugin-api';
-import { UldePhase } from '../app/ulde/core/lifecycle/ulde-phases';
-import type { UldePhaseContext } from '../app/ulde/core/lifecycle/ulde-phase-context';
 
+import { ULDEPlugin, ULDELifecyclePhase, ULDERenderContext, ULDEPageContext } from '../../../types/ulde.types';
 
-export function createDummyTestPlugin(): UldePlugin {
+export function createDummyTestPlugin(): ULDEPlugin {
   return {
     meta: {
       name: 'dummy-test',
@@ -12,7 +10,7 @@ export function createDummyTestPlugin(): UldePlugin {
     },
     phase: UldePhase.CONTENT,
 
-    run(ctx: UldePhaseContext) {
+    run(ctx: ULDERenderContext) {
       const { artifacts } = ctx;
 
       // Try typing: artifacts.
