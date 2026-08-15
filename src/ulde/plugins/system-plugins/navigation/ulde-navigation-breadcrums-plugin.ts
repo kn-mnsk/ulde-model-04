@@ -1,9 +1,10 @@
 // src/plugins/system-plugins/navigation/ulde-navigation-Breadcrumbs-plugins.ts
 
-import { DocsPlugin } from "../../../core/ulde-plugin-registry.service";
+import { ULDEPlugin } from "../../../types/ulde.types";
 
-export const Breadcrumbs: DocsPlugin = {
-  name: "nav.breadcrumbs",
+export const Breadcrumbs: ULDEPlugin = {
+  pluginKind: 'navigation',
+  name: "Breadcrumbs",
   description: "Generates breadcrumb navigation from route",
   hooks: {
     onPageLoad(ctx) {

@@ -1,10 +1,10 @@
-// src/plugins/ulde-plugins/ulde-demo-playground-plugins.ts
+// src/plugins/system-plugins/demo/ulde-playground-Injector.plugins.ts
 
+import { ULDEPlugin } from "../../../types/ulde.types";
 
-import { DocsPlugin } from "../../core/ulde-plugin-registry.service";
-
-export const PlaygroundInjector: DocsPlugin = {
-  name: "demo.playground",
+export const PlaygroundInjector: ULDEPlugin = {
+  pluginKind: 'demo',
+  name: "PlaygroundInjector",
   description: "Hydrates <demo-playground> blocks into live Angular components",
   hooks: {
     async onAfterRender(ctx) {

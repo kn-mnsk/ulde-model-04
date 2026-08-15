@@ -3,8 +3,8 @@
 import { ULDEPlugin } from "../../../types/ulde.types";
 
 export const AutoTOC: ULDEPlugin = {
-  pluginPhase: 'layout',
-  pluginName: "AutoTOC",
+  pluginKind: 'layout',
+  name: "AutoTOC",
   description: "Generates a table of contents from headings",
   hooks: {
     async onBeforeRender(ctx) {

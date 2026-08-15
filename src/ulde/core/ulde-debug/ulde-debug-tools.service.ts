@@ -1,21 +1,10 @@
 import { Injectable } from '@angular/core';
 import { ULDEOverlayService } from '../ulde-overlay/ulde-overlay.service';
-
-export interface ULDETimelinePoint {
-  frameId: string;
-  totalDuration: number;
-  phases: { name: string; duration: number }[];
-}
-
-export interface ULDEHeatmapCell {
-  pluginName: string;
-  hookName: string;
-  intensity: number; // 0–1 normalized
-}
+import { ULDETimelinePoint, ULDEHeatmapCell } from '../../types/ulde.types';
 
 @Injectable({ providedIn: 'root' })
 export class ULDEDebugToolsService {
-  constructor(private overlay: ULDEOverlayService) {}
+  constructor(private overlay: ULDEOverlayService) { }
 
   /**
    * Build a timeline of frames with total durations.
@@ -28,7 +17,7 @@ export class ULDEDebugToolsService {
         frameId: frame.id,
         totalDuration: total,
         phases: frame.phases.map(p => ({
-          name: p.name,
+          lifecycleName: p.lifecyclePhase,
           duration: p.duration
         }))
       };
@@ -48,7 +37,7 @@ export class ULDEDebugToolsService {
     const max = Math.max(...timings.map(t => t.duration));
 
     return timings.map(t => ({
-      pluginName: t.pluginName,
+      pluginPhaseName: t.pluginPhaseName,
       hookName: t.hookName,
       intensity: t.duration / max // normalized 0–1
     }));

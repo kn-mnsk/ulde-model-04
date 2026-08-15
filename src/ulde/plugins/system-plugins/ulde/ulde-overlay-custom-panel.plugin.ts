@@ -1,9 +1,10 @@
-// src/plugins/ulde-plugins/ulde-overlay-plugins.ts
+// src/plugins/system-plugins/ulde/ulde-overlay-custom-panel.plugins.ts
 
-import { DocsPlugin } from "../../core/ulde-plugin-registry.service";
+import { ULDEPlugin } from "../../../types/ulde.types";
 
-export const OverlayCustomPanel: DocsPlugin = {
-  name: "overlay.custom-panel",
+export const OverlayCustomPanel: ULDEPlugin = {
+  pluginKind: 'ulde',
+  name: "OverlayCustomPanel",
   description: "Adds a custom panel to the ULDE overlay",
   hooks: {
     onInit() {

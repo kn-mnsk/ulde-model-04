@@ -68,7 +68,7 @@ The registry makes this possible.
 
 Each plugin exports a UldeOwnershipContributor:
 
-- pluginName
+- pluginPhaseName
 - contributeOwnership()
 
 The registry collects these.
@@ -98,7 +98,7 @@ This is the canonical artifact:
 Each plugin exports a contributor object:
 ```ts
 export const TocPluginOwnership = {
-  pluginName: "TOCPlugin",
+  pluginPhaseName: "TOCPlugin",
   contributeOwnership() {
     return {
       "toc": { … },

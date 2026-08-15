@@ -25,7 +25,7 @@ Each plugin exports a UldeOwnershipContributor:
 
 ```ts
 export const TocPluginOwnership = {
-  pluginName: "TOCPlugin",
+  pluginPhaseName: "TOCPlugin",
   contributeOwnership() {
     return {
       "toc": {

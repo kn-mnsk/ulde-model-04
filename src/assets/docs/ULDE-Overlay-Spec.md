@@ -23,7 +23,7 @@ Below is a concise, implementation‑ready specification for the **ULDE overlay*
   - `endTime: number`
   - `duration: number`
 - **PluginTiming**
-  - `pluginName: string`
+  - `pluginPhaseName: string`
   - `hookName: keyof PluginHooks`
   - `phase: Phase["name"]`
   - `duration: number`
@@ -36,7 +36,7 @@ Below is a concise, implementation‑ready specification for the **ULDE overlay*
   - `level: "info" | "warn" | "error"`
   - `message: string`
   - `phase?: Phase["name"]`
-  - `pluginName?: string`
+  - `pluginPhaseName?: string`
 
 Overlay subscribes to a **store** (signals/observables) that emits:
 
@@ -61,7 +61,7 @@ Overlay subscribes to a **store** (signals/observables) that emits:
 **Middle: Plugin timing panel**
 
 - List or bar chart:
-  - `pluginName`
+  - `pluginPhaseName`
   - `hookName`
   - `phase`
   - `duration`
@@ -179,9 +179,9 @@ Everything is structured so you can evolve it as ULDE grows.
     <div
       class="plugin-row"
       *ngFor="let t of filteredPluginTimings()"
-      (click)="highlightPlugin(t.pluginName)"
+      (click)="highlightPlugin(t.pluginPhaseName)"
     >
-      <span class="plugin">{{ t.pluginName }}</span>
+      <span class="plugin">{{ t.pluginPhaseName }}</span>
       <span class="hook">{{ t.hookName }}</span>
       <span class="phase">{{ t.phase }}</span>
       <span class="duration">{{ t.duration | number:'1.0-1' }}ms</span>
@@ -446,7 +446,7 @@ export interface ULDEPhase {
 }
 
 export interface ULDEPluginTiming {
-  pluginName: string;
+  pluginPhaseName: string;
   hookName: string;
   phase: string;
   duration: number;
@@ -463,7 +463,7 @@ export interface ULDEDiagnostic {
   level: 'info' | 'warn' | 'error';
   message: string;
   phase?: string;
-  pluginName?: string;
+  pluginPhaseName?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -604,7 +604,7 @@ directly from your ULDE lifecycle service.
 Your plugin registry simply calls:
 
 ```ts
-overlay.recordPluginTiming({ pluginName, hookName, phase, duration });
+overlay.recordPluginTiming({ pluginPhaseName, hookName, phase, duration });
 ```
 
 ### ✔ Diagnostics system
@@ -615,7 +615,7 @@ You can push warnings or errors:
 overlay.addDiagnostic({
   level: 'warn',
   message: 'Plugin exceeded threshold',
-  pluginName: 'layout.toc'
+  pluginPhaseName: 'layout.toc'
 });
 ```
 
@@ -876,14 +876,14 @@ export class ULDEPluginRegistry {
         this.overlay.addDiagnostic({
           level: 'error',
           message: `Plugin "${plugin.name}" failed in hook "${hookName}": ${String(err)}`,
-          pluginName: plugin.name
+          pluginPhaseName: plugin.name
         });
       }
 
       const end = performance.now();
 
       this.overlay.recordPluginTiming({
-        pluginName: plugin.name,
+        pluginPhaseName: plugin.name,
         hookName,
         phase: ctx?.phase ?? 'unknown',
         duration: end - start
@@ -907,14 +907,14 @@ export class ULDEPluginRegistry {
         this.overlay.addDiagnostic({
           level: 'error',
           message: `Plugin "${plugin.name}" failed in onDestroy: ${String(err)}`,
-          pluginName: plugin.name
+          pluginPhaseName: plugin.name
         });
       }
 
       const end = performance.now();
 
       this.overlay.recordPluginTiming({
-        pluginName: plugin.name,
+        pluginPhaseName: plugin.name,
         hookName: 'onDestroy',
         phase: 'destroy',
         duration: end - start
@@ -1059,14 +1059,14 @@ export class ULDERuntimeService {
       if (t.duration > this.pluginErrorThreshold) {
         this.overlay.addDiagnostic({
           level: 'error',
-          message: `Plugin "${t.pluginName}" in hook "${t.hookName}" exceeded error threshold (${this.pluginErrorThreshold}ms): ${t.duration.toFixed(1)}ms`,
-          pluginName: t.pluginName
+          message: `Plugin "${t.pluginPhaseName}" in hook "${t.hookName}" exceeded error threshold (${this.pluginErrorThreshold}ms): ${t.duration.toFixed(1)}ms`,
+          pluginPhaseName: t.pluginPhaseName
         });
       } else if (t.duration > this.pluginWarnThreshold) {
         this.overlay.addDiagnostic({
           level: 'warn',
-          message: `Plugin "${t.pluginName}" in hook "${t.hookName}" exceeded warn threshold (${this.pluginWarnThreshold}ms): ${t.duration.toFixed(1)}ms`,
-          pluginName: t.pluginName
+          message: `Plugin "${t.pluginPhaseName}" in hook "${t.hookName}" exceeded warn threshold (${this.pluginWarnThreshold}ms): ${t.duration.toFixed(1)}ms`,
+          pluginPhaseName: t.pluginPhaseName
         });
       }
     }
@@ -1120,7 +1120,7 @@ export interface ULDETimelinePoint {
 }
 
 export interface ULDEHeatmapCell {
-  pluginName: string;
+  pluginPhaseName: string;
   hookName: string;
   intensity: number; // 0–1 normalized
 }
@@ -1160,7 +1160,7 @@ export class ULDEDebugToolsService {
     const max = Math.max(...timings.map(t => t.duration));
 
     return timings.map(t => ({
-      pluginName: t.pluginName,
+      pluginPhaseName: t.pluginPhaseName,
       hookName: t.hookName,
       intensity: t.duration / max // normalized 0–1
     }));

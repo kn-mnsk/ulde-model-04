@@ -1,60 +1,93 @@
-<!-- src/core/ulde/ulde-overlay/ulde-overlay.html -->
+<!-- /src/ulde/core/ulde-overlay/ulde-overlay.html -->
+<div class="ulde-overlay" [class.hidden]="!visible()" [style.opacity]="opacity()">
 
-<p>ulde-overlay works!</p>
+  <!-- Header -->
+  <header class="overlay-header">
+    <h3>ULDE Overlay</h3>
 
-<div class="ulde-overlay" [class.hidden]="!visible">
-  <!-- Phase Timeline -->
+    <div class="controls">
+      <button (click)="toggleOverlay()">Toggle</button>
+      <button (click)="pinOverlay()">
+        {{ pinned() ? 'Unpin' : 'Pin' }}
+      </button>
+
+      <input type="range" min="0.2" max="1" step="0.1" [value]="opacity()"
+        (input)="setOverlayOpacity($any($event.target).value)" />
+    </div>
+  </header>
+
+  <!-- Lifecycle Phases Timeline -->
   <section class="phase-timeline">
-    <div class="phase" *ngFor="let p of phases()" [style.flex]="p.duration"
-      [class.warn]="p.duration > thresholds.phaseWarn" [class.error]="p.duration > thresholds.phaseError"
-      (click)="filterByPhase(p.name)">
-      <span class="label">{{ p.name }}</span>
+    @for (p of phases(); track p.lifecyclePhase) {
+    <div class="phase" [class.warn]="p.duration > thresholds.phaseWarn"
+      [class.error]="p.duration > thresholds.phaseError" (click)="selectPhase(p)">
+      <span class="label">{{ p.lifecyclePhase }}</span>
       <span class="duration">{{ p.duration | number:'1.0-1' }}ms</span>
     </div>
+    }
   </section>
 
   <!-- Plugin Timings -->
   <section class="plugin-timings">
-    <h3>Plugin Timings</h3>
-    <div class="plugin-row" *ngFor="let t of filteredPluginTimings()" (click)="highlightPlugin(t.pluginName)">
+    <h4>Plugin Timings</h4>
+
+    @for (t of filteredPluginTimings(); track t.pluginName) {
+    <div class="plugin-row">
       <span class="plugin">{{ t.pluginName }}</span>
+      <span class="kind">{{ t.pluginKind }}</span>
       <span class="hook">{{ t.hookName }}</span>
-      <span class="phase">{{ t.phase }}</span>
+      <span class="phase">{{ t.lifecyclePhase }}</span>
       <span class="duration">{{ t.duration | number:'1.0-1' }}ms</span>
     </div>
+    }
   </section>
 
-  <!-- Frame Sparkline -->
+  <!-- Sparkline -->
   <section class="sparkline">
     <svg width="100%" height="40">
-      <polyline [attr.points]="sparklinePoints()" class="sparkline-line"></polyline>
+      <polyline class="sparkline-line" [attr.points]="sparklinePoints()"></polyline>
     </svg>
   </section>
 
   <!-- Diagnostics -->
   <section class="diagnostics">
-    <h3>Diagnostics</h3>
-    <div class="diag-row" *ngFor="let d of diagnostics()">
+    <h4>Diagnostics</h4>
+
+    @for (d of diagnostics(); track d.message) {
+    <div class="diag-row">
       <span class="level" [class.warn]="d.level === 'warn'" [class.error]="d.level === 'error'">
         {{ d.level }}
       </span>
+
       <span class="message">{{ d.message }}</span>
+
+      @if (d.lifecyclePhase) {
+      <span class="meta">(phase: {{ d.lifecyclePhase }})</span>
+      }
+
+      @if (d.pluginName) {
+      <span class="meta">(plugin: {{ d.pluginName }})</span>
+      }
     </div>
+    }
   </section>
 
-  <!-- Controls -->
-  <section class="controls">
-    <button (click)="toggle()">Toggle Overlay</button>
-    <button (click)="pin()">Pin</button>
-    <input type="range" min="0.2" max="1" step="0.1" [(ngModel)]="opacity" />
-  </section>
+  <!-- Frame History -->
+  <section class="frame-history">
+    <h4>Frames</h4>
 
-  <section class="timeline-panel">
-    <!-- use debug.buildTimeline() -->
-  </section>
-
-  <section class="heatmap-panel">
-    <!-- use debug.buildHeatmap() -->
+    @for (f of frameHistory(); track f.id) {
+    <div class="frame-row" (click)="selectFrame(f)">
+      <span class="frame-id">{{ f.id }}</span>
+      <span class="timestamp">{{ f.timestamp | date:'mediumTime' }}</span>
+      <span class="total">
+        {{
+        f.phases.reduce((a, p) => a + p.duration, 0)
+        | number:'1.0-1'
+        }}ms
+      </span>
+    </div>
+    }
   </section>
 
 </div>
