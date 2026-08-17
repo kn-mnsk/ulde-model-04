@@ -19,10 +19,10 @@
     // "moduleResolution": "node"           // "bundler" for TS7
     "paths": {
       "@ulde/core": [
-        "/src/ulde/core/index"
+        "./src/ulde/core/index"
       ],
       "@ulde/core/*": [
-        "/src/ulde/core/*"
+        "./src/ulde/core/*"
       ],
       "@ulde/engine": [
         "./src/ulde/engine/index"
