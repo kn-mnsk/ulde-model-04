@@ -1,8 +1,8 @@
 // /src/ulde/core/ulde-runtime.service.ts
 
 import { Injectable } from '@angular/core';
+import { ULDEOverlayService } from '@ulde/core';
 import { ULDEFrame } from '@ulde/types/frame';
-import { ULDEOverlayService } from './overlay/ulde-overlay.service';
 
 @Injectable({ providedIn: 'root' })
 export class ULDERuntimeService {
