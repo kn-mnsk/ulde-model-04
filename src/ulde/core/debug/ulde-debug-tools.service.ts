@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { ULDEOverlayService } from '../ulde-overlay/ulde-overlay.service';
-import { ULDETimelinePoint, ULDEHeatmapCell } from '../../types/ulde.types';
+import { ULDEOverlayService } from '@ulde/core';
+import { ULDEHeatmapCell, ULDETimelinePoint } from '@ulde/types/debug';
 
 @Injectable({ providedIn: 'root' })
 export class ULDEDebugToolsService {
@@ -17,7 +17,7 @@ export class ULDEDebugToolsService {
         frameId: frame.id,
         totalDuration: total,
         phases: frame.phases.map(p => ({
-          lifecycleName: p.lifecyclePhase,
+          lifecyclePhase: p.lifecyclePhase,
           duration: p.duration
         }))
       };
@@ -37,7 +37,8 @@ export class ULDEDebugToolsService {
     const max = Math.max(...timings.map(t => t.duration));
 
     return timings.map(t => ({
-      pluginPhaseName: t.pluginPhaseName,
+      pluginKind: t.pluginKind,
+      pluginName: t.pluginName,
       hookName: t.hookName,
       intensity: t.duration / max // normalized 0–1
     }));

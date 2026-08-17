@@ -1,3 +1,7 @@
+// Resolve ULDE aliases
+/* Example use
+*  ts-node --project tsconfig.ts-node.json src/tools/my-script.ts
+*/
 {
   "extends": "./tsconfig.json",
   "ts-node": {

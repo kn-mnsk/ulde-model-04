@@ -1,6 +1,6 @@
 // src/plugins/system-plugins/layout/ulde-toc.plugins.ts
 
-import { ULDEPlugin } from "../../../types/ulde.types";
+import { ULDEPlugin } from "@ulde/types/plugin";
 
 export const AutoTOC: ULDEPlugin = {
   pluginKind: 'layout',

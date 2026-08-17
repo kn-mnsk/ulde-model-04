@@ -1,6 +1,6 @@
 // src/plugins/system-plugins/demo/ulde-playground-Injector.plugins.ts
 
-import { ULDEPlugin } from "../../../types/ulde.types";
+import { ULDEPlugin } from "@ulde/types/plugin";
 
 export const PlaygroundInjector: ULDEPlugin = {
   pluginKind: 'demo',

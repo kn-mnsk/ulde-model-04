@@ -1,12 +1,10 @@
 // /src/ulde/core/ulde-overlay/ulde-overlay.ts
-import { Component, ChangeDetectionStrategy } from '@angular/core';
-import {
-  ULDELifecyclePhaseTiming,
-  ULDEPluginTiming,
-  ULDEFrame,
-  ULDEDiagnostic
-} from '../../types/ulde.types';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { ULDEOverlayService } from './ulde-overlay.service';
+// import { ULDEOverlayService } from '@ulde/core/overlay';
+// import { ULDEOverlayService } from '@ulde/core/ulde-overlay/ulde-overlay.service';
+import { ULDEFrame} from '@ulde/types/frame';
+import {ULDELifecyclePhaseTiming } from '@ulde/types/lifecycle';
 
 @Component({
   selector: 'ulde-overlay',
@@ -14,7 +12,7 @@ import { ULDEOverlayService } from './ulde-overlay.service';
   styleUrls: ['./ulde-overlay.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ULDEOverlayComponent {
+export class ULDEOverlay {
   // Declare fields (uninitialized)
   phases!: typeof this.store.phases;
   pluginTimings!: typeof this.store.pluginTimings;

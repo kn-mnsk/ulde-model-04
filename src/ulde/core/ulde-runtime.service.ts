@@ -1,8 +1,8 @@
 // /src/ulde/core/ulde-runtime.service.ts
 
 import { Injectable } from '@angular/core';
-import { ULDEOverlayService } from './ulde-overlay/ulde-overlay.service';
-import { ULDEFrame } from '../types/ulde.types';
+import { ULDEFrame } from '@ulde/types/frame';
+import { ULDEOverlayService } from './overlay/ulde-overlay.service';
 
 @Injectable({ providedIn: 'root' })
 export class ULDERuntimeService {
@@ -12,7 +12,7 @@ export class ULDERuntimeService {
   private pluginWarnThreshold = 8;   // ms
   private pluginErrorThreshold = 16; // ms
 
-  constructor(private overlay: ULDEOverlayService) {}
+  constructor(private overlay: ULDEOverlayService) { }
 
   /**
    * Called at the end of each full lifecycle (afterRender).

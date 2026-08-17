@@ -1,18 +1,20 @@
-import { defineConfig } from "vite";
+// vite.config.ts
+
+// Resolve ULDE aliases
+
 import path from "path";
+import { defineConfig } from "vite";
 
 export default defineConfig({
   resolve: {
     alias: {
-      "@ulde/types": path.resolve(__dirname, "src/ulde/types/ULDETypesModule"),
-      "@ulde/types/*": path.resolve(__dirname, "src/ulde/types"),
-      "@ulde/lifecycle": path.resolve(__dirname, "src/ulde/types/lifecycle"),
-      "@ulde/plugin": path.resolve(__dirname, "src/ulde/types/plugin"),
-      "@ulde/context": path.resolve(__dirname, "src/ulde/types/context"),
-      "@ulde/timing": path.resolve(__dirname, "src/ulde/types/timing"),
-      "@ulde/frame": path.resolve(__dirname, "src/ulde/types/frame"),
-      "@ulde/diagnostic": path.resolve(__dirname, "src/ulde/types/diagnostic"),
-      "@ulde/debug": path.resolve(__dirname, "src/ulde/types/debug")
+      "@ulde/core": path.resolve(__dirname, "/src/ulde/core"),
+      "@ulde/engine": path.resolve(__dirname, "/src/ulde/engine"),
+      "@ulde/plugins": path.resolve(__dirname, "/src/ulde/plugins"),
+      "@ulde/tools": path.resolve(__dirname, "/src/ulde/tools"),
+      "@ulde/types": path.resolve(__dirname, "/src/ulde/types"),
+      "@ulde/viewer": path.resolve(__dirname, "/src/ulde/viewer")
     }
+
   }
 });

@@ -1,16 +1,13 @@
 // /src/ulde/core/ulde-plugin-registry.service.ts
 import { Injectable } from '@angular/core';
-import {
-  ULDEPlugin,
-  ULDEPluginHooks,
-  ULDEPluginTiming,
-  ULDEPluginKind,
-  ULDELifecyclePhase,
-} from '../types/ulde.types';
-import { ULDEOverlayService } from './ulde-overlay/ulde-overlay.service';
+import { ULDEOverlayService } from '@ulde/core';
+import { ULDELifecyclePhase } from '@ulde/types/lifecycle';
+import { ULDEPlugin, ULDEPluginHooks, ULDEPluginKind } from '@ulde/types/plugin';
+import { ULDEPluginTiming } from '@ulde/types/timing';
 
 @Injectable({ providedIn: 'root' })
-export class ULDEPluginRegistry {
+export class ULDEPluginRegistryService {
+
   private plugins: ULDEPlugin[] = [];
 
   /**
@@ -24,7 +21,7 @@ export class ULDEPluginRegistry {
     onDestroy: 'onDestroy',
   };
 
-  constructor(private overlay: ULDEOverlayService) {}
+  constructor(private overlay: ULDEOverlayService) { }
 
   /**
    * Register a plugin.

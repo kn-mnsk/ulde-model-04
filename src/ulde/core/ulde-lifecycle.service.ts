@@ -1,21 +1,19 @@
 // src/ulde/core/ulde-lifecycle.service.ts
+
 import { Injectable } from '@angular/core';
-import {
-  ULDELifecyclePhase,
-  ULDEPageContext,
-  ULDERenderContext,
-} from '../types/ulde.types';
-import { ULDEOverlayService } from './ulde-overlay/ulde-overlay.service';
-import { ULDEPluginRegistry } from './ulde-plugin-registry.service';
-import { ULDERuntimeService } from './ulde-runtime.service';
+import { ULDEPluginRegistryService, ULDERuntimeService } from '@ulde/core';
+import { ULDEOverlayService } from '@ulde/core/overlay';
+import { ULDEPageContext, ULDERenderContext, } from '@ulde/types/context';
+import { ULDELifecyclePhase } from '@ulde/types/lifecycle';
 
 @Injectable({ providedIn: 'root' })
 export class ULDELifecycleService {
+
   constructor(
     private overlay: ULDEOverlayService,
-    private plugins: ULDEPluginRegistry,
+    private pluginRegistry: ULDEPluginRegistryService,
     private runtime: ULDERuntimeService,
-  ) {}
+  ) { }
 
   startPhase(lifecyclePhase: ULDELifecyclePhase) {
     this.overlay.startPhase(lifecyclePhase);
@@ -27,14 +25,14 @@ export class ULDELifecycleService {
 
   async runPhase(
     lifecyclePhase: ULDELifecyclePhase,
-    hookName?: keyof ULDEPluginRegistry['hookMap'],
+    hookName?: keyof ULDEPluginRegistryService['hookMap'],
     ctx?: ULDEPageContext | ULDERenderContext | Record<string, any>,
   ) {
     try {
       this.startPhase(lifecyclePhase);
 
       if (hookName) {
-        await this.plugins.run(hookName, {
+        await this.pluginRegistry.run(hookName, {
           ...(ctx || {}),
           lifecyclePhase,
         });

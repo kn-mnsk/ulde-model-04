@@ -1,6 +1,6 @@
 // src/plugins/system-plugins/content/ulde-frontmatter-normalizer.plugins.ts
 
-import { ULDEPlugin } from "../../../types/ulde.types";
+import { ULDEPlugin } from '@ulde/types/plugin';
 
 export const FrontmatterNormalizer: ULDEPlugin = {
   pluginKind: 'content',

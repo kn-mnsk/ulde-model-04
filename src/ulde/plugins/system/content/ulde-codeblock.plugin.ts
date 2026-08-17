@@ -1,6 +1,6 @@
-// src/plugins/system-plugins/content/ulde-content-codeblock.plugins.ts
+// src/ulde/plugins/system-plugins/content/ulde-content-codeblock.plugins.ts
 
-import { ULDEPlugin, } from "../../../types/ulde.types";
+import { ULDEPlugin } from "@ulde/types/plugin";
 
 export const CodeBlockEnhancer: ULDEPlugin = {
   pluginKind: 'content',

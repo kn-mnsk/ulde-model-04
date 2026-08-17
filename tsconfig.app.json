@@ -5,10 +5,52 @@
     "outDir": "./out-tsc/app", // TS-safe
     "types": [
       "node"
-    ] // TS-safe
+    ], // TS-safe
+    "paths": {
+      "@ulde/core": [
+        "/src/ulde/core/index"
+      ],
+      "@ulde/core/*": [
+        "/src/ulde/core/*"
+      ],
+      "@ulde/engine": [
+        "./src/ulde/engine/index"
+      ],
+      "@ulde/engine/*": [
+        "./src/ulde/engine/*"
+      ],
+      "@ulde/plugins": [
+        "./src/ulde/plugins/index"
+      ],
+      "@ulde/plugins/*": [
+        "./src/ulde/plugins/*"
+      ],
+      "@ulde/tools": [
+        "./src/ulde/tools/index"
+      ],
+      "@ulde/tools/*": [
+        "./src/ulde/tools/*"
+      ],
+      "@ulde/types": [
+        "/src/ulde/types/index"
+      ],
+      "@ulde/types/*": [
+        "./src/ulde/types/*"
+      ],
+      "@ulde/viewer": [
+        "./src/ulde/viewer/index"
+      ],
+      "@ulde/viewer/*": [
+        "./src/ulde/viewer/*"
+      ]
+    }
   },
   "include": [
     "src/**/*.ts",
-    "src/ulde/types/*.d.ts"
+    "src/ulde/types/*.d.ts" // resolve ULDE aliases
+  ],
+  "exclude": [
+    "src/**/*.spec.ts",
+    "vite.config.ts"
   ]
 }

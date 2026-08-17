@@ -19,7 +19,7 @@ export class DocsEngineService {
     private content: ContentEngineService,
     private layout: LayoutEngineService,
     private interactive: InteractiveEngineService,
-    private plugins: ULDEPluginRegistryService,
+    private pluginRegistry: ULDEPluginRegistryService,
     private runtime: ULDERuntimeService
   ) { }
 
@@ -40,7 +40,7 @@ export class DocsEngineService {
    */
   async init() {
     this.lifecycle.startPhase("init");
-    await this.plugins.run("onInit", { phase: 'init' });
+    await this.pluginRegistry.run("onInit", { phase: 'init' });
     this.lifecycle.endPhase("init");
   }
 
@@ -56,7 +56,7 @@ export class DocsEngineService {
     const raw = await this.content.load(pageId);
     if (raw === undefined) throw new Error(`Invalid URL`);
     const layout = await this.layout.prepare(pageId);
-    await this.plugins.run("onPageLoad", {
+    await this.pluginRegistry.run("onPageLoad", {
       phase: "load",
       pageId,
       rawContent: raw,
@@ -78,7 +78,7 @@ export class DocsEngineService {
     const ast = await this.content.transform(pageId);
     const html = await this.layout.render(ast);
 
-    await this.plugins.run("onBeforeRender", {
+    await this.pluginRegistry.run("onBeforeRender", {
       phase: "render",
       pageId,
       ast,
@@ -98,7 +98,7 @@ export class DocsEngineService {
     this.lifecycle.startPhase("hydrate");
 
     await this.interactive.hydrate(pageId);
-    await this.plugins.run("onAfterRender", {
+    await this.pluginRegistry.run("onAfterRender", {
       phase: "hydrate",
       pageId
     });

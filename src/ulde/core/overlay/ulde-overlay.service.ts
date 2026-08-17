@@ -7,7 +7,7 @@ import {
   ULDEFrame,
   ULDEDiagnostic,
   ULDELifecyclePhase,
-} from '../../types/ulde.types';
+} from '@ulde/types';
 
 @Injectable({ providedIn: 'root' })
 export class ULDEOverlayService {

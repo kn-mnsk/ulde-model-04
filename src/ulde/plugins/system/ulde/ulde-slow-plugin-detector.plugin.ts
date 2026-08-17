@@ -1,6 +1,6 @@
 // src/plugins/system-plugins/ulde/ulde-slow-pluging-detector.plugins.ts
 
-import { ULDEPlugin } from "../../../types/ulde.types";
+import { ULDEPlugin } from "@ulde/types/plugin";
 
 export const SlowPluginDetector: ULDEPlugin = {
   pluginKind: 'ulde',

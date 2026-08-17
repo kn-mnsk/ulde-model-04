@@ -1,6 +1,6 @@
-// src/plugins/system-plugins/ulde/ulde-timeline-profiler.plugin.ts
+// src/ulde/types/timeline/ulde-timeline-profiler.plugin.ts
 
-import { ULDEPlugin } from "../../../types/ulde.types";
+import { ULDEPlugin } from "@ulde/types/plugin";
 
 export const TimelineProfiler: ULDEPlugin = {
   pluginKind: 'ulde',
