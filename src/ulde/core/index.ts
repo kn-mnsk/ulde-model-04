@@ -1,8 +1,8 @@
-// /src/ulde/core/index.ts
+// src/ulde/core/index.ts
 
-export {ULDEDebugToolsService} from "./debug";
-export {ULDEOverlay, ULDEOverlayService} from "./overlay";
-export {ULDELifecycleService}from "./ulde-lifecycle.service";
-export {ULDEPluginRegistryService} from "./ulde-plugin-registry.service";
-export {ULDERuntimeService} from "./ulde-runtime.service";
+export * from "./debug";
+export * from "./overlay";
+export * from "./ulde-lifecycle.service";
+export * from "./ulde-plugin-registry.service";
+export * from "./ulde-runtime.service";
 

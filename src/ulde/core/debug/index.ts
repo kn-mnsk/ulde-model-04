@@ -1,3 +1,3 @@
 // src/ulde/core/debug/index
 
-export {ULDEDebugToolsService} from "./ulde-debug-tools.service";
+export * from "./ulde-debug-tools.service";
