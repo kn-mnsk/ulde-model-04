@@ -1,4 +1,4 @@
 // src/ulde/core/overlay/index
 
-export { ULDEOverlayService } from "./ulde-overlay.service";
-export { ULDEOverlay } from "./ulde-overlay";
+export * from "./ulde-overlay.service";
+export * from "./ulde-overlay";

@@ -1,8 +1,7 @@
-// /src/ulde/core/ulde-overlay/ulde-overlay.ts
+// /src/ulde/core/overlay/ulde-overlay.ts
+
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-// import { ULDEOverlayService } from './ulde-overlay.service';
 import { ULDEOverlayService } from '@ulde/core/overlay';
-// import { ULDEOverlayService } from '@ulde/core/ulde-overlay/ulde-overlay.service';
 import { ULDEFrame } from '@ulde/types/frame';
 import { ULDELifecyclePhaseTiming } from '@ulde/types/lifecycle';
 

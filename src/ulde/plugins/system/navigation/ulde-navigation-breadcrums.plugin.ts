@@ -1,6 +1,6 @@
 // src/ulde/plugins/system-plugins/navigation/ulde-navigation-Breadcrumbs.plugins.ts
 
-import { ULDEPlugin } from "@ulde/types";
+import { ULDEPlugin } from "@ulde/types/plugin";
 
 export const Breadcrumbs: ULDEPlugin = {
   pluginKind: 'navigation',

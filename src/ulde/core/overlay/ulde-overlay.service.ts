@@ -1,13 +1,10 @@
 // /src/ulde/core/ulde-overlay/ulde-overlay.service.ts
 
 import { Injectable, signal, computed } from '@angular/core';
-import {
-  ULDELifecyclePhaseTiming,
-  ULDEPluginTiming,
-  ULDEFrame,
-  ULDEDiagnostic,
-  ULDELifecyclePhase,
-} from '@ulde/types';
+import { ULDELifecyclePhase, ULDELifecyclePhaseTiming } from '@ulde/types/lifecycle';
+import { ULDEPluginTiming } from '@ulde/types/timing';
+import { ULDEFrame } from '@ulde/types/frame';
+import { ULDEDiagnostic } from '@ulde/types/diagnostic';
 
 @Injectable({ providedIn: 'root' })
 export class ULDEOverlayService {
