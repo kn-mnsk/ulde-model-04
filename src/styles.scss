@@ -25,7 +25,7 @@
 /* ---------------------------------------------------------
    DocsViewer Theme Aware Layout (SCSS partials)
 --------------------------------------------------------- */
-@use './styles/docs-viewer/theme.aware.layout.scss';
+// @use './styles/docs-viewer/theme.aware.layout.scss';
 
 
 
@@ -441,7 +441,7 @@ body[data-theme="light"] {
     left: 100px;
     transform: translateX(-100%);
   }
-  
+
   &.visible {
     opacity: 1;
     pointer-events: auto;
