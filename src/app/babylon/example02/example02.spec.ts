@@ -1,17 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ThemeToggle } from './theme-toggle';
+import { Example02 } from './example02';
 
-describe('ThemeToggle', () => {
-  let component: ThemeToggle;
-  let fixture: ComponentFixture<ThemeToggle>;
+describe('Example02', () => {
+  let component: Example02;
+  let fixture: ComponentFixture<Example02>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ThemeToggle],
+      imports: [Example02],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(ThemeToggle);
+    fixture = TestBed.createComponent(Example02);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

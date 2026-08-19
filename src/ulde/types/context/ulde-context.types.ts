@@ -1,5 +1,7 @@
 // src/ulde/types/context/ulde-context.types.ts
 
+import { ULDEFrame } from "@ulde/types/frame";
+import { UldeArtifacts } from "@ulde/types/ulde-artifacts";
 // ---------------------------------------------------------
 // ULDE Context Objects
 // ---------------------------------------------------------
@@ -16,4 +18,7 @@ export interface ULDERenderContext {
   ast: any;
   html: string;
   layout: string;
+  dom: HTMLElement;
+  artifacts: UldeArtifacts;
+  frame: ULDEFrame;
 }

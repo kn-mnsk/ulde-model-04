@@ -29,7 +29,7 @@ export class ULDERuntimeService {
   }
 
   private detectPhaseAnomalies(frame: ULDEFrame) {
-    for (const phase of frame.phases) {
+    for (const phase of frame.lifecyclePhases) {
       if (phase.duration > this.phaseErrorThreshold) {
         this.overlay.addDiagnostic({
           level: 'error',

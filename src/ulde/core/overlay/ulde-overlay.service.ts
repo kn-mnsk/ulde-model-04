@@ -14,7 +14,7 @@ export class ULDEOverlayService {
   opacity = signal(1);
 
   // Lifecycle state
-  phases = signal<ULDELifecyclePhaseTiming[]>([]);
+  lifecyclePhases = signal<ULDELifecyclePhaseTiming[]>([]);
   currentPhase = signal<ULDELifecyclePhaseTiming | null>(null);
 
   // Plugin timings
@@ -40,7 +40,7 @@ export class ULDEOverlayService {
 
     return history
       .map((f, i) => {
-        const total = f.phases.reduce((a, p) => a + p.duration, 0);
+        const total = f.lifecyclePhases.reduce((a, p) => a + p.duration, 0);
         return `${i * 10},${40 - Math.min(total, 40)}`;
       })
       .join(' ');
@@ -91,7 +91,7 @@ export class ULDEOverlayService {
       duration,
     };
 
-    this.phases.update(list => [...list, updatedPhase]);
+    this.lifecyclePhases.update(list => [...list, updatedPhase]);
     this.currentPhase.set(null);
   }
 
@@ -105,15 +105,16 @@ export class ULDEOverlayService {
     const frame: ULDEFrame = {
       id: crypto.randomUUID(),
       timestamp: Date.now(),
-      phases: this.phases(),
+      lifecyclePhases: this.lifecyclePhases(),
       pluginTimings: this.pluginTimings(),
+      diagnostics: this.diagnostics()
     };
 
     this.frames.update(list => [...list.slice(-50), frame]); // keep last 50 frames
     this.currentFrame.set(frame);
 
     // reset for next frame
-    this.phases.set([]);
+    this.lifecyclePhases.set([]);
     this.pluginTimings.set([]);
   }
 

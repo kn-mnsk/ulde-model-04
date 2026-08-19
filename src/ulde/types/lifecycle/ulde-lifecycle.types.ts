@@ -2,7 +2,7 @@
 
 //---------------------------------------------------------
 // ULDE Lifecycle Phases
-// ---------------------------------------------------------
+// a single execution of one lifecycle phase:---------------------------------------------------------
 
 export type ULDELifecyclePhase =
   | 'init'

@@ -11,16 +11,16 @@ export const routes: Routes = [
   // },
   {
     path: '',
-    redirectTo: 'docs',
+    redirectTo: 'home',
     pathMatch: 'full'
   },
 
-  {
-    path: 'configure',
-    loadChildren: () =>
-      import('./product-configurator/product-configurator.routes')
-        .then(m => m.PRODUCT_CONFIGURATOR_ROUTES)
-  },
+  // {
+  //   path: 'configure',
+  //   loadChildren: () =>
+  //     import('./product-configurator/product-configurator.routes')
+  //       .then(m => m.PRODUCT_CONFIGURATOR_ROUTES)
+  // },
 
   {
     path: 'home',
@@ -29,12 +29,12 @@ export const routes: Routes = [
         .then(m => m.App)
   },
 
-  {
-    path: 'docs',
-    loadChildren: () =>
-      import('./docs-viewer/docs-viewer.routes')
-        .then(m => m.DOCS_VIEWER_ROUTES)
-  },
+  // {
+  //   path: 'docs',
+  //   loadChildren: () =>
+  //     import('./docs-viewer/docs-viewer.routes')
+  //       .then(m => m.DOCS_VIEWER_ROUTES)
+  // },
 
   {
     path: 'viewer-demo',
