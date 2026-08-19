@@ -1,5 +1,7 @@
 // ulde/core/artifacts/ulde-artifacts.ts
 
+import { ULDEPluginTiming } from "@ulde/types/timing";
+
 // ---------------------------------------------------------
 // CONTENT PHASE ARTIFACTS
 // ---------------------------------------------------------
@@ -235,7 +237,12 @@ export interface UldeArtifacts {
    * Read by: Timeline Plugin, Profiler Plugin, Debug Overlay Plugin
    */
   timings: {
-    add(entry: TimelineEntry): void;
-    all(): TimelineEntry[];
+    add(entry: ULDEPluginTiming): void;
+    all(): ULDEPluginTiming[];
   };
+  // timings: {
+  //   add(entry: TimelineEntry): void;
+  //   all(): TimelineEntry[];
+  // };
+
 }

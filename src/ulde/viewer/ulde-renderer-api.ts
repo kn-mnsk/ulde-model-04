@@ -30,6 +30,12 @@ export function createUldeRenderer(
   config: UldeRendererConfig,
   events?: UldeRendererEvents
 ): UldeRendererHandle {
+
+  config.container.innerHTML = '<p> ULDE Viewer TEST</p>';
+  config.width = 500;
+  config.height = 500;
+  config.backgroundColor = '#FF5733';
+
   // implementation in renderer layer (no Angular imports)
   // ...
   return {

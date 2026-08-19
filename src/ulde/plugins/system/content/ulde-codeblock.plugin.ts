@@ -16,14 +16,14 @@ export const CodeBlockEnhancer: ULDEPlugin = {
     },
 
     async onBeforeRender(ctx) {
-      if (ctx.htmlStr === undefined) return;
+      if (ctx.html === undefined) return;
 
-      ctx.htmlStr = ctx.htmlStr.replace(
+      const html = ctx.html.replace(
         /<pre><code class="language-(\w+)">/g,
         ((m: any, lang: any) => `<pre data-lang="${lang}"><code class="language-${lang}">`
         ));
 
-      ctx.html = ctx.htmlStr;
+      ctx.html = html;
     }
   }
 };
