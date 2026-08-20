@@ -7,6 +7,7 @@ export const SlowPluginDetector: ULDEPlugin = {
   pluginKind: 'ulde',
   name: "SlowPluginDetector",
   description: "Warns when plugin execution exceeds threshold",
+  enabled: true,
   hooks: {
     async onAfterRender(ctx) {
       const timings: ULDEPluginTiming[] = ctx.artifacts.timings.all(); // ULDE exposes timing store

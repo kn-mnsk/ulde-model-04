@@ -6,6 +6,7 @@ export const AutoTOC: ULDEPlugin = {
   pluginKind: 'layout',
   name: "AutoTOC",
   description: "Generates a table of contents from headings",
+  enabled: true,
   hooks: {
     async onBeforeRender(ctx) {
       const headings = ctx.ast.children.filter((n: any) => /^h[1-6]$/.test(n.tag));

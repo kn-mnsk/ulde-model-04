@@ -13,16 +13,16 @@ You don’t need any of that here.
  */
 
 import { Component } from '@angular/core';
-import { UldeViewer } from '../../ulde/viewer/ulde-viewer';
+import { UldeViewer } from '@ulde/viewer';
 
 @Component({
-  selector: 'product-configurator',
+  selector: 'ulde-configurator',
   standalone: true,
   imports: [UldeViewer],
-  templateUrl: './product-configurator.html'
+  templateUrl: 'ulde-configurator.html'
 })
 export class ProductConfigurator {
-  selectedModelId = 'ULDE-MODEL-01';
+  selectedModelId = 'ULDE-MODEL-04';
   selectedVariantId = 'default';
   zoom = 1;
   rotation = { x: 0, y: 0, z: 0 };

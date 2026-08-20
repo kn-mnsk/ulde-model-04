@@ -6,6 +6,7 @@ export const OverlayCustomPanel: ULDEPlugin = {
   pluginKind: 'ulde',
   name: "OverlayCustomPanel",
   description: "Adds a custom panel to the ULDE overlay",
+  enabled: true,
   hooks: {
     onInit() {
       const panel = document.createElement("div");

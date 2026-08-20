@@ -2,7 +2,7 @@
 
 
 import type { Routes } from '@angular/router';
-import { ProductConfigurator } from './product-configurator';
+import { ProductConfigurator } from '@ulde/configurator';
 
 export const PRODUCT_CONFIGURATOR_ROUTES: Routes = [
   {

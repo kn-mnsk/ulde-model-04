@@ -1,46 +1,46 @@
-// ulde-viewer/ulde-renderer-api.ts
+// // ulde-viewer/ulde-renderer-api.ts
 
-export interface UldeRendererConfig {
-  container: HTMLElement;
-  width: number;
-  height: number;
-  backgroundColor?: string;
-}
+// export interface UldeRendererConfig {
+//   container: HTMLElement;
+//   width: number;
+//   height: number;
+//   backgroundColor?: string;
+// }
 
-export interface UldeRendererState {
-  modelId: string;
-  variantId?: string;
-  zoom: number;
-  rotation: { x: number; y: number; z: number };
-}
+// export interface UldeRendererState {
+//   modelId: string;
+//   variantId?: string;
+//   zoom: number;
+//   rotation: { x: number; y: number; z: number };
+// }
 
-export interface UldeRendererEvents {
-  onReady?: () => void;
-  onError?: (error: Error) => void;
-  onStateChange?: (state: UldeRendererState) => void;
-}
+// export interface UldeRendererEvents {
+//   onReady?: () => void;
+//   onError?: (error: Error) => void;
+//   onStateChange?: (state: UldeRendererState) => void;
+// }
 
-export interface UldeRendererHandle {
-  setState(state: Partial<UldeRendererState>): void;
-  getState(): UldeRendererState;
-  dispose(): void;
-}
+// export interface UldeRendererHandle {
+//   setState(state: Partial<UldeRendererState>): void;
+//   getState(): UldeRendererState;
+//   dispose(): void;
+// }
 
-export function createUldeRenderer(
-  config: UldeRendererConfig,
-  events?: UldeRendererEvents
-): UldeRendererHandle {
+// export function createUldeRenderer(
+//   config: UldeRendererConfig,
+//   events?: UldeRendererEvents
+// ): UldeRendererHandle {
 
-  config.container.innerHTML = '<p> ULDE Viewer TEST</p>';
-  config.width = 500;
-  config.height = 500;
-  config.backgroundColor = '#FF5733';
+//   config.container.innerHTML = '<p> ULDE Viewer TEST</p>';
+//   config.width = 500;
+//   config.height = 500;
+//   config.backgroundColor = '#FF5733';
 
-  // implementation in renderer layer (no Angular imports)
-  // ...
-  return {
-    setState(partial) { /* ... */ },
-    getState() { /* ... */ return {} as UldeRendererState; },
-    dispose() { /* ... */ }
-  };
-}
+//   // implementation in renderer layer (no Angular imports)
+//   // ...
+//   return {
+//     setState(partial) { /* ... */ },
+//     getState() { /* ... */ return {} as UldeRendererState; },
+//     dispose() { /* ... */ }
+//   };
+// }

@@ -9,6 +9,7 @@ export const PlaygroundInjector: ULDEPlugin = {
   pluginKind: 'demo',
   name: "PlaygroundInjector",
   description: "Hydrates <demo-playground> blocks into live Angular components",
+  enabled: true,
   hooks: {
     async onAfterRender(ctx) {
       const placeholders = document.querySelectorAll("demo-playground");

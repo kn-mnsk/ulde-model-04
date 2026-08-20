@@ -7,4 +7,5 @@ export * from "./timing";
 export * from "./frame";
 export * from "./diagnostic";
 export * from "./debug";
+export * from "./renderer";
 
