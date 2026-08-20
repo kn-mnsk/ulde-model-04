@@ -6,6 +6,7 @@ export const FrontmatterNormalizer: ULDEPlugin = {
   pluginKind: 'content',
   name: "FrontmatterNormalizer",
   description: "Normalizes frontmatter fields",
+  enabled: true,
   hooks: {
     onPageLoad(ctx) {
       ctx.frontmatter['title'] ??= "Untitled";

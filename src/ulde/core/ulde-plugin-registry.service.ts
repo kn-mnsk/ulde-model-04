@@ -5,6 +5,8 @@ import { ULDELifecyclePhase } from '@ulde/types/lifecycle';
 import { ULDEPlugin, ULDEPluginHooks, ULDEPluginKind } from '@ulde/types/plugin';
 import { ULDEPluginTiming } from '@ulde/types/timing';
 
+import { createUldeStringPluginRegistry } from '@ulde/plugins';
+
 @Injectable({ providedIn: 'root' })
 export class ULDEPluginRegistryService {
 
@@ -21,7 +23,14 @@ export class ULDEPluginRegistryService {
     onDestroy: 'onDestroy',
   };
 
-  constructor(private overlay: ULDEOverlayService) { }
+  constructor(private overlay: ULDEOverlayService) {
+
+    // plugins registry
+    const plugins = createUldeStringPluginRegistry();
+    plugins.forEach(p => {
+      this.register(p);
+    })
+  }
 
   /**
    * Register a plugin.
@@ -30,7 +39,7 @@ export class ULDEPluginRegistryService {
     if (plugin.enabled === false) return;
 
     this.plugins.push(plugin);
-    this.plugins.sort((a, b) => a.name.localeCompare(b.name)); // deterministic order
+    // this.plugins.sort((a, b) => a.name.localeCompare(b.name)); // deterministic order
   }
 
   /**

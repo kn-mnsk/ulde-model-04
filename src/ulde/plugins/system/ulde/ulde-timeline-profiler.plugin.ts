@@ -6,6 +6,7 @@ export const TimelineProfiler: ULDEPlugin = {
   pluginKind: 'ulde',
   name: "TimelineProfiler",
   description: "Logs ULDE phase durations to console",
+  enabled: true,
   hooks: {
     onInit() {
       console.log("[ULDE] Timeline profiler initialized");

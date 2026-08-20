@@ -8,7 +8,7 @@ export function createDummyTestPlugin(): ULDEPlugin {
     name: 'DummyTestPlugin',
     version: '0.0.1',
     description: 'create dummy test plugin',
-
+    enabled: true,
     hooks: {
 
       onBeforeRender(ctx: ULDERenderContext) {

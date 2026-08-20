@@ -3,8 +3,10 @@
 *  ts-node --project tsconfig.ts-node.json src/tools/my-script.ts
 */
 {
-  "extends": "./tsconfig.json",
+  "extends": "./tsconfig",
   "ts-node": {
-    "require": ["tsconfig-paths/register"]
+    "require": [
+      "tsconfig-paths/register"
+    ]
   }
 }

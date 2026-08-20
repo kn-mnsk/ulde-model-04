@@ -6,6 +6,7 @@ export const Breadcrumbs: ULDEPlugin = {
   pluginKind: 'navigation',
   name: "Breadcrumbs",
   description: "Generates breadcrumb navigation from route",
+  enabled: true,
   hooks: {
     onPageLoad(ctx) {
       const parts = ctx.route.split("/").filter(Boolean);

@@ -1,7 +1,12 @@
-/* To learn more about Typescript configuration file: https://www.typescriptlang.org/docs/handbook/tsconfig-json.html. */
-/* To learn more about Angular compiler options: https://angular.dev/reference/configs/angular-compiler-options. */
+// tsconfig.spec.json
+/* unit tests
+✔ Should NOT include ULDE aliases
+✔ Should NOT include Vite config
+✔ Should NOT include workspace files
+*/
+
 {
-  "extends": "./tsconfig.json",
+  "extends": "./tsconfig",
   "compilerOptions": {
     "outDir": "./out-tsc/spec",
     "types": [

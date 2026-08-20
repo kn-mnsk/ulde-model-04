@@ -6,6 +6,7 @@ export const CodeBlockEnhancer: ULDEPlugin = {
   pluginKind: 'content',
   name: "CodeblockEnhancer",
   description: "Markdown Code Block Enhancer: Enhances fenced code blocks with metadata",
+  enabled: true,
   hooks: {
     async onPageLoad(ctx) {
       if (ctx.rawContent === undefined) return;
