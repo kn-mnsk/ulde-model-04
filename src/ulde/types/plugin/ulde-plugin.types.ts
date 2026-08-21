@@ -1,6 +1,6 @@
 // src/ulde/types/plugin/ulde-plugin.types.ts
 
-import { ULDEPageContext, ULDERenderContext } from "../context/ulde-context.types";
+import { ULDEPageContext, ULDERenderContext } from "@ulde/types/context";
 
 // ---------------------------------------------------------
 // ULDE Plugin Kinds
