@@ -5,7 +5,7 @@ import { ULDELifecyclePhase } from '@ulde/types/lifecycle';
 import { ULDEPlugin, ULDEPluginHooks, ULDEPluginKind } from '@ulde/types/plugin';
 import { ULDEPluginTiming } from '@ulde/types/timing';
 
-import { createUldeStringPluginRegistry } from '@ulde/plugins';
+import { createUldeStringPluginRegistry } from '@ulde/core';
 
 @Injectable({ providedIn: 'root' })
 export class ULDEPluginRegistryService {
