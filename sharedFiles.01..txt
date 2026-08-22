@@ -1,0 +1,497 @@
+ 1. src/ulde/core/ulde-runtime.service.ts
+
+import { Injectable } from '@angular/core';
+import { ULDEOverlayService } from '@ulde/core';
+import { ULDEFrame } from '@ulde/types/frame';
+
+@Injectable({ providedIn: 'root' })
+export class ULDERuntimeService {
+  // Simple thresholds (tune as needed)
+  private phaseWarnThreshold = 12;   // ms
+  private phaseErrorThreshold = 24;  // ms
+  private pluginWarnThreshold = 8;   // ms
+  private pluginErrorThreshold = 16; // ms
+
+  constructor(private overlay: ULDEOverlayService) { }
+
+  /**
+   * Called at the end of each full lifecycle (afterRender).
+   * Orchestrates frame finalization + anomaly detection.
+   */
+  finalizeFrameAndAnalyze() {
+    this.overlay.finalizeFrame();
+
+    const frame = this.overlay.currentFrame();
+    if (!frame) return;
+
+    this.detectPhaseAnomalies(frame);
+    this.detectPluginAnomalies(frame);
+  }
+
+  private detectPhaseAnomalies(frame: ULDEFrame) {
+    for (const phase of frame.lifecyclePhases) {
+      if (phase.duration > this.phaseErrorThreshold) {
+        this.overlay.addDiagnostic({
+          level: 'error',
+          message: `Lifecycle phase "${phase.lifecyclePhase}" exceeded error threshold (${this.phaseErrorThreshold}ms): ${phase.duration.toFixed(1)}ms`,
+          lifecyclePhase: phase.lifecyclePhase,
+        });
+      } else if (phase.duration > this.phaseWarnThreshold) {
+        this.overlay.addDiagnostic({
+          level: 'warn',
+          message: `Lifecycle phase "${phase.lifecyclePhase}" exceeded warn threshold (${this.phaseWarnThreshold}ms): ${phase.duration.toFixed(1)}ms`,
+          lifecyclePhase: phase.lifecyclePhase,
+        });
+      }
+    }
+  }
+
+  private detectPluginAnomalies(frame: ULDEFrame) {
+    for (const t of frame.pluginTimings) {
+      if (t.duration > this.pluginErrorThreshold) {
+        this.overlay.addDiagnostic({
+          level: 'error',
+          message: `Plugin "${t.pluginName}" in hook "${t.hookName}" exceeded error threshold (${this.pluginErrorThreshold}ms): ${t.duration.toFixed(1)}ms`,
+          pluginName: t.pluginName,
+          lifecyclePhase: t.lifecyclePhase,
+        });
+      } else if (t.duration > this.pluginWarnThreshold) {
+        this.overlay.addDiagnostic({
+          level: 'warn',
+          message: `Plugin "${t.pluginName}" in hook "${t.hookName}" exceeded warn threshold (${this.pluginWarnThreshold}ms): ${t.duration.toFixed(1)}ms`,
+          pluginName: t.pluginName,
+          lifecyclePhase: t.lifecyclePhase,
+        });
+      }
+    }
+  }
+}
+
+2. src/ulde/core/ulde-plugin-registry.service.
+
+import { Injectable } from '@angular/core';
+import { ULDEOverlayService } from '@ulde/core';
+import { ULDELifecyclePhase } from '@ulde/types/lifecycle';
+import { ULDEPlugin, ULDEPluginHooks, ULDEPluginKind } from '@ulde/types/plugin';
+import { ULDEPluginTiming } from '@ulde/types/timing';
+
+import { createUldeStringPluginRegistry } from '@ulde/core';
+
+@Injectable({ providedIn: 'root' })
+export class ULDEPluginRegistryService {
+
+  private plugins: ULDEPlugin[] = [];
+
+  /**
+   * Hook map for lifecycle service convenience.
+   */
+  hookMap: { [K in keyof ULDEPluginHooks]: K } = {
+    onInit: 'onInit',
+    onPageLoad: 'onPageLoad',
+    onBeforeRender: 'onBeforeRender',
+    onAfterRender: 'onAfterRender',
+    onDestroy: 'onDestroy',
+  };
+
+  constructor(private overlay: ULDEOverlayService) {
+
+    // plugins registry
+    const plugins = createUldeStringPluginRegistry();
+    plugins.forEach(p => {
+      this.register(p);
+    })
+  }
+
+  /**
+   * Register a plugin.
+   */
+  register(plugin: ULDEPlugin) {
+    if (plugin.enabled === false) return;
+
+    this.plugins.push(plugin);
+    // this.plugins.sort((a, b) => a.name.localeCompare(b.name)); // deterministic order
+  }
+
+  /**
+   * Run a specific hook across all plugins.
+   */
+  async run(
+    hookName: keyof ULDEPluginHooks,
+    ctx?: { lifecyclePhase?: ULDELifecyclePhase } & Record<string, any>,
+  ): Promise<void> {
+    for (const plugin of this.plugins) {
+      const hook = plugin.hooks[hookName];
+      if (!hook) continue;
+
+      const start = performance.now();
+
+      try {
+        await hook(ctx as any);
+      } catch (err) {
+        this.overlay.addDiagnostic({
+          level: 'error',
+          message: `Plugin "${plugin.name}" failed in hook "${hookName}": ${String(err)}`,
+          pluginName: plugin.name,
+          lifecyclePhase: ctx?.lifecyclePhase,
+        });
+      }
+
+      const end = performance.now();
+
+      const timing: ULDEPluginTiming = {
+        pluginName: plugin.name,
+        pluginKind: plugin.pluginKind as ULDEPluginKind,
+        hookName,
+        lifecyclePhase: ctx?.lifecyclePhase ?? 'init',
+        duration: end - start,
+      };
+
+      this.overlay.recordPluginTiming(timing);
+    }
+  }
+
+  /**
+   * Destroy all plugins (called on app teardown).
+   */
+  async destroyAll() {
+    for (const plugin of this.plugins) {
+      const hook = plugin.hooks.onDestroy;
+      if (!hook) continue;
+
+      const start = performance.now();
+
+      try {
+        await hook();
+      } catch (err) {
+        this.overlay.addDiagnostic({
+          level: 'error',
+          message: `Plugin "${plugin.name}" failed in onDestroy: ${String(err)}`,
+          pluginName: plugin.name,
+        });
+      }
+
+      const end = performance.now();
+
+      this.overlay.recordPluginTiming({
+        pluginName: plugin.name,
+        pluginKind: plugin.pluginKind,
+        hookName: 'onDestroy',
+        lifecyclePhase: 'afterRender',
+        duration: end - start,
+      });
+    }
+  }
+
+  /**
+   * Get all registered plugins.
+   */
+  list() {
+    return [...this.plugins];
+  }
+}
+
+
+3. src/ulde/core/registry/ulde-plugin-registry.ts
+
+/**
+ * ULDE older version
+ * Those phases to be changed to ULDEPlugingKind
+ *
+ * This registry returns ONLY ULDE pipeline plugins:
+ *   - CONTENT phase
+ *   - TRANSFORM phase
+ *   - DIAGNOSTICS phase
+ *   - ASSEMBLE phase
+ *
+ * Browser DOM plugins (Mermaid, KaTeX auto-render, Anchors, ScrollSpy)
+ * are NOT included here — they are registered in UldeBrowserHost.
+ */
+
+
+// ------------------------------
+// content PLUGINS
+// ------------------------------
+import { CodeBlockEnhancer } from '@ulde/plugins/system/content';
+import { FrontmatterNormalizer } from '@ulde/plugins/system/content';
+
+// ------------------------------
+// Layout PLUGINS
+// ------------------------------
+import { AutoTOC } from '@ulde/plugins/system/layout';
+
+// ------------------------------
+//Interactive PLUGINS
+// ------------------------------
+import { createDummyTestPlugin } from '@ulde/plugins/system/interactive';
+
+// ------------------------------
+// Navigation PLUGINS
+// ------------------------------
+import { Breadcrumbs } from '@ulde/plugins/system/navigation'
+
+// ------------------------------
+// ulde PLUGINS
+// ------------------------------
+import { OverlayCustomPanel } from '@ulde/plugins/system/ulde'
+import { SlowPluginDetector } from '@ulde/plugins/system/ulde'
+import { TimelineProfiler } from '@ulde/plugins/system/ulde'
+
+
+// -----------------------------------------------------
+// BUILD REGISTRY (ORDER MATTERS) - String World
+// -----------------------------------------------------
+export function createUldeStringPluginRegistry() {
+  return [
+    // Content PHASE
+    CodeBlockEnhancer,
+    FrontmatterNormalizer,
+
+    // Layout PHASE
+    AutoTOC,
+
+    // Interactive PHASE
+    createDummyTestPlugin(),
+
+    // Navigation PHASE
+    Breadcrumbs,
+
+    //ulde Phase
+    OverlayCustomPanel,
+    SlowPluginDetector,
+    TimelineProfiler
+  ];
+
+}
+
+4. src/ulde/types/plugin/ulde-plugin.types.ts
+
+import { ULDEPageContext, ULDERenderContext } from "@ulde/types/context";
+
+// ---------------------------------------------------------
+// ULDE Plugin Kinds
+// ---------------------------------------------------------
+
+export type ULDEPluginKind =
+  | 'content'
+  | 'layout'
+  | 'interactive'
+  | 'navigation'
+  | 'demo'
+  | 'ulde';
+
+// ---------------------------------------------------------
+// ULDE Plugin Definition
+// ---------------------------------------------------------
+
+export interface ULDEPlugin {
+  pluginKind: ULDEPluginKind;
+  name: string;
+  version?: string;
+  description?: string;
+  enabled?: boolean;
+  hooks: ULDEPluginHooks;
+}
+
+// ---------------------------------------------------------
+// ULDE Plugin Hooks
+// ---------------------------------------------------------
+
+export interface ULDEPluginHooks {
+  onInit?(): void | Promise<void>;
+  onPageLoad?(ctx: ULDEPageContext): void | Promise<void>;
+  onBeforeRender?(ctx: ULDERenderContext): void | Promise<void>;
+  onAfterRender?(ctx: ULDERenderContext): void | Promise<void>;
+  onDestroy?(): void | Promise<void>;
+}
+
+5. src/ulde/types/frame/ulde-frame.types.ts
+
+import { ULDEDiagnostic } from "@ulde/types/diagnostics";
+import { ULDELifecyclePhaseTiming } from "@ulde/types/lifecycle";
+import { ULDEPluginTiming } from "@ulde/types/timing";
+
+// ---------------------------------------------------------
+// ULDE Frame
+// ---------------------------------------------------------
+
+export interface ULDEFrame {
+  id: string;
+  timestamp: number;
+  lifecyclePhases: ULDELifecyclePhaseTiming[];
+  pluginTimings: ULDEPluginTiming[];
+  diagnostics: ULDEDiagnostic[] //warning or error generated by ULDE
+}
+
+6.src/ulde/types/diagnostic/ulde-diagnostic.ts
+
+import { ULDELifecyclePhase } from "../lifecycle/ulde-lifecycle.types";
+
+// ---------------------------------------------------------
+// ULDE Diagnostics
+// ---------------------------------------------------------
+
+export interface ULDEDiagnostic {
+  level: 'info' | 'warn' | 'error';
+  message: string;
+  lifecyclePhase?: ULDELifecyclePhase;
+  pluginName?: string;
+}
+
+7. src/ulde/types/timing/ulde-timing.types.ts
+
+import { ULDEPluginKind, ULDEPluginHooks } from "../plugin/ulde-plugin.types";
+import { ULDELifecyclePhase } from "../lifecycle/ulde-lifecycle.types";
+
+// ---------------------------------------------------------
+// ULDE Plugin Timing
+// timing of ONE plugin hook execution
+// ---------------------------------------------------------
+
+export interface ULDEPluginTiming {
+  pluginName: string;
+  pluginKind: ULDEPluginKind;
+  hookName: keyof ULDEPluginHooks;
+  lifecyclePhase: ULDELifecyclePhase;
+  duration: number;
+}
+
+8. src/ulde/types/lifecycle/ulde-lifecycle.types.ts
+
+//---------------------------------------------------------
+// ULDE Lifecycle Phases
+// a single execution of one lifecycle phase:---------------------------------------------------------
+
+export type ULDELifecyclePhase =
+  | 'init'
+  | 'load'
+  | 'render'
+  | 'hydrate'
+  | 'afterRender';
+
+export interface ULDELifecyclePhaseTiming {
+  lifecyclePhase: ULDELifecyclePhase;
+  startTime: number;
+  endTime: number;
+  duration: number;
+}
+
+9. src/ulde/viewer/ulde-renderer.service.ts
+
+import { Injectable, ElementRef } from '@angular/core';
+import type { ULDERendererHandle, ULDERendererConfig, ULDERendererEvents, ULDERendererState } from '@ulde/types/renderer';
+
+@Injectable({ providedIn: 'root' })
+export class ULDERendererService {
+  private handle?: ULDERendererHandle;
+
+  init(
+    host: ElementRef<HTMLElement>,
+    config: Omit<ULDERendererConfig, 'container'>,
+    events?: ULDERendererEvents
+  ) {
+    this.dispose();
+
+    this.handle = this.createUldeRenderer(
+      { container: host.nativeElement, ...config },
+      events
+    );
+  }
+
+  setState(state: Partial<ULDERendererState>) {
+    this.handle?.setState(state);
+  }
+
+  getState(): ULDERendererState | null {
+    return this.handle ? this.handle.getState() : null;
+  }
+
+  dispose() {
+    this.handle?.dispose();
+    this.handle = undefined;
+  }
+
+
+private createUldeRenderer(
+  config: ULDERendererConfig,
+  events?: ULDERendererEvents
+): ULDERendererHandle {
+
+  config.container.innerHTML = '<p> ULDE Viewer TEST</p>';
+  config.width = 500;
+  config.height = 500;
+  config.backgroundColor = '#FF5733';
+
+  // implementation in renderer layer (no Angular imports)
+  // ...
+  return {
+    setState(partial) { /* ... */ },
+    getState() { /* ... */ return {} as ULDERendererState; },
+    dispose() { /* ... */ }
+  };
+}
+
+
+}
+
+
+10. src/ulde/viewer/ulde-viewer.ts
+
+import { Component, ElementRef, ViewChild, input, output } from '@angular/core';
+import type { AfterViewInit, OnDestroy, } from '@angular/core';
+import { ULDERendererService } from '@ulde/viewer';
+import type { ULDERendererState } from '@ulde/types/renderer';
+
+@Component({
+  selector: 'ulde-viewer',
+  templateUrl: `ulde-viewer.html`,
+  styleUrl: 'ulde-viewer.scss'
+})
+export class UldeViewer implements AfterViewInit, OnDestroy {
+  @ViewChild('canvasHost', { static: true })
+  hostRef!: ElementRef<HTMLElement>;
+
+  modelId = input<string>();
+  variantId = input<string>();
+  zoom = input<number>(1);
+  rotation = input<ULDERendererState['rotation']>({ x: 0, y: 0, z: 0 });
+
+  ready = output<void>();
+  error = output<Error>();
+  stateChange = output<ULDERendererState>();
+
+  constructor(private rendererService: ULDERendererService) { }
+
+  ngAfterViewInit(): void {
+    this.rendererService.init(
+      this.hostRef,
+      {
+        width: this.hostRef.nativeElement.clientWidth,
+        height: this.hostRef.nativeElement.clientHeight
+      },
+      {
+        onReady: () => this.ready.emit(),
+        onError: (e) => this.error.emit(e),
+        onStateChange: (s) => this.stateChange.emit(s)
+      }
+    );
+
+    this.syncInputs();
+  }
+
+  ngOnDestroy(): void {
+    this.rendererService.dispose();
+  }
+
+  ngOnChanges(): void {
+    this.syncInputs();
+  }
+
+  private syncInputs() {
+    this.rendererService.setState({
+      modelId: this.modelId(),
+      variantId: this.variantId(),
+      zoom: this.zoom(),
+      rotation: this.rotation()
+    });
+  }
+}

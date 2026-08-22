@@ -1,4 +1,4 @@
-// src/ulde/plugins/system-plugins/navigation/ulde-navigation-Breadcrumbs.plugins.ts
+// src/ulde/plugins/system/navigation/ulde-navigation-Breadcrumbs.plugins.ts
 
 import { ULDEPlugin } from "@ulde/types/plugin";
 
@@ -9,8 +9,8 @@ export const Breadcrumbs: ULDEPlugin = {
   enabled: true,
   hooks: {
     onPageLoad(ctx) {
-      const parts = ctx.route.split("/").filter(Boolean);
-      ctx.frontmatter['breadcrumbs'] = parts.map((p, i) => ({
+      const parts = ctx.raw.split("/").filter(Boolean);
+      ctx.meta['breadcrumbs'] = parts.map((p, i) => ({
         label: p,
         href: "/" + parts.slice(0, i + 1).join("/")
       }));

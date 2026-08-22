@@ -9,9 +9,9 @@ export const CodeBlockEnhancer: ULDEPlugin = {
   enabled: true,
   hooks: {
     async onPageLoad(ctx) {
-      if (ctx.rawContent === undefined) return;
+      if (ctx.raw === undefined) return;
 
-      ctx.rawContent = ctx.rawContent.replace(/```(\w+)/g, ((m: any, lang: any) => {
+      ctx.raw = ctx.raw.replace(/```(\w+)/g, ((m: any, lang: any) => {
         return `\`\`\`${lang} data-lang="${lang}"`;
       }));
     },
