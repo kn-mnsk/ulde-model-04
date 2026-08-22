@@ -1,3 +1,3 @@
 // /src/ulde/plugin/system/intercative/index.ts
 
-export * from "./dummy-test.plugin";
+export * from "./ulde-dummy-test.plugin";

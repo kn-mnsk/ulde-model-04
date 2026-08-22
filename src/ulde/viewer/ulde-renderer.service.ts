@@ -1,4 +1,4 @@
-// app/ulde-viewer/ulde-renderer.service.ts
+// src/ulde/viewer/ulde-renderer.service.ts
 
 import { Injectable, ElementRef } from '@angular/core';
 import type { ULDERendererHandle, ULDERendererConfig, ULDERendererEvents, ULDERendererState } from '@ulde/types/renderer';

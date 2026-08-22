@@ -1,8 +1,8 @@
 // src/ulde/types/frame/ulde-frame.types.ts
 
+import { ULDEDiagnostic } from "@ulde/types/diagnostic";
 import { ULDELifecyclePhaseTiming } from "@ulde/types/lifecycle";
 import { ULDEPluginTiming } from "@ulde/types/timing";
-import { ULDEDiagnostic } from "@ulde/types/diagnostic";
 
 // ---------------------------------------------------------
 // ULDE Frame

@@ -1,3 +1,5 @@
+// src/ulde/core/debug/ulde-debug.tools.service.ts
+
 import { Injectable } from '@angular/core';
 import { ULDEOverlayService } from '@ulde/core';
 import { ULDEHeatmapCell, ULDETimelinePoint } from '@ulde/types/debug';

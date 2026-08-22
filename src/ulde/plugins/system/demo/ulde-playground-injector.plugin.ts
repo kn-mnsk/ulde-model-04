@@ -1,4 +1,4 @@
-// src/plugins/system/demo/ulde-playground-Injector.plugins.ts
+// src/plugins/system/demo/ulde-playground-Injector.plugin.ts
 
 import { ULDEPlugin } from "@ulde/types/plugin";
 

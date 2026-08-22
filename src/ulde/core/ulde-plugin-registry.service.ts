@@ -1,11 +1,12 @@
-// /src/ulde/core/ulde-plugin-registry.service.ts
+// /src/ulde/core/ulde-plugin-registry.service.
+
 import { Injectable } from '@angular/core';
 import { ULDEOverlayService } from '@ulde/core';
 import { ULDELifecyclePhase } from '@ulde/types/lifecycle';
 import { ULDEPlugin, ULDEPluginHooks, ULDEPluginKind } from '@ulde/types/plugin';
 import { ULDEPluginTiming } from '@ulde/types/timing';
 
-import { createUldeStringPluginRegistry } from '@ulde/core';
+import { createUldeStringPluginRegistry } from '@ulde/plugins/registry';
 
 @Injectable({ providedIn: 'root' })
 export class ULDEPluginRegistryService {

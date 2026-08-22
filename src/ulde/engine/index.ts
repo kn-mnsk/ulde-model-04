@@ -1,9 +1,10 @@
 // /src/ulde/core/index.ts
 
-export * from "./content-engine.service";
-export * from "./docs-engine.service";
-export * from "./interactive-engine.service";
-export * from "./layout-engine.service";
-export * from "./ulde-ast-builder";
-export * from "./ulde-ast-visitor";
-export * from "./ulde-ast-renderer";
+export * from "./ulde-ast-builder.engine";
+export * from "./ulde-ast-renderer.engine";
+export * from "./ulde-ast-visitor.engine";
+export * from "./ulde-content.engine.service";
+export * from "./ulde-docs.engine.service";
+export * from "./ulde-interactive.engine.service";
+export * from "./ulde-layout.engine.service";
+

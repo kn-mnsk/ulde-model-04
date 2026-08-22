@@ -68,7 +68,7 @@ This document defines the canonical ownership of each field.
 
 ## 2. Diagnostics‑Phase Artifacts
 
-### diagnostics: UldeDiagnostics
+### diagnostics: UldeDiagnostic
 ---
 | Plugin | Reads | Writes |
 | --- | --- | --- |

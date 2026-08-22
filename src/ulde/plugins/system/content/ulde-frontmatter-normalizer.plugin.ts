@@ -9,9 +9,9 @@ export const FrontmatterNormalizer: ULDEPlugin = {
   enabled: true,
   hooks: {
     onPageLoad(ctx) {
-      ctx.frontmatter['title'] ??= "Untitled";
-      ctx.frontmatter['tags'] ??= [];
-      ctx.frontmatter['updated'] ??= new Date().toISOString();
+      ctx.meta['title'] ??= "Untitled";
+      ctx.meta['tags'] ??= [];
+      ctx.meta['updated'] ??= new Date().toISOString();
     }
   }
 };

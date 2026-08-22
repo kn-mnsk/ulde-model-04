@@ -2,11 +2,11 @@
 
 import { Injectable } from '@angular/core';
 import { ULDELifecycleService } from '../core/ulde-lifecycle.service';
-import { ContentEngineService } from './content-engine.service';
-import { LayoutEngineService } from './layout-engine.service';
-import { InteractiveEngineService } from './interactive-engine.service';
 import { ULDEPluginRegistryService } from '../core/ulde-plugin-registry.service';
 import { ULDERuntimeService } from '../core/ulde-runtime.service';
+import { ContentEngineService } from './ulde-content.engine.service';
+import { InteractiveEngineService } from './ulde-interactive.engine.service';
+import { LayoutEngineService } from './ulde-layout.engine.service';
 
 @Injectable({
   providedIn: 'root',

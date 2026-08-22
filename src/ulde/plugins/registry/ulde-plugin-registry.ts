@@ -1,7 +1,8 @@
-// ulde/core/registry/ulde-plugin-registry.ts
+// src/ulde/plugins/registry/ulde-plugin-registry.ts
 
 /**
- * ULDE v3 Plugin Registry
+ * ULDE older version
+ * Those phases to be changed to ULDEPlugingKind
  *
  * This registry returns ONLY ULDE pipeline plugins:
  *   - CONTENT phase

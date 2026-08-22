@@ -1,4 +1,4 @@
-// product-configurator/product-configurator.routes.ts
+// src/ulde/configurator/ulde-configurator.routes.ts
 
 
 import type { Routes } from '@angular/router';
