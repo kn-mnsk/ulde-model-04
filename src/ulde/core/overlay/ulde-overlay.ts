@@ -1,4 +1,4 @@
-// /src/ulde/core/overlay/ulde-overlay.ts
+// src/ulde/core/overlay/ulde-overlay.ts
 
 import { ChangeDetectionStrategy, Component} from '@angular/core';
 import {DecimalPipe, DatePipe} from '@angular/common'

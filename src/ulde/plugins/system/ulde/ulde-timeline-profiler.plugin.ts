@@ -1,4 +1,4 @@
-// src/ulde/types/timeline/ulde-timeline-profiler.plugin.ts
+// src/ulde/plugins/system/ulde/ulde-timeline-profiler.plugin.ts
 
 import { ULDEPlugin } from "@ulde/types/plugin";
 

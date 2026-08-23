@@ -1,4 +1,4 @@
-// src/ulde/types/diagnostic/ulde-diagnostic.ts
+// src/ulde/types/diagnostic/ulde-diagnostic.types.ts
 
 import { ULDELifecyclePhase } from "../lifecycle/ulde-lifecycle.types";
 

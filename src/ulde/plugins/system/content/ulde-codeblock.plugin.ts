@@ -1,4 +1,4 @@
-// src/ulde/plugins/system-plugins/content/ulde-content-codeblock.plugins.ts
+// src/ulde/plugins/system/content/ulde-codeblock.plugin.ts
 
 import { ULDEPlugin } from "@ulde/types/plugin";
 

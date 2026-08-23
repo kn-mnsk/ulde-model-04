@@ -1,3 +1,3 @@
-// src/ulde/plugins/registry/ulde-plugin-registry
+// src/ulde/plugins/registry/index.ts
 
 export * from './ulde-plugin-registry';

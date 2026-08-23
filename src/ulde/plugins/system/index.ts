@@ -1,4 +1,4 @@
-// /src/ulde/plugin/system/index.ts
+// /src/ulde/plugins/system/index.ts
 
 export * from "./content/index";
 export * from "./demo/index";

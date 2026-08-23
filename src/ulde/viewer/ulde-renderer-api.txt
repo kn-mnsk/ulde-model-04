@@ -1,4 +1,4 @@
-// // ulde-viewer/ulde-renderer-api.ts
+// ulde-viewer/ulde-renderer-api.ts
 
 // export interface UldeRendererConfig {
 //   container: HTMLElement;

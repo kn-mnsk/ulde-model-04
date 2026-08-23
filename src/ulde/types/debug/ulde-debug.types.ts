@@ -1,4 +1,4 @@
-// src/ulde/types/debug/ulde-debug.ts
+// src/ulde/types/debug/ulde-debug.types.ts
 
 import { ULDELifecyclePhase } from "../lifecycle/ulde-lifecycle.types";
 import { ULDEPluginKind, ULDEPluginHooks } from "../plugin/ulde-plugin.types";

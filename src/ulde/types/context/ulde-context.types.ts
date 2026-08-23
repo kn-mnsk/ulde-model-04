@@ -1,5 +1,6 @@
 // src/ulde/types/context/ulde-context.types.ts
-import type Token from 'markdown-it';
+
+import type Token from 'markdown-it/lib/token.mjs';
 import { ULDEFrame } from "@ulde/types/frame";
 // import { UldeArtifacts } from "@ulde/types/ulde-artifacts";
 // ---------------------------------------------------------
@@ -28,7 +29,7 @@ export interface ULDERenderContext {
   ast: ULDEAstNode[];
   html: string;
   layout?: string;
-  frame: ULDEFrame;
+  frame?: ULDEFrame; // optional, attached after lifecycle, as “observability attachment”
 }
 
 // Block Nodes

@@ -1,4 +1,4 @@
-// /src/ulde/core/index.ts
+// src/ulde/engine/index.ts
 
 export * from "./ulde-ast-builder.engine";
 export * from "./ulde-ast-renderer.engine";

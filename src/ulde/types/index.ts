@@ -1,11 +1,11 @@
-// /src/ulde/types/index.ts
-export * from "./context";
-export * from "./debug";
-export * from "./diagnostic";
-export * from "./frame";
-export * from "./lifecycle";
-export * from "./plugin";
-export * from "./renderer";
-export * from "./timing";
-export * from "./ULDETypesModule";
+// src/ulde/types/index.ts
+
+export * from "./context/index";
+export * from "./debug/index";
+export * from "./diagnostic/index";
+export * from "./frame/index";
+export * from "./lifecycle/index";
+export * from "./plugin/index";
+export * from "./renderer/index";
+export * from "./timing/index";
 

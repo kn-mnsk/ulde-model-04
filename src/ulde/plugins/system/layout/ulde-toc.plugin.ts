@@ -1,4 +1,4 @@
-// src/ulde/plugins/system/layout/ulde-toc.plugins.ts
+// src/ulde/plugins/system/layout/ulde-toc.plugin.ts
 
 import { ULDEPlugin } from "@ulde/types/plugin";
 import { ULDERenderContext } from "@ulde/types/context";

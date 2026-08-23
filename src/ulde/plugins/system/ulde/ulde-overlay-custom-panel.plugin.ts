@@ -1,4 +1,4 @@
-// src/plugins/system-plugins/ulde/ulde-overlay-custom-panel.plugins.ts
+// src/ulde/plugins/system/ulde/ulde-overlay-custom-panel.plugin.ts
 
 import { ULDEPlugin } from "@ulde/types//plugin";
 

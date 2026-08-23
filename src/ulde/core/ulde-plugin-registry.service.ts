@@ -1,4 +1,4 @@
-// /src/ulde/core/ulde-plugin-registry.service.
+// src/ulde/core/ulde-plugin-registry.service.ts
 
 import { Injectable } from '@angular/core';
 import { ULDEOverlayService } from '@ulde/core';

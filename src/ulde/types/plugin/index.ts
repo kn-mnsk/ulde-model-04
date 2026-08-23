@@ -1,3 +1,3 @@
-// /src/ulde/types/plugin/index.ts
+// src/ulde/types/plugin/index.ts
 
 export * from "./ulde-plugin.types";

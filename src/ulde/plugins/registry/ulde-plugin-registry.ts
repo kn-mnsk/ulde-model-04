@@ -1,20 +1,5 @@
 // src/ulde/plugins/registry/ulde-plugin-registry.ts
 
-/**
- * ULDE older version
- * Those phases to be changed to ULDEPlugingKind
- *
- * This registry returns ONLY ULDE pipeline plugins:
- *   - CONTENT phase
- *   - TRANSFORM phase
- *   - DIAGNOSTICS phase
- *   - ASSEMBLE phase
- *
- * Browser DOM plugins (Mermaid, KaTeX auto-render, Anchors, ScrollSpy)
- * are NOT included here — they are registered in UldeBrowserHost.
- */
-
-
 // ------------------------------
 // content PLUGINS
 // ------------------------------

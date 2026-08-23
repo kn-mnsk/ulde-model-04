@@ -1,4 +1,4 @@
-// src/ulde/plugins/system/navigation/ulde-navigation-Breadcrumbs.plugins.ts
+// src/ulde/plugins/system/navigation/ulde-navigation-breadcrumbs.plugin.ts
 
 import { ULDEPlugin } from "@ulde/types/plugin";
 

@@ -1,5 +1,7 @@
 // src/ulde/types/renderer/ulde-renderer.types.ts
 
+import { ULDERenderContext } from "@ulde/types/context";
+
 export interface ULDERendererConfig {
   container: HTMLElement;
   width: number;
@@ -8,10 +10,13 @@ export interface ULDERendererConfig {
 }
 
 export interface ULDERendererState {
-  modelId: string;
+  modelId?: string;
   variantId?: string;
-  zoom: number;
-  rotation: { x: number; y: number; z: number };
+  zoom?: number;
+  rotation?: { x: number; y: number; z: number };
+
+  // ULDE docs rendering
+  renderContext?: ULDERenderContext;
 }
 
 export interface ULDERendererEvents {

@@ -1,4 +1,4 @@
-// src/plugins/system-plugins/content/ulde-frontmatter-normalizer.plugins.ts
+// src/ulde/plugins/system/content/ulde-frontmatter-normalizer.plugin.ts
 
 import { ULDEPlugin } from '@ulde/types/plugin';
 

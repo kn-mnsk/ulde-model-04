@@ -1,4 +1,4 @@
-// /src/ulde/core/overlay/ulde-overlay.service.ts
+// src/ulde/core/overlay/ulde-overlay.service.ts
 
 import { computed, Injectable, signal } from '@angular/core';
 import { ULDEDiagnostic } from '@ulde/types/diagnostic';

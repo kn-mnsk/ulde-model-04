@@ -6,7 +6,8 @@ import { ULDEPluginTiming } from "@ulde/types/timing";
 
 // ---------------------------------------------------------
 // ULDE Frame
-// ---------------------------------------------------------
+// Use ULDEFrame for introspection, not for endering
+//---------------------------------------------------------
 
 export interface ULDEFrame {
   id: string;
