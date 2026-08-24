@@ -1,10 +1,10 @@
 // src/ulde/viewer/ulde-viewer.ts
 
-import { Component, ElementRef, ViewChild, input, output } from '@angular/core';
 import type { AfterViewInit, OnDestroy, } from '@angular/core';
-import { ULDERendererService } from '@ulde/viewer';
-import type { ULDERendererState } from '@ulde/types/renderer';
+import { Component, ElementRef, ViewChild, effect, input, output } from '@angular/core';
 import { ULDELifecycleService, ULDEOverlayService } from '@ulde/core';
+import type { ULDERendererState } from '@ulde/types/renderer';
+import { ULDERendererService } from '@ulde/viewer';
 
 @Component({
   selector: 'ulde-viewer',
@@ -46,8 +46,24 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
 
     this.syncInputs();
 
+    // 🔥 React to ULDE lifecycle phases
+    effect(() => {
+      const phase = this.overlay.currentPhase();
+      this.rendererService.setState({ currentPhase: phase?.lifecyclePhase });
+    });
 
-    
+    // 🔥 React to diagnostics
+    effect(() => {
+      const diagnostics = this.overlay.diagnostics();
+      this.rendererService.setState({ diagnostics });
+    });
+
+    // 🔥 React to frame finalization
+    effect(() => {
+      const frame = this.overlay.currentFrame();
+      this.rendererService.setState({ frame });
+    });
+
   }
 
   ngOnDestroy(): void {
