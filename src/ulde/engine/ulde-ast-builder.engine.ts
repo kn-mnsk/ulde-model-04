@@ -1,7 +1,4 @@
-// src/ulde/engine/ulde-ast-builder.engine.ts
-
 import Token from 'markdown-it/lib/token.mjs';
-
 import { ULDEAstNode } from '@ulde/types/context';
 
 export function buildUldeAst(tokens: Token[]): ULDEAstNode[] {
@@ -24,9 +21,7 @@ export function buildUldeAst(tokens: Token[]): ULDEAstNode[] {
   for (const t of tokens) {
     switch (t.type) {
 
-      // ---------------------------------------------------------
       // Headings
-      // ---------------------------------------------------------
       case 'heading_open':
         open({
           type: 'heading',
@@ -38,9 +33,7 @@ export function buildUldeAst(tokens: Token[]): ULDEAstNode[] {
         close();
         break;
 
-      // ---------------------------------------------------------
       // Paragraphs
-      // ---------------------------------------------------------
       case 'paragraph_open':
         open({ type: 'paragraph' });
         break;
@@ -49,9 +42,7 @@ export function buildUldeAst(tokens: Token[]): ULDEAstNode[] {
         close();
         break;
 
-      // ---------------------------------------------------------
       // Lists
-      // ---------------------------------------------------------
       case 'bullet_list_open':
         open({ type: 'list', meta: { ordered: false } });
         break;
@@ -73,9 +64,7 @@ export function buildUldeAst(tokens: Token[]): ULDEAstNode[] {
         close();
         break;
 
-      // ---------------------------------------------------------
       // Blockquote
-      // ---------------------------------------------------------
       case 'blockquote_open':
         open({ type: 'blockquote' });
         break;
@@ -84,9 +73,62 @@ export function buildUldeAst(tokens: Token[]): ULDEAstNode[] {
         close();
         break;
 
-      // ---------------------------------------------------------
-      // Code blocks
-      // ---------------------------------------------------------
+      // Thematic break (horizontal rule)
+      case 'hr':
+        push({ type: 'thematicBreak' });
+        break;
+
+      // Images
+      case 'image':
+        push({
+          type: 'image',
+          meta: {
+            src: t.attrGet('src') || '',
+            alt: t.attrGet('alt') || undefined,
+            title: t.attrGet('title') || undefined,
+          },
+        });
+        break;
+
+      // Tables
+      case 'table_open':
+        open({ type: 'table' });
+        break;
+
+      case 'table_close':
+        close();
+        break;
+
+      case 'thead_open':
+      case 'tbody_open':
+        // treat as section-like containers if needed
+        open({ type: 'section', meta: { id: t.type } });
+        break;
+
+      case 'thead_close':
+      case 'tbody_close':
+        close();
+        break;
+
+      case 'tr_open':
+        open({ type: 'tableRow' });
+        break;
+
+      case 'tr_close':
+        close();
+        break;
+
+      case 'th_open':
+      case 'td_open':
+        open({ type: 'tableCell' });
+        break;
+
+      case 'th_close':
+      case 'td_close':
+        close();
+        break;
+
+      // Code blocks (fence)
       case 'fence':
         push({
           type: 'code',
@@ -95,9 +137,7 @@ export function buildUldeAst(tokens: Token[]): ULDEAstNode[] {
         });
         break;
 
-      // ---------------------------------------------------------
       // Inline tokens
-      // ---------------------------------------------------------
       case 'inline':
         for (const child of t.children || []) {
           switch (child.type) {
@@ -139,17 +179,27 @@ export function buildUldeAst(tokens: Token[]): ULDEAstNode[] {
                 value: child.content,
               });
               break;
+
+            case 'softbreak':
+            case 'hardbreak':
+              push({ type: 'break' });
+              break;
           }
         }
         break;
 
-      // ---------------------------------------------------------
-      // Ignore everything else for now
-      // ---------------------------------------------------------
+      // Default: ignore or log
       default:
+        // you can optionally push a meta node for unknown tokens
+        // push({ type: 'meta', meta: { tokenType: t.type } });
         break;
     }
   }
 
   return root;
 }
+
+//-----------------------------------------
+// NOTE:
+// If addinng custom tokens (for frontmatter, demos, ULDE blocks) later, can extend this switch with those types and map them to ULDEFrontmatterNode, ULDEDemoNode, ULDEUldeBlockNode, etc.
+//-------------------------------------

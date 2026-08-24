@@ -4,6 +4,7 @@ import { Component, ElementRef, ViewChild, input, output } from '@angular/core';
 import type { AfterViewInit, OnDestroy, } from '@angular/core';
 import { ULDERendererService } from '@ulde/viewer';
 import type { ULDERendererState } from '@ulde/types/renderer';
+import { ULDELifecycleService, ULDEOverlayService } from '@ulde/core';
 
 @Component({
   selector: 'ulde-viewer',
@@ -23,7 +24,11 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
   error = output<Error>();
   stateChange = output<ULDERendererState>();
 
-  constructor(private rendererService: ULDERendererService) { }
+  constructor(
+    private lifecycle: ULDELifecycleService,
+    private overlay: ULDEOverlayService,
+    private rendererService: ULDERendererService
+  ) { }
 
   ngAfterViewInit(): void {
     this.rendererService.init(
@@ -40,6 +45,9 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
     );
 
     this.syncInputs();
+
+
+    
   }
 
   ngOnDestroy(): void {

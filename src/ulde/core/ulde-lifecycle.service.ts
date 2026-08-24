@@ -6,14 +6,17 @@ import { ULDEOverlayService } from '@ulde/core/overlay';
 import { ULDEPageContext, ULDERenderContext, } from '@ulde/types/context';
 import { ULDELifecyclePhase } from '@ulde/types/lifecycle';
 
+import { ULDERenderContextBuilderService } from '@ulde/engine';
+
 @Injectable({ providedIn: 'root' })
 export class ULDELifecycleService {
 
-  constructor(
-    private overlay: ULDEOverlayService,
-    private pluginRegistry: ULDEPluginRegistryService,
-    private runtime: ULDERuntimeService,
-  ) { }
+constructor(
+  private overlay: ULDEOverlayService,
+  private pluginRegistry: ULDEPluginRegistryService,
+  private runtime: ULDERuntimeService,
+  private renderContextBuilder: ULDERenderContextBuilderService,
+) {}
 
   startPhase(lifecyclePhase: ULDELifecyclePhase) {
     this.overlay.startPhase(lifecyclePhase);
@@ -51,10 +54,7 @@ export class ULDELifecycleService {
   /**
    * Full lifecycle execution for a page.
    */
-  async executeLifecycle(
-    pageContext: ULDEPageContext,
-    renderContextBuilder: () => Promise<ULDERenderContext>,
-  ) {
+  async executeLifecycle(pageContext: ULDEPageContext): Promise<ULDERenderContext> {
     // INIT
     await this.runPhase('init', 'onInit');
 
@@ -62,7 +62,7 @@ export class ULDELifecycleService {
     await this.runPhase('load', 'onPageLoad', pageContext);
 
     // RENDER
-    const renderContext = await renderContextBuilder();
+    const renderContext = await this.renderContextBuilder.build(pageContext);
     await this.runPhase('render', 'onBeforeRender', renderContext);
 
     // HYDRATE
@@ -72,5 +72,7 @@ export class ULDELifecycleService {
     this.startPhase('afterRender');
     this.runtime.finalizeFrameAndAnalyze();
     this.endPhase('afterRender');
+
+    return renderContext;
   }
 }

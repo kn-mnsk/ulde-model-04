@@ -1,8 +1,9 @@
 // src/ulde/core/ulde-runtime.service.ts
 
 import { Injectable } from '@angular/core';
-import { ULDEOverlayService } from '@ulde/core';
+import { ULDELifecycleService, ULDEOverlayService } from '@ulde/core';
 import { ULDEFrame } from '@ulde/types/frame';
+import { ULDEPageContext, ULDERenderContext } from '@ulde/types/context';
 
 @Injectable({ providedIn: 'root' })
 export class ULDERuntimeService {
@@ -12,7 +13,11 @@ export class ULDERuntimeService {
   private pluginWarnThreshold = 8;   // ms
   private pluginErrorThreshold = 16; // ms
 
-  constructor(private overlay: ULDEOverlayService) { }
+  constructor(
+    private overlay: ULDEOverlayService,
+    private lifecycle: ULDELifecycleService,
+
+  ) { }
 
   /**
    * Called at the end of each full lifecycle (afterRender).
@@ -65,4 +70,11 @@ export class ULDERuntimeService {
       }
     }
   }
+
+  // in ULDERuntimeService
+  // async runForPage(pageCtx: ULDEPageContext, renderCtx: ULDERenderContext) {
+  //   await this.lifecycle.run(pageCtx, renderCtx);
+  //   this.finalizeFrameAndAnalyze();
+  // }
+
 }
