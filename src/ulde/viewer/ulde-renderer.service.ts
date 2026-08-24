@@ -33,25 +33,45 @@ export class ULDERendererService {
     this.handle = undefined;
   }
 
+  private createUldeRenderer(
+    config: ULDERendererConfig,
+    events?: ULDERendererEvents
+  ): ULDERendererHandle {
 
-private createUldeRenderer(
-  config: ULDERendererConfig,
-  events?: ULDERendererEvents
-): ULDERendererHandle {
+    // Internal state for the renderer
+    let state: ULDERendererState = {
+      modelId: '',
+      variantId: undefined,
+      zoom: 1,
+      rotation: { x: 0, y: 0, z: 0 },
+      renderContext: undefined
+    };
 
-  config.container.innerHTML = '<p> ULDE Viewer TEST</p>';
-  config.width = 500;
-  config.height = 500;
-  config.backgroundColor = '#FF5733';
+    // Initial render (optional)
+    config.container.innerHTML = '<p>ULDE Viewer READY</p>';
 
-  // implementation in renderer layer (no Angular imports)
-  // ...
-  return {
-    setState(partial) { /* ... */ },
-    getState() { /* ... */ return {} as ULDERendererState; },
-    dispose() { /* ... */ }
-  };
-}
+    return {
+      setState(partial) {
+        // merge new partial state
+        state = { ...state, ...partial };
 
+        // If ULDE renderContext exists, render its HTML
+        if (state.renderContext) {
+          config.container.innerHTML = state.renderContext.html;
+        }
+
+        // Emit stateChange event
+        events?.onStateChange?.(state);
+      },
+
+      getState() {
+        return state;
+      },
+
+      dispose() {
+        config.container.innerHTML = '';
+      }
+    };
+  }
 
 }

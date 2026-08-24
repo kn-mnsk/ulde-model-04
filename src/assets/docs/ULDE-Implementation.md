@@ -33,7 +33,7 @@ src/
       ulde-ast-renderer.engine.ts
       ulde-ast-visitor.engine.ts
       ulde-content.engine.service.ts
-      ulde-docs.engine.service.ts
+      ulde-render-context-builder.engine.service.ts
       ulde-interactive.engine.service.ts
       ulde-layout.engine.service.ts
     plugins/
@@ -846,14 +846,17 @@ import { ULDEOverlayService } from '@ulde/core/overlay';
 import { ULDEPageContext, ULDERenderContext, } from '@ulde/types/context';
 import { ULDELifecyclePhase } from '@ulde/types/lifecycle';
 
+import { ULDERenderContextBuilderService } from '@ulde/engine';
+
 @Injectable({ providedIn: 'root' })
 export class ULDELifecycleService {
 
-  constructor(
-    private overlay: ULDEOverlayService,
-    private pluginRegistry: ULDEPluginRegistryService,
-    private runtime: ULDERuntimeService,
-  ) { }
+constructor(
+  private overlay: ULDEOverlayService,
+  private pluginRegistry: ULDEPluginRegistryService,
+  private runtime: ULDERuntimeService,
+  private renderContextBuilder: ULDERenderContextBuilderService,
+) {}
 
   startPhase(lifecyclePhase: ULDELifecyclePhase) {
     this.overlay.startPhase(lifecyclePhase);
@@ -891,10 +894,7 @@ export class ULDELifecycleService {
   /**
    * Full lifecycle execution for a page.
    */
-  async executeLifecycle(
-    pageContext: ULDEPageContext,
-    renderContextBuilder: () => Promise<ULDERenderContext>,
-  ) {
+  async executeLifecycle(pageContext: ULDEPageContext): Promise<ULDERenderContext> {
     // INIT
     await this.runPhase('init', 'onInit');
 
@@ -902,7 +902,7 @@ export class ULDELifecycleService {
     await this.runPhase('load', 'onPageLoad', pageContext);
 
     // RENDER
-    const renderContext = await renderContextBuilder();
+    const renderContext = await this.renderContextBuilder.build(pageContext);
     await this.runPhase('render', 'onBeforeRender', renderContext);
 
     // HYDRATE
@@ -912,6 +912,8 @@ export class ULDELifecycleService {
     this.startPhase('afterRender');
     this.runtime.finalizeFrameAndAnalyze();
     this.endPhase('afterRender');
+
+    return renderContext;
   }
 }
 
@@ -1127,7 +1129,7 @@ export * from "./ulde-ast-builder.engine";
 export * from "./ulde-ast-renderer.engine";
 export * from "./ulde-ast-visitor.engine";
 export * from "./ulde-content.engine.service";
-export * from "./ulde-docs.engine.service";
+export * from "./ulde-render-context-builder.engine.service";
 export * from "./ulde-interactive.engine.service";
 export * from "./ulde-layout.engine.service";
 
@@ -1632,133 +1634,38 @@ export class ContentEngineService {
 
 ```
 
-#### 3-6. ulde-docs.engine.service.ts
+#### 3-6. ulde-render-context-builder.engine.service.ts
 ```ts
-// src/ulde/engine/ulde-docs.engine.service.ts
+// src/ulde/engine/ulde-render-context-builder.service.ts
 
 import { Injectable } from '@angular/core';
-import { ULDELifecycleService } from '../core/ulde-lifecycle.service';
-import { ULDEPluginRegistryService } from '../core/ulde-plugin-registry.service';
-import { ULDERuntimeService } from '../core/ulde-runtime.service';
-import { ContentEngineService } from './ulde-content.engine.service';
-import { InteractiveEngineService } from './ulde-interactive.engine.service';
-import { LayoutEngineService } from './ulde-layout.engine.service';
+import { ULDEPageContext, ULDERenderContext } from '@ulde/types/context';
+import { buildUldeAst } from './ulde-ast-builder.engine';
+import { renderUldeAstToHtml } from './ulde-ast-renderer.engine';
+import { visitUldeAst } from './ulde-ast-visitor.engine';
 
-@Injectable({
-  providedIn: 'root',
-})
-export class DocsEngineService {
+@Injectable({ providedIn: 'root' })
+export class ULDERenderContextBuilderService {
 
+  async build(page: ULDEPageContext): Promise<ULDERenderContext> {
+    // 1. Build AST
+    const ast = buildUldeAst(page.token);
 
-  constructor(
-    private lifecycle: ULDELifecycleService,
-    private content: ContentEngineService,
-    private layout: LayoutEngineService,
-    private interactive: InteractiveEngineService,
-    private pluginRegistry: ULDEPluginRegistryService,
-    private runtime: ULDERuntimeService
-  ) { }
+    // 2. Run AST visitors (plugins may hook into this later)
+    const astAfterPlugins = visitUldeAst(ast, {});
 
-  async execute(pageId: string) {
-    await this.init();          // init → load
-    await this.loadPage(pageId); // load → render
-    await this.renderPage(pageId); // render → hydrate
-    await this.hydratePage(pageId); // hydrate → afterRender
-    await this.afterRender();     // finalize frame
+    // 3. Render HTML
+    const html = renderUldeAstToHtml(astAfterPlugins);
+
+    // 4. Assemble render context
+    return {
+      pageId: page.pageId,
+      ast: astAfterPlugins,
+      html,
+      layout: undefined,
+      frame: undefined,
+    };
   }
-
-
-  /** INIT Phase — System Boot
-   * ULDE overlay shows “init” starting
-   * Plugin hooks like onInit() run
-   * ULDE records timings
-   * No content is loaded yet
-   */
-  async init() {
-    this.lifecycle.startPhase("init");
-    await this.pluginRegistry.run("onInit", { phase: 'init' });
-    this.lifecycle.endPhase("init");
-  }
-
-  /** LOAD Phase — Fetch Content + Layout
-   * Markdown/MDX/raw content is loaded
-   * Layout metadata is prepared
-   * Plugins like content.frontmatter-normalizer run
-   * ULDE overlay shows load duration
-   * @param pageId
-   */
-  private async loadPage(pageId: string) {
-    this.lifecycle.startPhase("load");
-    const raw = await this.content.load(pageId);
-    if (raw === undefined) throw new Error(`Invalid URL`);
-    const layout = await this.layout.prepare(pageId);
-    await this.pluginRegistry.run("onPageLoad", {
-      phase: "load",
-      pageId,
-      rawContent: raw,
-      layout
-    });
-    this.lifecycle.endPhase("load");
-  }
-
-  /** RENDER Phase - Transform + Layout
-   * AST is generated
-   * HTML is produced
-   * Layout plugins (TOC, callouts, codeblock enhancers) run
-   * ULDE overlay shows render timings
-   * @param pageId
-   */
-  private async renderPage(pageId: string) {
-    this.lifecycle.startPhase("render");
-
-    const ast = await this.content.transform(pageId);
-    const html = await this.layout.render(ast);
-
-    await this.pluginRegistry.run("onBeforeRender", {
-      phase: "render",
-      pageId,
-      ast,
-      html
-    });
-
-    this.lifecycle.endPhase("render");
-  }
-
-  /** HYDRATE Phase — Activate Interactive Components
-   * Angular components mount inside rendered HTML
-   * Demo plugins (playgrounds, sandboxes) hydrate
-   * ULDE overlay shows hydration timings
-   * @param pageId
-   */
-  private async hydratePage(pageId: string) {
-    this.lifecycle.startPhase("hydrate");
-
-    await this.interactive.hydrate(pageId);
-    await this.pluginRegistry.run("onAfterRender", {
-      phase: "hydrate",
-      pageId
-    });
-
-    this.lifecycle.endPhase("hydrate");
-  }
-
-  /** AFTER RENDER Phase — Finalize Frame + Overlay Update
-   * ULDE runtime finalizes the frame
-   * Overlay sparkline updates
-   * Heatmap + timeline diagnostics run
-   * Warnings appear if needed
-   * @param pageId
-   */
-  private async afterRender() {
-
-    this.lifecycle.startPhase("afterRender");
-
-    this.runtime.finalizeFrameAndAnalyze(); // overlay + diagnostic
-
-    this.lifecycle.endPhase("afterRender");
-
-  }
-
 }
 
 ```

@@ -25,9 +25,7 @@ export function visitUldeAst(
 
   const walk = (node: ULDEAstNode, parent: ULDEAstNode | null): ULDEAstNode | null => {
 
-    // ---------------------------------------------------------
     // PRE-VISIT (before children)
-    // ---------------------------------------------------------
     if (pre) {
       const result = pre(node, parent);
 
@@ -40,9 +38,7 @@ export function visitUldeAst(
       }
     }
 
-    // ---------------------------------------------------------
     // Visit children
-    // ---------------------------------------------------------
     if (node.children && node.children.length > 0) {
       const newChildren: ULDEAstNode[] = [];
 
@@ -56,9 +52,7 @@ export function visitUldeAst(
       node.children = newChildren;
     }
 
-    // ---------------------------------------------------------
     // POST-VISIT (after children)
-    // ---------------------------------------------------------
     if (post) {
       const result = post(node, parent);
 
@@ -74,9 +68,7 @@ export function visitUldeAst(
     return node;
   };
 
-  // ---------------------------------------------------------
   // Walk root array
-  // ---------------------------------------------------------
   const result: ULDEAstNode[] = [];
 
   for (const node of nodes) {

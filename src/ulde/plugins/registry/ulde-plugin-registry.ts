@@ -9,7 +9,7 @@ import { FrontmatterNormalizer } from '@ulde/plugins/system/content';
 // ------------------------------
 // Layout PLUGINS
 // ------------------------------
-import { AutoTOC } from '@ulde/plugins/system/layout';
+import { AutoAnchors, AutoTOC } from '@ulde/plugins/system/layout';
 
 // ------------------------------
 //Interactive PLUGINS
@@ -27,6 +27,7 @@ import { Breadcrumbs } from '@ulde/plugins/system/navigation'
 import { OverlayCustomPanel } from '@ulde/plugins/system/ulde'
 import { SlowPluginDetector } from '@ulde/plugins/system/ulde'
 import { TimelineProfiler } from '@ulde/plugins/system/ulde'
+import { DemoBlockPlugin } from '@ulde/plugins/system';
 
 
 // -----------------------------------------------------
@@ -39,7 +40,9 @@ export function createUldeStringPluginRegistry() {
     FrontmatterNormalizer,
 
     // Layout PHASE
+    AutoAnchors,
     AutoTOC,
+    DemoBlockPlugin,
 
     // Interactive PHASE
     createDummyTestPlugin(),
