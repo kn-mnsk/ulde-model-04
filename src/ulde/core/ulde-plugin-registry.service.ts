@@ -62,7 +62,7 @@ export class ULDEPluginRegistryService {
         this.overlay.addDiagnostic({
           level: 'error',
           message: `Plugin "${plugin.name}" failed in hook "${hookName}": ${String(err)}`,
-          pluginName: plugin.name,
+          pluginName: plugin.pluginKind,
           lifecyclePhase: ctx?.lifecyclePhase,
         });
       }
@@ -97,7 +97,7 @@ export class ULDEPluginRegistryService {
         this.overlay.addDiagnostic({
           level: 'error',
           message: `Plugin "${plugin.name}" failed in onDestroy: ${String(err)}`,
-          pluginName: plugin.name,
+          pluginName: plugin.pluginKind,
         });
       }
 

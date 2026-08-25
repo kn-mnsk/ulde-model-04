@@ -11,23 +11,26 @@ export function renderUldeAstToHtml(nodes: ULDEAstNode[]): string {
       // ---------------------------------------------------------
       // Block nodes
       // ---------------------------------------------------------
-      case 'heading':
+      case 'heading': {
         buf.push(`<h${node.depth}>`);
         node.children?.forEach(renderNode);
         buf.push(`</h${node.depth}>`);
         break;
+      }
 
-      case 'paragraph':
+      case 'paragraph': {
         buf.push('<p>');
         node.children?.forEach(renderNode);
         buf.push('</p>');
         break;
+      }
 
-      case 'blockquote':
+      case 'blockquote': {
         buf.push('<blockquote>');
         node.children?.forEach(renderNode);
         buf.push('</blockquote>');
         break;
+      }
 
       case 'list': {
         const ordered = node.meta?.['ordered'] === true;
@@ -37,44 +40,51 @@ export function renderUldeAstToHtml(nodes: ULDEAstNode[]): string {
         break;
       }
 
-      case 'listItem':
+      case 'listItem': {
         buf.push('<li>');
         node.children?.forEach(renderNode);
         buf.push('</li>');
         break;
+      }
 
-      case 'thematicBreak':
+      case 'thematicBreak': {
         buf.push('<hr />');
         break;
+      }
 
       // ---------------------------------------------------------
       // Inline nodes
       // ---------------------------------------------------------
-      case 'text':
+      case 'text': {
         buf.push(escapeHtml(node.value ?? ''));
         break;
+      }
 
-      case 'strong':
+      case 'strong': {
         buf.push('<strong>');
         node.children?.forEach(renderNode);
         buf.push('</strong>');
         break;
+      }
 
-      case 'emphasis':
+      case 'emphasis': {
         buf.push('<em>');
         node.children?.forEach(renderNode);
         buf.push('</em>');
         break;
+      }
 
-      case 'inlineCode':
+      case 'inlineCode': {
         buf.push('<code>');
         buf.push(escapeHtml(node.value ?? ''));
         buf.push('</code>');
         break;
+      }
 
-      case 'break':
+      case 'break': {
         buf.push('<br />');
         break;
+      }
 
       case 'link': {
         const href = escapeHtml(node.meta?.['href'] ?? '');
@@ -108,17 +118,19 @@ export function renderUldeAstToHtml(nodes: ULDEAstNode[]): string {
         break;
       }
 
-      case 'math':
+      case 'math': {
         buf.push(`<div class="ulde-math">`);
         buf.push(escapeHtml(node.value ?? ''));
         buf.push('</div>');
         break;
+      }
 
-      case 'inlineMath':
+      case 'inlineMath': {
         buf.push(`<span class="ulde-math-inline">`);
         buf.push(escapeHtml(node.value ?? ''));
         buf.push('</span>');
         break;
+      }
 
       // ---------------------------------------------------------
       // ULDE custom nodes (minimal handling)
@@ -152,9 +164,10 @@ export function renderUldeAstToHtml(nodes: ULDEAstNode[]): string {
         break;
       }
 
-      case 'toc':
+      case 'toc': {
         buf.push('<div class="ulde-toc"></div>');
         break;
+      }
 
       case 'anchor': {
         const id = node.meta?.['id'] ?? '';
@@ -162,12 +175,42 @@ export function renderUldeAstToHtml(nodes: ULDEAstNode[]): string {
         break;
       }
 
+      case 'section': {
+        buf.push('<section>');
+        node.children?.forEach(renderNode);
+        buf.push('</section>');
+        break;
+      }
+
+      case 'diagnostic': {
+        const level = node.meta?.['level'] ?? 'info';
+        const message = escapeHtml(node.meta?.['message'] ?? '');
+        const phase = node.meta?.['lifecyclePhase'];
+        const plugin = node.meta?.['pluginName'];
+
+        buf.push(`<div class="ulde-diagnostic ulde-diagnostic-${level}">`);
+        buf.push(`<strong>${level.toUpperCase()}</strong>: ${message}`);
+
+        if (phase) {
+          buf.push(`<span class="meta"> (phase: ${escapeHtml(phase)})</span>`);
+        }
+
+        if (plugin) {
+          buf.push(`<span class="meta"> (plugin: ${escapeHtml(plugin)})</span>`);
+        }
+
+        buf.push(`</div>`);
+        break;
+      }
+
+
       // ---------------------------------------------------------
       // Fallback: render children only
       // ---------------------------------------------------------
-      default:
+      default: {
         node.children?.forEach(renderNode);
         break;
+      }
     }
   };
 

@@ -1,6 +1,9 @@
 // src/ulde/types/renderer/ulde-renderer.types.ts
 
 import { ULDERenderContext } from "@ulde/types/context";
+import { ULDEDiagnostic } from "@ulde/types/diagnostic";
+import { ULDEFrame } from "@ulde/types/frame";
+import { ULDELifecyclePhase } from "@ulde/types/ulde.types";
 
 export interface ULDERendererConfig {
   container: HTMLElement;
@@ -17,6 +20,9 @@ export interface ULDERendererState {
 
   // ULDE docs rendering
   renderContext?: ULDERenderContext;
+  currentLifecyclePhase?: ULDELifecyclePhase;
+  diagnostics?: ULDEDiagnostic[];
+  frame?: ULDEFrame;
 }
 
 export interface ULDERendererEvents {

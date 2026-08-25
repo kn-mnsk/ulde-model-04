@@ -3,7 +3,7 @@
 import { ULDEPlugin } from "@ulde/types/plugin";
 
 import { createComponent, EnvironmentInjector } from "@angular/core";
-import { Example01 } from "../../../../app/babylon/example01/example01";
+import { Example01 } from "../../../../app/demo/ulde-demo-01/ulde-demo-01";
 
 export const PlaygroundInjector: ULDEPlugin = {
   pluginKind: 'demo',
@@ -13,7 +13,7 @@ export const PlaygroundInjector: ULDEPlugin = {
   hooks: {
     async onAfterRender(ctx) {
       const placeholders = document.querySelectorAll("demo-playground");
-     // You must provide the Angular environment injector
+      // You must provide the Angular environment injector
       const injector = (window as any).ngEnvironment as EnvironmentInjector;
 
       for (const el of placeholders) {

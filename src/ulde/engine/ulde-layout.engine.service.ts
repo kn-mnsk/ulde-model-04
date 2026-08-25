@@ -1,27 +1,48 @@
 // src/ulde/engine/ulde-layout.engine.service.ts
-
 import { Injectable } from '@angular/core';
-import { SafeHtml } from '@angular/platform-browser';
+import { ULDEAstNode, ULDESectionNode, ULDEHeadingNode } from '@ulde/types/context';
 
-@Injectable({
-  providedIn: 'root',
-})
-export class LayoutEngineService {
+@Injectable({ providedIn: 'root' })
+export class ULDELayoutEngineService {
 
-  prepare(pageId: string): any {
-    /* choose layout, gather metadata */
+  buildSections(ast: ULDEAstNode[]): ULDEAstNode[] {
+    const result: ULDEAstNode[] = [];
+    let currentSection: ULDESectionNode | null = null;
 
-    const layout: any = {};
+    for (const node of ast) {
+      if (node.type === 'heading') {
+        // start a new section
+        const section: ULDESectionNode = {
+          type: 'section',
+          meta: {
+            id: slugify(collectHeadingText(node)),
+            depth: (node as ULDEHeadingNode).depth
+          },
+          children: [node]
+        };
 
-    return layout;
+        result.push(section);
+        currentSection = section;
+      } else if (currentSection) {
+        // attach node to current section
+        currentSection.children!.push(node);
+      } else {
+        // content before first heading stays at root
+        result.push(node);
+      }
+    }
+
+    return result;
   }
+}
 
-  render(astOrHtml: any): string | SafeHtml {
-    /* apply layout */
+function collectHeadingText(node: ULDEAstNode): string {
+  return (node.children || [])
+    .filter(c => c.type === 'text')
+    .map(c => c.value ?? '')
+    .join('');
+}
 
-    const html: String | SafeHtml = {};
-
-    return html;
-
-   }
+function slugify(s: string) {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 }
