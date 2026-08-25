@@ -25,9 +25,9 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
   stateChange = output<ULDERendererState>();
 
   constructor(
-    private lifecycle: ULDELifecycleService,
+    private rendererService: ULDERendererService,
     private overlay: ULDEOverlayService,
-    private rendererService: ULDERendererService
+    private lifecycle: ULDELifecycleService,
   ) { }
 
   ngAfterViewInit(): void {
