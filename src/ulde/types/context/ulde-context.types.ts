@@ -2,6 +2,10 @@
 
 import type Token from 'markdown-it/lib/token.mjs';
 import { ULDEFrame } from "@ulde/types/frame";
+import { ULDELifecyclePhase } from '@ulde/types/lifecycle';
+import { ULDEPluginTiming } from '@ulde/types/timing';
+import { ULDEPluginKind } from '@ulde/types/plugin';
+import { ULDEDiagnosticLevel } from '@ulde/types/diagnostic';
 // import { UldeArtifacts } from "@ulde/types/ulde-artifacts";
 // ---------------------------------------------------------
 // ULDE Context Objects
@@ -216,9 +220,11 @@ export interface ULDEMetaNode extends ULDEAstNode {
 export interface ULDEDiagnosticNode extends ULDEAstNode {
   type: 'diagnostic';
   meta: {
-    level: 'warning' | 'error';
+    level: ULDEDiagnosticLevel;
     message: string;
     code?: string;
+    lifecyclePhase?: ULDELifecyclePhase;
+    pluginName?: ULDEPluginKind;
   };
 }
 

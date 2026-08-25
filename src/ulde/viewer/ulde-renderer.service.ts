@@ -1,6 +1,7 @@
 // src/ulde/viewer/ulde-renderer.service.ts
 
 import { Injectable, ElementRef } from '@angular/core';
+import { ULDEDiagnostic, ULDEFrame, ULDELifecyclePhase } from '@ulde/types';
 import type { ULDERendererHandle, ULDERendererConfig, ULDERendererEvents, ULDERendererState } from '@ulde/types/renderer';
 
 @Injectable({ providedIn: 'root' })
@@ -52,13 +53,32 @@ export class ULDERendererService {
 
     return {
       setState(partial) {
+
+        if (partial.currentLifecyclePhase) {
+          highlightLifecyclePhase(partial.currentLifecyclePhase);
+        }
+
+        if (partial.diagnostics) {
+          renderDiagnostics(partial.diagnostics);
+        }
+
+        if (partial.frame) {
+          renderFrameInfo(partial.frame);
+        }
+
+        if (partial.renderContext) {
+          config.container.innerHTML = partial.renderContext.html;
+        }
+
+
         // merge new partial state
         state = { ...state, ...partial };
 
-        // If ULDE renderContext exists, render its HTML
-        if (state.renderContext) {
-          config.container.innerHTML = state.renderContext.html;
-        }
+        // // If ULDE renderContext exists, render its HTML
+        // if (state.renderContext) {
+        //   config.container.innerHTML = state.renderContext.html;
+        // }
+
 
         // Emit stateChange event
         events?.onStateChange?.(state);
@@ -72,6 +92,19 @@ export class ULDERendererService {
         config.container.innerHTML = '';
       }
     };
+
   }
 
+}
+
+function highlightLifecyclePhase(lifecyclePhase: ULDELifecyclePhase) {
+  // e.g., add a small badge or highlight
+}
+
+function renderDiagnostics(diags: ULDEDiagnostic[]) {
+  // e.g., show a diagnostics panel inside viewer
+}
+
+function renderFrameInfo(frame: ULDEFrame) {
+  // e.g., show total render time or plugin timings
 }

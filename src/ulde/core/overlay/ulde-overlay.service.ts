@@ -15,7 +15,7 @@ export class ULDEOverlayService {
 
   // Lifecycle state
   lifecyclePhases = signal<ULDELifecyclePhaseTiming[]>([]);
-  currentPhase = signal<ULDELifecyclePhaseTiming | null>(null);
+  currentLifecyclePhase = signal<ULDELifecyclePhaseTiming | null>(null);
 
   // Plugin timings
   pluginTimings = signal<ULDEPluginTiming[]>([]);
@@ -48,11 +48,11 @@ export class ULDEOverlayService {
 
   // Derived: filtered plugin timings by lifecycle phase
   filteredPluginTimings = computed(() => {
-    const phase = this.currentPhase();
+    const lifecyclePhase = this.currentLifecyclePhase();
     const timings = this.pluginTimings();
 
-    if (!phase) return timings;
-    return timings.filter(t => t.lifecyclePhase === phase.lifecyclePhase);
+    if (!lifecyclePhase) return timings;
+    return timings.filter(t => t.lifecyclePhase === lifecyclePhase.lifecyclePhase);
   });
 
   // Overlay control methods
@@ -70,7 +70,7 @@ export class ULDEOverlayService {
 
   // Lifecycle event handlers
   startPhase(lifecyclePhase: ULDELifecyclePhase) {
-    this.currentPhase.set({
+    this.currentLifecyclePhase.set({
       lifecyclePhase,
       startTime: performance.now(),
       endTime: 0,
@@ -79,7 +79,7 @@ export class ULDEOverlayService {
   }
 
   endPhase(lifecyclePhase: ULDELifecyclePhase) {
-    const phase = this.currentPhase();
+    const phase = this.currentLifecyclePhase();
     if (!phase || phase.lifecyclePhase !== lifecyclePhase) return;
 
     const end = performance.now();
@@ -92,7 +92,7 @@ export class ULDEOverlayService {
     };
 
     this.lifecyclePhases.update(list => [...list, updatedPhase]);
-    this.currentPhase.set(null);
+    this.currentLifecyclePhase.set(null);
   }
 
   // Plugin timing recording
@@ -122,5 +122,7 @@ export class ULDEOverlayService {
   addDiagnostic(diag: ULDEDiagnostic) {
     this.diagnostics.update(list => [...list, diag]);
   }
+
+  
 }
 

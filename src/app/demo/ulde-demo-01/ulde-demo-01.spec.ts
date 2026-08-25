@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { Example01 } from './example01';
+import { Example01 } from './ulde-demo-01';
 
 describe('Example01', () => {
   let component: Example01;
