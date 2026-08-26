@@ -16,11 +16,13 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
   @ViewChild('canvasHost', { static: true })
   hostRef!: ElementRef<HTMLElement>;
 
-  modelId = input<string>();
-  variantId = input<string>();
-  zoom = input<number>(1);
-  rotation = input<ULDERendererState['rotation']>({ x: 0, y: 0, z: 0 });
-  renderContext = input<ULDERenderContext>();
+  $rendererState = input<ULDERendererState>();
+
+  // modelId = input<string>();
+  // variantId = input<string>();
+  // zoom = input<number>();
+  // rotation = input<ULDERendererState['rotation']>();
+  // renderContext = input<ULDERenderContext>();
 
   ready = output<void>();
   error = output<Error>();
@@ -57,6 +59,7 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
    }
 
   ngAfterViewInit(): void {
+
     this.rendererService.init(
       this.hostRef,
       {
@@ -104,11 +107,16 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
 
   private syncInputs() {
     this.rendererService.setState({
-      modelId: this.modelId(),
-      variantId: this.variantId(),
-      zoom: this.zoom(),
-      rotation: this.rotation(),
-      renderContext: this.renderContext(),
+    //   modelId: this.modelId(),
+    //   variantId: this.variantId(),
+    //   zoom: this.zoom(),
+    //   rotation: this.rotation(),
+    //   renderContext: this.renderContext(),
+      modelId: this.$rendererState()?.modelId,
+      variantId: this.$rendererState()?.variantId,
+      zoom: this.$rendererState()?.zoom,
+      rotation: this.$rendererState()?.rotation,
+      renderContext: this.$rendererState()?.renderContext,
     });
   }
 }
