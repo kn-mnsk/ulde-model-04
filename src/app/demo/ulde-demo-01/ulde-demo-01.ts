@@ -1,10 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, signal, AfterViewInit, OnInit } from '@angular/core';
 
 import MarkdownIt from 'markdown-it';
 import { ULDEPageContext, ULDERenderContext } from '@ulde/types/context';
 import { ULDELifecycleService } from '@ulde/core';
 
 import { UldeViewer } from '@ulde/viewer';
+import { ULDERendererState } from '@ulde/types/renderer/ulde-renderer.types';
 
 const demoMarkdown = `
 # ULDE Demo
@@ -27,14 +28,23 @@ console.log("Hello ULDE");
 This section will show ULDE diagnostics at the bottom.
 `;
 
-
 @Component({
   selector: 'app-ulde-demo-01',
-  imports: [ UldeViewer],
+  imports: [UldeViewer],
   templateUrl: './ulde-demo-01.html',
   styleUrl: './ulde-demo-01.scss',
 })
-export class UldeDemo01 {
+export class UldeDemo01 implements AfterViewInit, OnInit {
+  $rendererState = signal<ULDERendererState>({
+    modelId: 'ulde-demo-01',
+    variantId: 'default',
+    zoom: 1,
+    rotation: { x: 0, y: 0, z: 0 },
+    renderContext: undefined,
+    currentLifecyclePhase: undefined,
+    diagnostics: [],
+    frame: undefined,
+  });
 
   private md = new MarkdownIt();
 
@@ -45,27 +55,40 @@ export class UldeDemo01 {
       pageId: 'ulde-demo-01',
       raw: demoMarkdown,
       token: tokens,
-      meta: {}
+      meta: {},
     };
   }
-
 
   private async runUldeDemo(lifecycle: ULDELifecycleService) {
     const pageContext = this.buildDemoPageContext();
     const renderContext = await lifecycle.executeLifecycle(pageContext);
+
+    console.log('Log: [ULDEDemo01] Render Context:', renderContext);
+
     return renderContext;
   }
 
-
   renderContext?: ULDERenderContext;
 
-  constructor(private lifecycle: ULDELifecycleService) { }
+  constructor(private lifecycle: ULDELifecycleService) {}
 
   async ngOnInit() {
-    this.renderContext = await this.runUldeDemo(this.lifecycle);
+    // this.renderContext = await this.runUldeDemo(this.lifecycle);
   }
 
+  async ngAfterViewInit() {
+    this.renderContext = await this.runUldeDemo(this.lifecycle);
+
+    const renderContext = this.renderContext;
+    if (!renderContext) {
+      console.error('Render context is not available.');
+      return;
+    }
+    this.$rendererState.update((state) => (state.renderContext = renderContext));
+  }
+
+  onViewerStateChange(state: ULDERendererState) {
+    // sync UI or analytics
+  }
 
 }
-
-
