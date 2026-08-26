@@ -4,7 +4,7 @@ import { ULDEPlugin } from '@ulde/types/plugin';
 
 export const FrontmatterNormalizer: ULDEPlugin = {
   pluginKind: 'content',
-  name: "FrontmatterNormalizer",
+  pluginName: "FrontmatterNormalizer",
   description: "Normalizes frontmatter fields",
   enabled: true,
   hooks: {

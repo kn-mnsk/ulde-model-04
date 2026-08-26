@@ -49,7 +49,7 @@ export class ULDERendererService {
     };
 
     // Initial render (optional)
-    config.container.innerHTML = '<p>ULDE Viewer READY</p>';
+    config.container.innerHTML = '<p>[ULDERendererService] ULDE Viewer READY</p>';
 
     return {
       setState(partial) {
@@ -67,7 +67,7 @@ export class ULDERendererService {
         }
 
         if (partial.renderContext) {
-          config.container.innerHTML = partial.renderContext.html;
+          config.container.innerHTML = '<p> [ULDERendererService] Debug </p>' + partial.renderContext.html;
         }
 
 

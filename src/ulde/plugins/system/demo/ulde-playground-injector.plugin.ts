@@ -3,11 +3,11 @@
 import { ULDEPlugin } from "@ulde/types/plugin";
 
 import { createComponent, EnvironmentInjector } from "@angular/core";
-import { Example01 } from "../../../../app/demo/ulde-demo-01/ulde-demo-01";
+import { Example02 } from "../../../../app/demo/example02/example02";
 
 export const PlaygroundInjector: ULDEPlugin = {
   pluginKind: 'demo',
-  name: "PlaygroundInjector",
+  pluginName: "PlaygroundInjector",
   description: "Hydrates <demo-playground> blocks into live Angular components",
   enabled: true,
   hooks: {
@@ -17,7 +17,7 @@ export const PlaygroundInjector: ULDEPlugin = {
       const injector = (window as any).ngEnvironment as EnvironmentInjector;
 
       for (const el of placeholders) {
-        const cmpRef = createComponent(Example01, {
+        const cmpRef = createComponent(Example02, {
           hostElement: el,
           environmentInjector: injector
         });

@@ -20,7 +20,7 @@ export type ULDEPluginKind =
 
 export interface ULDEPlugin {
   pluginKind: ULDEPluginKind;
-  name: string;
+  pluginName: string;
   version?: string;
   description?: string;
   enabled?: boolean;

@@ -11,5 +11,6 @@ export interface ULDEDiagnostic {
   level: ULDEDiagnosticLevel;
   message: string;
   lifecyclePhase?: ULDELifecyclePhase;
-  pluginName?: ULDEPluginKind;
+  pluginName?: string;
+  pluginKind?: ULDEPluginKind;
 }

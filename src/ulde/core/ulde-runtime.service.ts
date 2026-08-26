@@ -1,9 +1,9 @@
 // src/ulde/core/ulde-runtime.service.ts
 
 import { Injectable } from '@angular/core';
-import { ULDELifecycleService, ULDEOverlayService } from '@ulde/core';
+import {ULDEOverlayService } from '@ulde/core';
 import { ULDEFrame } from '@ulde/types/frame';
-import { ULDEPageContext, ULDERenderContext } from '@ulde/types/context';
+
 
 @Injectable({ providedIn: 'root' })
 export class ULDERuntimeService {
@@ -15,7 +15,6 @@ export class ULDERuntimeService {
 
   constructor(
     private overlay: ULDEOverlayService,
-    private lifecycle: ULDELifecycleService,
 
   ) { }
 

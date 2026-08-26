@@ -4,7 +4,7 @@ import { ULDEPlugin } from "@ulde/types/plugin";
 
 export const TimelineProfiler: ULDEPlugin = {
   pluginKind: 'ulde',
-  name: "TimelineProfiler",
+  pluginName: "TimelineProfiler",
   description: "Logs ULDE phase durations to console",
   enabled: true,
   hooks: {

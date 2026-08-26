@@ -42,7 +42,7 @@ export class UldeDemo01 {
     const tokens = this.md.parse(demoMarkdown, {});
 
     return {
-      pageId: 'ulde-demo',
+      pageId: 'ulde-demo-01',
       raw: demoMarkdown,
       token: tokens,
       meta: {}
