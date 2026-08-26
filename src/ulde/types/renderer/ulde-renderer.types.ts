@@ -3,7 +3,7 @@
 import { ULDERenderContext } from "@ulde/types/context";
 import { ULDEDiagnostic } from "@ulde/types/diagnostic";
 import { ULDEFrame } from "@ulde/types/frame";
-import { ULDELifecyclePhase } from "@ulde/types/ulde.types";
+import { ULDELifecyclePhase } from "@ulde/types/lifecycle";
 
 export interface ULDERendererConfig {
   container: HTMLElement;

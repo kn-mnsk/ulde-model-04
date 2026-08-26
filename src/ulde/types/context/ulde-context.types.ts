@@ -224,7 +224,8 @@ export interface ULDEDiagnosticNode extends ULDEAstNode {
     message: string;
     code?: string;
     lifecyclePhase?: ULDELifecyclePhase;
-    pluginName?: ULDEPluginKind;
+    pluginName?: string;
+    pluginKind?: ULDEPluginKind;
   };
 }
 

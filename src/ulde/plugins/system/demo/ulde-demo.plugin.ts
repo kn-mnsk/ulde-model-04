@@ -5,7 +5,7 @@ import { visitUldeAst } from '@ulde/engine';
 
 export const DemoBlockPlugin: ULDEPlugin = {
   pluginKind: 'demo',
-  name: 'demo-block',
+  pluginName: 'demo-block',
   description: 'Convert fenced code blocks with demo info into ULDE demo nodes.',
   enabled: true,
   hooks: {
@@ -26,7 +26,10 @@ export const DemoBlockPlugin: ULDEPlugin = {
               },
               children: []
             };
+          } else{
+            return undefined;
           }
+
         }
       });
     }

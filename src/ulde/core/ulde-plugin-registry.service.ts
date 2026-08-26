@@ -61,7 +61,7 @@ export class ULDEPluginRegistryService {
       } catch (err) {
         this.overlay.addDiagnostic({
           level: 'error',
-          message: `Plugin "${plugin.name}" failed in hook "${hookName}": ${String(err)}`,
+          message: `Plugin "${plugin.pluginName}" failed in hook "${hookName}": ${String(err)}`,
           pluginName: plugin.pluginKind,
           lifecyclePhase: ctx?.lifecyclePhase,
         });
@@ -70,8 +70,8 @@ export class ULDEPluginRegistryService {
       const end = performance.now();
 
       const timing: ULDEPluginTiming = {
-        pluginName: plugin.name,
-        pluginKind: plugin.pluginKind as ULDEPluginKind,
+        pluginName: plugin.pluginName,
+        pluginKind: plugin.pluginKind,
         hookName,
         lifecyclePhase: ctx?.lifecyclePhase ?? 'init',
         duration: end - start,
@@ -96,7 +96,7 @@ export class ULDEPluginRegistryService {
       } catch (err) {
         this.overlay.addDiagnostic({
           level: 'error',
-          message: `Plugin "${plugin.name}" failed in onDestroy: ${String(err)}`,
+          message: `Plugin "${plugin.pluginName}" failed in onDestroy: ${String(err)}`,
           pluginName: plugin.pluginKind,
         });
       }
@@ -104,7 +104,7 @@ export class ULDEPluginRegistryService {
       const end = performance.now();
 
       this.overlay.recordPluginTiming({
-        pluginName: plugin.name,
+        pluginName: plugin.pluginName,
         pluginKind: plugin.pluginKind,
         hookName: 'onDestroy',
         lifecyclePhase: 'afterRender',

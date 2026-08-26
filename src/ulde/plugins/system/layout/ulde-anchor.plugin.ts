@@ -4,7 +4,7 @@ import { visitUldeAst } from '@ulde/engine';
 
 export const AutoAnchors: ULDEPlugin = {
   pluginKind: 'layout',
-  name: 'auto-anchors',
+  pluginName: 'auto-anchors',
   description: 'Add <a id="slug"></a> before each heading.',
   enabled: true,
   hooks: {

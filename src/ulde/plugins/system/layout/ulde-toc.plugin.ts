@@ -6,7 +6,7 @@ import { visitUldeAst } from "@ulde/engine";
 
 export const AutoTOC: ULDEPlugin = {
   pluginKind: 'layout',
-  name: "auto-toc",
+  pluginName: "auto-toc",
   description: "Generates a table of contents from headings",
   enabled: true,
   hooks: {

@@ -2,7 +2,7 @@
 
 import type { AfterViewInit, OnDestroy, } from '@angular/core';
 import { Component, ElementRef, ViewChild, effect, input, output } from '@angular/core';
-import { ULDELifecycleService, ULDEOverlayService } from '@ulde/core';
+import { ULDEOverlayService } from '@ulde/core';
 import { ULDERenderContext } from '@ulde/types';
 import type { ULDERendererState } from '@ulde/types/renderer';
 import { ULDERendererService } from '@ulde/viewer';
@@ -29,8 +29,32 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
   constructor(
     private rendererService: ULDERendererService,
     private overlay: ULDEOverlayService,
-    private lifecycle: ULDELifecycleService,
-  ) { }
+  ) {
+
+    // 🔥 React to ULDE lifecycle phases
+    effect(() => {
+      const phase = this.overlay.currentLifecyclePhase();
+      if (phase === null) return;
+
+      this.rendererService.setState({ currentLifecyclePhase: phase?.lifecyclePhase });
+    });
+
+    // 🔥 React to diagnostics
+    effect(() => {
+      const diagnostics = this.overlay.diagnostics();
+      this.rendererService.setState({ diagnostics });
+    });
+
+    // 🔥 React to frame finalization
+    effect(() => {
+      const frame = this.overlay.currentFrame();
+      if (frame === null) return;
+
+      this.rendererService.setState({ frame });
+    });
+
+
+   }
 
   ngAfterViewInit(): void {
     this.rendererService.init(
@@ -48,24 +72,25 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
 
     this.syncInputs();
 
+
     // 🔥 React to ULDE lifecycle phases
-    effect(() => {
-      const phase = this.overlay.currentLifecyclePhase();
-      this.rendererService.setState({ currentLifecyclePhase: phase?.lifecyclePhase });
-    });
+    // effect(() => {
+    //   const phase = this.overlay.currentLifecyclePhase();
+    //   this.rendererService.setState({ currentLifecyclePhase: phase?.lifecyclePhase });
+    // });
 
-    // 🔥 React to diagnostics
-    effect(() => {
-      const diagnostics = this.overlay.diagnostics();
-      this.rendererService.setState({ diagnostics });
-    });
+    // // 🔥 React to diagnostics
+    // effect(() => {
+    //   const diagnostics = this.overlay.diagnostics();
+    //   this.rendererService.setState({ diagnostics });
+    // });
 
-    // 🔥 React to frame finalization
-    effect(() => {
-      const frame = this.overlay.currentFrame();
-      if (frame === null) return;
-      this.rendererService.setState({ frame });
-    });
+    // // 🔥 React to frame finalization
+    // effect(() => {
+    //   const frame = this.overlay.currentFrame();
+    //   if (frame === null) return;
+    //   this.rendererService.setState({ frame });
+    // });
 
   }
 

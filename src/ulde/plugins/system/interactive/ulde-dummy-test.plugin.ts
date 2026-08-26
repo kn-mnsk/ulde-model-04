@@ -7,7 +7,7 @@ import { ULDEPlugin } from '@ulde/types/plugin';
 export function createDummyTestPlugin(): ULDEPlugin {
   return {
     pluginKind: 'content',
-    name: 'DummyTestPlugin',
+    pluginName: 'DummyTestPlugin',
     version: '0.0.1',
     description: 'create dummy test plugin',
     enabled: true,
