@@ -2877,3 +2877,52 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
 }
 
 ```
+
+## 3. Page vs Context vs Meta
+
+Here is the full English translation — clear, natural, and faithful to the original meaning.
+
+---
+
+## **English Translation**
+
+In website structure and data management, *page*, *context*, and *meta* are concepts that each have different roles and layers.  
+In short: **a “page” is the visible content itself, “context” is the surrounding situation or environment, and “meta” is the management data that describes them.**
+
+---
+
+## **Comparison of the Three Concepts**
+
+| Concept | Role | Analogy (as a book) | Examples |
+|---|---|---|---|
+| **Page** | The actual screen or content the user sees | A specific *page* in a book (where text and illustrations appear) | Homepage, article body, product detail page |
+| **Context** | The situation or environment in which the page is displayed | The *environment* in which the reader reads the book (a dark room, a café, commuting) | User’s language, login status, location, device |
+| **Meta** | Supplementary information that describes the page or data | The *colophon or table of contents* of a book (author, publication date, genre) | Title tag, description, keywords |
+
+---
+
+## **Details of Each Element**
+
+### 📄 **Page**
+The digital document that users actually see when they access a URL in their browser.
+
+- **Role:** Deliver text, images, videos, and other content directly to the user.  
+- **Characteristics:** Has a unique URL and is composed of HTML.
+
+---
+
+### 🌐 **Context**
+The “background,” “situation,” or “user environment” when a page is displayed or when the system operates.
+
+- **Role:** Optimize the content or design of the page depending on the situation.  
+- **Characteristics:** Not directly visible on the screen, but used as system decision criteria (e.g., whether the user is on a smartphone, whether they are logged in).
+
+---
+
+### 🏷️ **Meta**
+Data about data — attribute information that explains “what the page is.”
+
+- **Role:** Communicate the page’s content accurately to search engines (Google, etc.) and social networks.  
+- **Characteristics:** Usually written in the webpage’s source code (inside the `<head>` tag) and used as the title or description in search results.
+
+---

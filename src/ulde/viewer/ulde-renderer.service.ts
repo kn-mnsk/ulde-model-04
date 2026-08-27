@@ -51,8 +51,14 @@ export class ULDERendererService {
     // Initial render (optional)
     config.container.innerHTML = '<p>[ULDERendererService] ULDE Viewer READY</p>';
 
+
+
     return {
       setState(partial) {
+
+
+        console.log(`Log: [ULDERenderService] createUldeRenderer \npartial=`, partial);
+
 
         if (partial.currentLifecyclePhase) {
           highlightLifecyclePhase(partial.currentLifecyclePhase);
@@ -66,8 +72,11 @@ export class ULDERendererService {
           renderFrameInfo(partial.frame);
         }
 
+
         if (partial.renderContext) {
-          config.container.innerHTML = '<p> [ULDERendererService] Debug </p>' + partial.renderContext.html;
+          console.log(`Log: [ULDERenderService] createUldeRenderer \nrenderContext=`, partial.renderContext);
+
+          config.container.innerHTML = partial.renderContext.html;
         }
 
 
