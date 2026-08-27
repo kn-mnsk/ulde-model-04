@@ -13,7 +13,7 @@ import { ULDERendererService } from '@ulde/viewer';
   styleUrl: 'ulde-viewer.scss'
 })
 export class UldeViewer implements AfterViewInit, OnDestroy {
-  @ViewChild('canvasHost', { static: true })
+  @ViewChild('viewerHost', { static: true })
   hostRef!: ElementRef<HTMLElement>;
 
   $rendererState = input<ULDERendererState>();
@@ -33,32 +33,9 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
     private overlay: ULDEOverlayService,
   ) {
 
-    // 🔥 React to ULDE lifecycle phases
+    // react signal input
     effect(() => {
-      const phase = this.overlay.currentLifecyclePhase();
-      if (phase === null) return;
 
-      this.rendererService.setState({ currentLifecyclePhase: phase?.lifecyclePhase });
-    });
-
-    // 🔥 React to diagnostics
-    effect(() => {
-      const diagnostics = this.overlay.diagnostics();
-      this.rendererService.setState({ diagnostics });
-    });
-
-    // 🔥 React to frame finalization
-    effect(() => {
-      const frame = this.overlay.currentFrame();
-      if (frame === null) return;
-
-      this.rendererService.setState({ frame });
-    });
-
-
-   }
-
-  ngAfterViewInit(): void {
 
     this.rendererService.init(
       this.hostRef,
@@ -73,7 +50,74 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
       }
     );
 
-    this.syncInputs();
+      console.log(`Log: [UldeViewer] Effect - React to Signal Input `, this.$rendererState());
+
+      this.rendererService.setState({
+        modelId: this.$rendererState()?.modelId,
+        variantId: this.$rendererState()?.variantId,
+        zoom: this.$rendererState()?.zoom,
+        rotation: this.$rendererState()?.rotation,
+        renderContext: this.$rendererState()?.renderContext,
+      });
+
+
+      console.log(`Log: [UldeViewer] Effect - React to Signal Input `,   this.rendererService.getState());
+
+
+    })
+
+    // 🔥 React to ULDE lifecycle phases
+    effect(() => {
+
+      const phase = this.overlay.currentLifecyclePhase();
+      if (phase === null) return;
+
+      console.log(`Log: [UldeViewer] Effect -React to ULDE lifecycle phases `, phase);
+
+      this.rendererService.setState({ currentLifecyclePhase: phase?.lifecyclePhase });
+    });
+
+    // 🔥 React to diagnostics
+    effect(() => {
+
+      const diagnostics = this.overlay.diagnostics();
+      if (diagnostics.length ===0 ) return;
+
+      console.log(`Log: [UldeViewer] Effect -React to disgnostics `, diagnostics);
+
+      this.rendererService.setState({ diagnostics });
+    });
+
+    // 🔥 React to frame finalization
+    effect(() => {
+
+      const frame = this.overlay.currentFrame();
+      if (frame === null) return;
+
+      console.log(`Log: [UldeViewer] Effect -React to frame finalization `, frame);
+
+      this.rendererService.setState({ frame });
+    });
+
+
+  }
+
+  ngAfterViewInit(): void {
+
+    // this.rendererService.init(
+    //   this.hostRef,
+    //   {
+    //     width: this.hostRef.nativeElement.clientWidth,
+    //     height: this.hostRef.nativeElement.clientHeight
+    //   },
+    //   {
+    //     onReady: () => this.ready.emit(),
+    //     onError: (e) => this.error.emit(e),
+    //     onStateChange: (s) => this.stateChange.emit(s)
+    //   }
+    // );
+
+    // this.syncSignalInput();
 
 
     // 🔥 React to ULDE lifecycle phases
@@ -102,16 +146,16 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
   }
 
   ngOnChanges(): void {
-    this.syncInputs();
+    // this.syncSignalInput();
   }
 
-  private syncInputs() {
+  private syncSignalInput() {
     this.rendererService.setState({
-    //   modelId: this.modelId(),
-    //   variantId: this.variantId(),
-    //   zoom: this.zoom(),
-    //   rotation: this.rotation(),
-    //   renderContext: this.renderContext(),
+      //   modelId: this.modelId(),
+      //   variantId: this.variantId(),
+      //   zoom: this.zoom(),
+      //   rotation: this.rotation(),
+      //   renderContext: this.renderContext(),
       modelId: this.$rendererState()?.modelId,
       variantId: this.$rendererState()?.variantId,
       zoom: this.$rendererState()?.zoom,

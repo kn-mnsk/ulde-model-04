@@ -35,12 +35,15 @@ This section will show ULDE diagnostics at the bottom.
   styleUrl: './ulde-demo-01.scss',
 })
 export class UldeDemo01 implements AfterViewInit, OnInit {
+
+  renderContext: ULDERenderContext | undefined = undefined;
+
   $rendererState = signal<ULDERendererState>({
     modelId: 'ulde-demo-01',
     variantId: 'default',
     zoom: 1,
     rotation: { x: 0, y: 0, z: 0 },
-    renderContext: undefined,
+    renderContext: this.renderContext,
     currentLifecyclePhase: undefined,
     diagnostics: [],
     frame: undefined,
@@ -63,12 +66,9 @@ export class UldeDemo01 implements AfterViewInit, OnInit {
     const pageContext = this.buildDemoPageContext();
     const renderContext = await lifecycle.executeLifecycle(pageContext);
 
-    console.log('Log: [ULDEDemo01] Render Context:', renderContext);
-
     return renderContext;
   }
 
-  renderContext?: ULDERenderContext;
 
   constructor(private lifecycle: ULDELifecycleService) {}
 
@@ -77,14 +77,16 @@ export class UldeDemo01 implements AfterViewInit, OnInit {
   }
 
   async ngAfterViewInit() {
-    this.renderContext = await this.runUldeDemo(this.lifecycle);
-
-    const renderContext = this.renderContext;
-    if (!renderContext) {
+    const renderContext = await this.runUldeDemo(this.lifecycle);
+    if (renderContext === undefined) {
       console.error('Render context is not available.');
       return;
     }
+
     this.$rendererState.update((state) => (state.renderContext = renderContext));
+
+    // console.log('Log: [ULDEDemo01] $rendererState:', this.$rendererState());
+
   }
 
   onViewerStateChange(state: ULDERendererState) {
