@@ -2,7 +2,12 @@
 
 import { Injectable, ElementRef } from '@angular/core';
 import { ULDEDiagnostic, ULDEFrame, ULDELifecyclePhase } from '@ulde/types';
-import type { ULDERendererHandle, ULDERendererConfig, ULDERendererEvents, ULDERendererState } from '@ulde/types/renderer';
+import type {
+  ULDERendererHandle,
+  ULDERendererConfig,
+  ULDERendererEvents,
+  ULDERendererState,
+} from '@ulde/types/renderer';
 
 @Injectable({ providedIn: 'root' })
 export class ULDERendererService {
@@ -11,14 +16,11 @@ export class ULDERendererService {
   init(
     host: ElementRef<HTMLElement>,
     config: Omit<ULDERendererConfig, 'container'>,
-    events?: ULDERendererEvents
+    events?: ULDERendererEvents,
   ) {
     this.dispose();
 
-    this.handle = this.createUldeRenderer(
-      { container: host.nativeElement, ...config },
-      events
-    );
+    this.handle = this.createUldeRenderer({ container: host.nativeElement, ...config }, events);
   }
 
   setState(state: Partial<ULDERendererState>) {
@@ -36,29 +38,26 @@ export class ULDERendererService {
 
   private createUldeRenderer(
     config: ULDERendererConfig,
-    events?: ULDERendererEvents
+    events?: ULDERendererEvents,
   ): ULDERendererHandle {
-
     // Internal state for the renderer
     let state: ULDERendererState = {
       modelId: '',
       variantId: undefined,
       zoom: 1,
       rotation: { x: 0, y: 0, z: 0 },
-      renderContext: undefined
+      renderContext: undefined,
+      currentLifecyclePhase: undefined,
+      diagnostics: [],
+      frame: undefined
     };
 
     // Initial render (optional)
     config.container.innerHTML = '<p>[ULDERendererService] ULDE Viewer READY</p>';
 
-
-
     return {
       setState(partial) {
-
-
-        console.log(`Log: [ULDERenderService] createUldeRenderer \npartial=`, partial);
-
+        console.log(`Log: [ULDERenderService] createUldeRenderer \nPartial<ULDERendererState>=`, partial);
 
         if (partial.currentLifecyclePhase) {
           highlightLifecyclePhase(partial.currentLifecyclePhase);
@@ -72,13 +71,14 @@ export class ULDERendererService {
           renderFrameInfo(partial.frame);
         }
 
-
         if (partial.renderContext) {
-          console.log(`Log: [ULDERenderService] createUldeRenderer \nrenderContext=`, partial.renderContext);
+          console.log(
+            `Log: [ULDERenderService] createUldeRenderer \nPartial<ULDERendererState>=`,
+            partial.renderContext,
+          );
 
           config.container.innerHTML = partial.renderContext.html;
         }
-
 
         // merge new partial state
         state = { ...state, ...partial };
@@ -87,7 +87,6 @@ export class ULDERendererService {
         // if (state.renderContext) {
         //   config.container.innerHTML = state.renderContext.html;
         // }
-
 
         // Emit stateChange event
         events?.onStateChange?.(state);
@@ -99,11 +98,9 @@ export class ULDERendererService {
 
       dispose() {
         config.container.innerHTML = '';
-      }
+      },
     };
-
   }
-
 }
 
 function highlightLifecyclePhase(lifecyclePhase: ULDELifecyclePhase) {
