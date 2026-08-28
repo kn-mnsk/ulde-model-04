@@ -85,7 +85,7 @@ export class UldeDemo01 implements AfterViewInit, OnInit {
 
     this.$rendererState.update((state) => (state.renderContext = renderContext));
 
-    // console.log('Log: [ULDEDemo01] $rendererState:', this.$rendererState());
+    console.log('Log: [ULDEDemo01] ngAfterViewInit\n $rendererState:', this.$rendererState());
 
   }
 
