@@ -111,6 +111,9 @@ export class ULDEPluginRegistryService {
         duration: end - start,
       });
     }
+
+    this.plugins = [];
+    
   }
 
   /**
