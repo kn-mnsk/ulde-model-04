@@ -3,9 +3,9 @@
 import type { AfterViewInit, OnDestroy } from '@angular/core';
 import { Component, ElementRef, ViewChild, effect, input, output } from '@angular/core';
 import { ULDEOverlayService } from '@ulde/core';
-import {isBrowser} from '../../app/global.utils/global.utils';
 import type { ULDERendererState } from '@ulde/types/renderer';
 import { ULDERendererService } from '@ulde/viewer';
+import { isBrowser } from '../../app/global.utils/global.utils';
 
 @Component({
   selector: 'ulde-viewer',
@@ -36,8 +36,8 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
     // react signal input
     effect(() => {
 
-      if (!isBrowser()) return;
-      
+      // if (!isBrowser()) return;
+
       this.rendererService.init(
         this.hostRef,
         {
@@ -50,6 +50,10 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
           onStateChange: (s) => this.stateChange.emit(s),
         },
       );
+
+      // if (this.$rendererState()?.renderContext === undefined) return;
+
+
 
       console.log(`Log: [UldeViewer] Effect - React to Signal Input `, this.$rendererState());
 
@@ -73,7 +77,7 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
 
     // 🔥 React to ULDE lifecycle phases
     effect(() => {
-      const phase = this.overlay.currentLifecyclePhase();
+      const phase = this.overlay.currentLifecyclePhaseTiming();
       if (phase === null) return;
 
       console.log(`Log: [UldeViewer] Effect -React to ULDE lifecycle phases `, phase);
@@ -103,6 +107,27 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
+    if (!isBrowser()) return;
+
+    requestAnimationFrame(() => {
+
+      requestAnimationFrame(() => {
+        const html = this.rendererService.getState()?.renderContext?.html;
+
+        // console.log(`Log: [UldeViewer] ngAfterViewewInit state=`, state)
+
+        if (html) {
+          this.hostRef.nativeElement.innerHTML = html;
+        }
+        else {
+          this.hostRef.nativeElement.innerHTML = `<div style="color: red;"> Error: Contents Not Correctly Rendered!!`;
+        }
+
+      })
+
+    })
+
+
     // this.rendererService.init(
     //   this.hostRef,
     //   {

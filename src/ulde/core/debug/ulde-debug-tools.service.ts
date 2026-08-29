@@ -13,12 +13,12 @@ export class ULDEDebugToolsService {
    */
   buildTimeline(): ULDETimelinePoint[] {
     return this.overlay.frames().map(frame => {
-      const total = frame.lifecyclePhases.reduce((sum, p) => sum + p.duration, 0);
+      const total = frame.lifecyclePhaseTimings.reduce((sum, p) => sum + p.duration, 0);
 
       return {
         frameId: frame.id,
         totalDuration: total,
-        phases: frame.lifecyclePhases.map(p => ({
+        phases: frame.lifecyclePhaseTimings.map(p => ({
           lifecyclePhase: p.lifecyclePhase,
           duration: p.duration
         }))
@@ -55,7 +55,7 @@ export class ULDEDebugToolsService {
 
     const lastThree = frames.slice(-3);
     const durations = lastThree.map(f =>
-      f.lifecyclePhases.reduce((sum, p) => sum + p.duration, 0)
+      f.lifecyclePhaseTimings.reduce((sum, p) => sum + p.duration, 0)
     );
 
     const avg = durations.reduce((a, b) => a + b, 0) / durations.length;

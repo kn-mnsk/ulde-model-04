@@ -15,12 +15,12 @@ import { ULDELifecyclePhaseTiming } from '@ulde/types/lifecycle';
 })
 export class ULDEOverlay {
   // Declare fields (uninitialized)
-  lifecyclePhases!: typeof this.store.lifecyclePhases;
+  lifecyclePhaseTimings!: typeof this.store.lifecyclePhaseTimings;
   pluginTimings!: typeof this.store.pluginTimings;
   frameHistory!: typeof this.store.frames;
   diagnostics!: typeof this.store.diagnostics;
 
-  currentPhase!: typeof this.store.currentLifecyclePhase;
+  currentLifecyclePhaseTiming!: typeof this.store.currentLifecyclePhaseTiming;
   currentFrame!: typeof this.store.currentFrame;
 
   sparklinePoints!: typeof this.store.sparklinePoints;
@@ -34,12 +34,12 @@ export class ULDEOverlay {
 
   constructor(private store: ULDEOverlayService) {
     // Assign AFTER DI is ready
-    this.lifecyclePhases = store.lifecyclePhases;
+    this.lifecyclePhaseTimings = store.lifecyclePhaseTimings;
     this.pluginTimings = store.pluginTimings;
     this.frameHistory = store.frames;
     this.diagnostics = store.diagnostics;
 
-    this.currentPhase = store.currentLifecyclePhase;
+    this.currentLifecyclePhaseTiming = store.currentLifecyclePhaseTiming;
     this.currentFrame = store.currentFrame;
 
     this.sparklinePoints = store.sparklinePoints;
@@ -68,11 +68,11 @@ export class ULDEOverlay {
 
   // Phase selection (for filtering plugin timings)
   selectPhase(phase: ULDELifecyclePhaseTiming) {
-    this.store.currentLifecyclePhase.set(phase);
+    this.store.currentLifecyclePhaseTiming.set(phase);
   }
 
   clearPhaseSelection() {
-    this.store.currentLifecyclePhase.set(null);
+    this.store.currentLifecyclePhaseTiming.set(null);
   }
 
   // Frame selection (for timeline/sparkline)

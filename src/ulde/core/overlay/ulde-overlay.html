@@ -19,7 +19,7 @@
 
   <!-- Lifecycle Phases Timeline -->
   <section class="phase-timeline">
-    @for (p of lifecyclePhases(); track p.lifecyclePhase) {
+    @for (p of lifecyclePhaseTimings(); track p.lifecyclePhase) {
     <div class="phase" [class.warn]="p.duration > thresholds.phaseWarn"
       [class.error]="p.duration > thresholds.phaseError" (click)="selectPhase(p)">
       <span class="label">{{ p.lifecyclePhase }}</span>
@@ -83,7 +83,7 @@
       <span class="timestamp">{{ f.timestamp | date:'mediumTime' }}</span>
       <span class="total">
         {{
-        f.lifecyclePhases.reduce((a, p) => a + p.duration, 0)
+        f.lifecyclePhaseTimings.reduce((a, p) => a + p.duration, 0)
         | number:'1.0-1'
         }}ms
       </span>
