@@ -6,6 +6,7 @@ import { ULDELifecycleService } from '@ulde/core';
 
 import { UldeViewer } from '@ulde/viewer';
 import { ULDERendererState } from '@ulde/types/renderer/ulde-renderer.types';
+import { isBrowser } from '../../global.utils/global.utils';
 
 const demoMarkdown = `
 # ULDE Demo
@@ -43,9 +44,9 @@ export class UldeDemo01 implements AfterViewInit, OnInit {
     variantId: 'default',
     zoom: 1,
     rotation: { x: 0, y: 0, z: 0 },
-    renderContext: this.renderContext,
+    renderContext: undefined,
     currentLifecyclePhase: undefined,
-    diagnostics: [],
+    diagnostics: undefined,
     frame: undefined,
   });
 
@@ -70,27 +71,36 @@ export class UldeDemo01 implements AfterViewInit, OnInit {
   }
 
 
-  constructor(private lifecycle: ULDELifecycleService) {}
+  constructor(private lifecycle: ULDELifecycleService) { }
 
   async ngOnInit() {
     // this.renderContext = await this.runUldeDemo(this.lifecycle);
   }
 
   async ngAfterViewInit() {
+    if (!isBrowser()) return;
+
     const renderContext = await this.runUldeDemo(this.lifecycle);
     if (renderContext === undefined) {
       console.error('Render context is not available.');
       return;
     }
 
-    this.$rendererState.update((state) => (state.renderContext = renderContext));
+    this.$rendererState.update(state => state.renderContext = renderContext);
 
-    console.log('Log: [ULDEDemo01] ngAfterViewInit\n $rendererState:', this.$rendererState());
+    console.log('Log: [ULDEDemo01] ngAfterViewInit\n rendererState:', this.$rendererState());
 
   }
 
   onViewerStateChange(state: ULDERendererState) {
+
+    console.log(`Log: [UldeDemo01] onViewerStateChanged state=`, JSON.stringify(state, null, 2));
     // sync UI or analytics
+  }
+
+  onError(error: Error) {
+    console.error(`Log: [UldeDemo01] onError error=`, JSON.stringify(error, null, 2));
+
   }
 
 }

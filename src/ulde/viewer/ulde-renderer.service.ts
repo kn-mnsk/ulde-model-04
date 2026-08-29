@@ -43,7 +43,7 @@ export class ULDERendererService {
     // Internal state for the renderer
     let state: ULDERendererState = {
       modelId: '',
-      variantId: undefined,
+      variantId: '',
       zoom: 1,
       rotation: { x: 0, y: 0, z: 0 },
       renderContext: undefined,
@@ -57,7 +57,11 @@ export class ULDERendererService {
 
     return {
       setState(partial) {
-        console.log(`Log: [ULDERenderService] createUldeRenderer \nPartial<ULDERendererState>=`, partial);
+
+        // merge new partial state
+        state = { ...state, ...partial };
+
+        console.log(`Log: [ULDERenderService] createUldeRenderer \nPartial<ULDERendererState>=`, state);
 
         if (partial.currentLifecyclePhase) {
           highlightLifecyclePhase(partial.currentLifecyclePhase);
@@ -71,21 +75,21 @@ export class ULDERendererService {
           renderFrameInfo(partial.frame);
         }
 
-        if (partial.renderContext) {
-          console.log(
-            `Log: [ULDERenderService] createUldeRenderer \nPartial<ULDERendererState>=`,
-            partial.renderContext,
-          );
+        // if (partial.renderContext) {
+        //   console.log(
+        //     `Log: [ULDERenderService] createUldeRenderer \nPartial<ULDERendererState>=`,
+        //     partial.renderContext,
+        //   );
 
-          config.container.innerHTML = partial.renderContext.html;
-        }
+        //   config.container.innerHTML = partial.renderContext.html;
+        // }
 
         // merge new partial state
-        state = { ...state, ...partial };
+        // state = { ...state, ...partial };
 
         // // If ULDE renderContext exists, render its HTML
         // if (state.renderContext) {
-        //   config.container.innerHTML = state.renderContext.html;
+          config.container.innerHTML = state.renderContext?.html as string;
         // }
 
         // Emit stateChange event
