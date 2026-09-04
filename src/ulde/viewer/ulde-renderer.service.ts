@@ -1,49 +1,52 @@
 // src/ulde/viewer/ulde-renderer.service.ts
-
 import { Injectable, ElementRef } from '@angular/core';
-import { ULDEDiagnostic, ULDEFrame, ULDELifecyclePhase } from '@ulde/types';
-import type {
-  ULDERendererHandle,
-  ULDERendererConfig,
-  ULDERendererEvents,
-  ULDERendererState,
+import {
+  ULDERendererConfig, ULDERendererEvents, ULDERendererHandle, ULDERendererState
 } from '@ulde/types/renderer';
+import { ULDERenderContext, } from '@ulde/types/context';
+import { ULDEDiagnostic } from '@ulde/types/diagnostic';
+import { ULDEFrame } from '@ulde/types/frame';
 
 @Injectable({ providedIn: 'root' })
 export class ULDERendererService {
-  private handle?: ULDERendererHandle;
+  private handle: ULDERendererHandle | null = null;
 
   init(
     host: ElementRef<HTMLElement>,
-    config: Omit<ULDERendererConfig, 'container'>,
-    events?: ULDERendererEvents,
-  ) {
-    this.dispose();
+    size: { width: number; height: number },
+    events?: ULDERendererEvents
+  ): void {
+    const config: ULDERendererConfig = {
+      container: host.nativeElement,
+      width: size.width,
+      height: size.height,
+      backgroundColor: '#ffffff'
+    };
 
-    this.handle = this.createUldeRenderer({ container: host.nativeElement, ...config }, events);
+    this.handle = this.createUldeRenderer(config, events);
+    events?.onReady?.();
   }
 
-  setState(state: Partial<ULDERendererState>) {
-    this.handle?.setState(state);
+  setState(partial: Partial<ULDERendererState>): void {
+    this.handle?.setState(partial);
   }
 
   getState(): ULDERendererState | null {
     return this.handle ? this.handle.getState() : null;
   }
 
-  dispose() {
+  dispose(): void {
     this.handle?.dispose();
-    this.handle = undefined;
+    this.handle = null;
   }
 
   private createUldeRenderer(
     config: ULDERendererConfig,
-    events?: ULDERendererEvents,
+    events?: ULDERendererEvents
   ): ULDERendererHandle {
-    // Internal state for the renderer
     let state: ULDERendererState = {
       modelId: '',
-      variantId: '',
+      variantId: undefined,
       zoom: 1,
       rotation: { x: 0, y: 0, z: 0 },
       renderContext: undefined,
@@ -52,47 +55,51 @@ export class ULDERendererService {
       frame: undefined
     };
 
-    // Initial render (optional)
-    config.container.innerHTML = '<p>[ULDERendererService] ULDE Viewer READY</p>';
+    config.container.innerHTML = '<p>ULDE Viewer READY</p>';
+
+    function renderFromContext(renderContext: ULDERenderContext | undefined) {
+      if (!renderContext) return;
+      config.container.innerHTML = renderContext.html;
+    }
+
+    function renderDiagnosticsOverlay(diags: ULDEDiagnostic[] | undefined) {
+      // optional: could render a small overlay or badge; keep minimal for now
+      if (!diags || diags.length === 0) return;
+      // no-op in this minimal version; diagnostics are already injected into AST
+    }
+
+    function renderLifecyclePhase(phase: string | undefined) {
+      // optional: could add a data attribute or small badge
+      if (!phase) return;
+      config.container.dataset['uldeLifecyclePhase'] = phase;
+    }
+
+    function renderFrameInfo(frame: ULDEFrame | undefined) {
+      // optional: could add timing info; keep minimal for now
+      if (!frame) return;
+      config.container.dataset['uldeFrameId'] = frame.id;
+    }
 
     return {
-      setState(partial) {
-
-        // merge new partial state
+      setState(partial: Partial<ULDERendererState>) {
         state = { ...state, ...partial };
 
-        console.log(`Log: [ULDERenderService] createUldeRenderer \nPartial<ULDERendererState>=`, state);
-
-        if (partial.currentLifecyclePhase) {
-          highlightLifecyclePhase(partial.currentLifecyclePhase);
+        if (partial.renderContext !== undefined) {
+          renderFromContext(state.renderContext);
         }
 
-        if (partial.diagnostics) {
-          renderDiagnostics(partial.diagnostics);
+        if (partial.currentLifecyclePhase !== undefined) {
+          renderLifecyclePhase(state.currentLifecyclePhase);
         }
 
-        if (partial.frame) {
-          renderFrameInfo(partial.frame);
+        if (partial.diagnostics !== undefined) {
+          renderDiagnosticsOverlay(state.diagnostics);
         }
 
-        // if (partial.renderContext) {
-        //   console.log(
-        //     `Log: [ULDERenderService] createUldeRenderer \nPartial<ULDERendererState>=`,
-        //     partial.renderContext,
-        //   );
+        if (partial.frame !== undefined) {
+          renderFrameInfo(state.frame);
+        }
 
-        //   config.container.innerHTML = partial.renderContext.html;
-        // }
-
-        // merge new partial state
-        // state = { ...state, ...partial };
-
-        // // If ULDE renderContext exists, render its HTML
-        // if (state.renderContext) {
-          config.container.innerHTML = state.renderContext?.html as string;
-        // }
-
-        // Emit stateChange event
         events?.onStateChange?.(state);
       },
 
@@ -102,19 +109,9 @@ export class ULDERendererService {
 
       dispose() {
         config.container.innerHTML = '';
-      },
+        delete config.container.dataset['uldeLifecyclePhase'];
+        delete config.container.dataset['uldeFrameId'];
+      }
     };
   }
-}
-
-function highlightLifecyclePhase(lifecyclePhase: ULDELifecyclePhase) {
-  // e.g., add a small badge or highlight
-}
-
-function renderDiagnostics(diags: ULDEDiagnostic[]) {
-  // e.g., show a diagnostics panel inside viewer
-}
-
-function renderFrameInfo(frame: ULDEFrame) {
-  // e.g., show total render time or plugin timings
 }

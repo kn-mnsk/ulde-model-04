@@ -81,12 +81,12 @@ export class UldeDemo01 implements AfterViewInit, OnInit {
     if (!isBrowser()) return;
 
     const renderContext = await this.runUldeDemo(this.lifecycle);
-    if (renderContext === undefined) {
-      console.error('Render context is not available.');
+    if (!renderContext) {
+      console.error('Error: [UldeDemo01] Render context is not available.');
       return;
     }
 
-    this.$rendererState.update(state => state.renderContext = renderContext);
+    this.$rendererState.update(state => ({...state, renderContext}));
 
     console.log('Log: [ULDEDemo01] ngAfterViewInit\n rendererState:', this.$rendererState());
 
@@ -94,7 +94,7 @@ export class UldeDemo01 implements AfterViewInit, OnInit {
 
   onViewerStateChange(state: ULDERendererState) {
 
-    console.log(`Log: [UldeDemo01] onViewerStateChanged state=`, JSON.stringify(state, null, 2));
+    console.log(`Log: [UldeDemo01] onViewerStateChanged state=`, state);
     // sync UI or analytics
   }
 
