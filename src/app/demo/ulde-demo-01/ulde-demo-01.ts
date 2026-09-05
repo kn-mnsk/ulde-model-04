@@ -1,33 +1,14 @@
-import { Component, signal, AfterViewInit, OnInit } from '@angular/core';
+import { Component, signal, AfterViewInit, OnInit, ViewChild, ElementRef } from '@angular/core';
 
-import MarkdownIt from 'markdown-it';
 import { ULDEPageContext, ULDERenderContext } from '@ulde/types/context';
 import { ULDELifecycleService } from '@ulde/core';
 
 import { UldeViewer } from '@ulde/viewer';
 import { ULDERendererState } from '@ulde/types/renderer/ulde-renderer.types';
 import { isBrowser } from '../../global.utils/global.utils';
+import { ContentEngineService } from '@ulde/engine';
 
-const demoMarkdown = `
-# ULDE Demo
 
-This is an **ULDE** end-to-end demo.
-
-## TOC & Anchors
-
-- This page has auto TOC
-- Headings get anchors
-
-## Demo Block
-
-\`\`\`demo id=hello-ulde
-console.log("Hello ULDE");
-\`\`\`
-
-## Diagnostics
-
-This section will show ULDE diagnostics at the bottom.
-`;
 
 @Component({
   selector: 'app-ulde-demo-01',
@@ -37,7 +18,11 @@ This section will show ULDE diagnostics at the bottom.
 })
 export class UldeDemo01 implements AfterViewInit, OnInit {
 
+  component = 'UldeDemo01';
+
   renderContext: ULDERenderContext | undefined = undefined;
+
+  $pageId = signal<string>('docs/index'); // initila value
 
   $rendererState = signal<ULDERendererState>({
     modelId: 'ulde-demo-01',
@@ -50,28 +35,38 @@ export class UldeDemo01 implements AfterViewInit, OnInit {
     frame: undefined,
   });
 
-  private md = new MarkdownIt();
+  // private md = new MarkdownIt();
 
-  private buildDemoPageContext(): ULDEPageContext {
-    const tokens = this.md.parse(demoMarkdown, {});
+  private async buildDemoPageContext(): Promise<ULDEPageContext | void> {
+
+    // load markdown file
+    const markdown = await this.contenEngine.load(this.$pageId());
+    if (!markdown) return;
+
+    const tokens = await this.contenEngine.transform(markdown);
+    // const tokens = this.md.parse(markdown, {});
 
     return {
-      pageId: 'ulde-demo-01',
-      raw: demoMarkdown,
+      pageId: this.$pageId(),
+      raw: markdown,
       token: tokens,
       meta: {},
     };
   }
 
   private async runUldeDemo(lifecycle: ULDELifecycleService) {
-    const pageContext = this.buildDemoPageContext();
+    const pageContext = await this.buildDemoPageContext();
+    if (!pageContext) return undefined;
     const renderContext = await lifecycle.executeLifecycle(pageContext);
 
     return renderContext;
   }
 
 
-  constructor(private lifecycle: ULDELifecycleService) { }
+  @ViewChild('hostUldeViewerRef', { static: true }) hostUldeViewerRef!: ElementRef<HTMLElement>;
+  constructor(
+    private contenEngine: ContentEngineService,
+    private lifecycle: ULDELifecycleService) { }
 
   async ngOnInit() {
     // this.renderContext = await this.runUldeDemo(this.lifecycle);
@@ -86,20 +81,20 @@ export class UldeDemo01 implements AfterViewInit, OnInit {
       return;
     }
 
-    this.$rendererState.update(state => ({...state, renderContext}));
+    this.$rendererState.update(state => ({ ...state, renderContext }));
 
-    console.log('Log: [ULDEDemo01] ngAfterViewInit\n rendererState:', this.$rendererState());
+    console.log(`Log: [${this.component}] ngAfterViewInit\n rendererState:`, this.$rendererState());
 
   }
 
   onViewerStateChange(state: ULDERendererState) {
 
-    console.log(`Log: [UldeDemo01] onViewerStateChanged state=`, state);
+    console.log(`Log: [${this.component}] onViewerStateChanged state=`, state);
     // sync UI or analytics
   }
 
   onError(error: Error) {
-    console.error(`Log: [UldeDemo01] onError error=`, JSON.stringify(error, null, 2));
+    console.error(`Log: [${this.component}] onError error=`, JSON.stringify(error, null, 2));
 
   }
 

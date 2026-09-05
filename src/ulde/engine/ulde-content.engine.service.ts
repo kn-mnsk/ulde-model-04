@@ -5,6 +5,12 @@ import { inject, Injectable } from '@angular/core';
 import { navigate } from '../../app/global.utils/global.utils';
 import { Router } from '@angular/router';
 
+
+import MarkdownIt from 'markdown-it';
+
+import Token from 'markdown-it/lib/token.mjs';
+
+
 @Injectable({
   providedIn: 'root',
 })
@@ -15,7 +21,6 @@ export class ContentEngineService {
   async load(pageId: string): Promise<string | undefined> {
     /* existing loader */
 
-    console.log(`Log: ${this.title} load \nid=`, pageId);
 
     const url = `assets/${pageId}.md`;
 
@@ -30,19 +35,24 @@ export class ContentEngineService {
 
       const raw = await response.text();
 
+
+      // console.log(`Log: ${this.title} load \nid=`, pageId, `raw=`, raw);
+
       return raw;
 
     } catch (err) {
-      console.error('${component} loadAndRender error:', err);
+      console.error(`${this.title} load() error:`, err);
       return undefined;
     }
 
   }
-  transform(docId: string): Promise<any> {
+  async transform(raw: string): Promise<Token[]> {
     /* existing parser */
 
+    const md = new MarkdownIt();
+    const tokens = md.parse(raw, {});
 
-    return new Promise<any>(() => { });
+    return tokens;
 
   }
 }
