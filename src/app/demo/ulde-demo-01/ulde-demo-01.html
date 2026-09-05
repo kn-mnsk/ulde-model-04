@@ -1,6 +1,6 @@
-<p>ulde-demo-01 works!</p>
+<!-- <p>ulde-demo-01 works!</p> -->
 <!-- @if(renderContext !== undefined){ -->
-<p>Render context is available.</p>
-<ulde-viewer [$rendererState]="$rendererState()" (stateChange)="onViewerStateChange($event)" (error)="onError($event)">
+<!-- <p>Render context is available.</p> -->
+<ulde-viewer class="ulde-viewer-host" #HostUldeViewerRef [$rendererState]="$rendererState()" (stateChange)="onViewerStateChange($event)" (error)="onError($event)">
 </ulde-viewer>
 <!-- } -->

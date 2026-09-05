@@ -158,7 +158,15 @@ export function renderUldeAstToHtml(nodes: ULDEAstNode[]): string {
 
       case 'demo': {
         const id = node.meta?.['id'] ?? '';
-        buf.push(`<div class="ulde-demo" data-demo-id="${escapeHtml(id)}">`);
+        buf.push(`
+          <div class="ulde-demo"
+          data-demo-id="${escapeHtml(id)}"
+          data-demo-code="${escapeHtml(node.meta?.['code'])}">
+          <pre>${escapeHtml(node.meta?.['code'])}</pre>
+          `);
+        // buf.push(`
+        //   <div class="ulde-demo" data-demo-id="${escapeHtml(id)}">
+        //   `);
         node.children?.forEach(renderNode);
         buf.push('</div>');
         break;
@@ -171,7 +179,8 @@ export function renderUldeAstToHtml(nodes: ULDEAstNode[]): string {
 
       case 'anchor': {
         const id = node.meta?.['id'] ?? '';
-        buf.push(`<a id="${escapeHtml(id)}"></a>`);
+        buf.push(`<a id="${escapeHtml(id)}" data-ulde-anchor="${escapeHtml(id)}"></a>`);
+        // buf.push(`<a id="${escapeHtml(id)}"></a>`);
         break;
       }
 
