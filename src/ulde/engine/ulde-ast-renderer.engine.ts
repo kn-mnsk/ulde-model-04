@@ -12,6 +12,7 @@ export function renderUldeAstToHtml(nodes: ULDEAstNode[]): string {
       // Block nodes
       // ---------------------------------------------------------
       case 'heading': {
+        // buf.push(`<h${node.depth} id=${node.meta?.['id']}>`);
         buf.push(`<h${node.depth}>`);
         node.children?.forEach(renderNode);
         buf.push(`</h${node.depth}>`);
@@ -180,6 +181,8 @@ export function renderUldeAstToHtml(nodes: ULDEAstNode[]): string {
       case 'anchor': {
         const id = node.meta?.['id'] ?? '';
         buf.push(`<a id="${escapeHtml(id)}" data-ulde-anchor="${escapeHtml(id)}"></a>`);
+
+        console.log(`Log: [ulde-ast-renderer.engine.ts renderUldeAstToHtml()]  \nnode type=anchor`, id);
         // buf.push(`<a id="${escapeHtml(id)}"></a>`);
         break;
       }

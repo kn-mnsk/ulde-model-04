@@ -40,7 +40,7 @@ export class ULDEPluginRegistryService {
     if (plugin.enabled === false) return;
 
     this.plugins.push(plugin);
-    // this.plugins.sort((a, b) => a.name.localeCompare(b.name)); // deterministic order
+    // this.plugins.sort((a, b) => a.pluginKind.localeCompare(b.pluginKind)); // deterministic order
   }
 
   /**
@@ -113,7 +113,7 @@ export class ULDEPluginRegistryService {
     }
 
     this.plugins = [];
-    
+
   }
 
   /**

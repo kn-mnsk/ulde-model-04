@@ -44,15 +44,18 @@ export class ULDERenderContextBuilderService {
 
     // Append diagnostics at the end of the AST
     const finalAst = [...sectionAst, ...diagnosticNodes];
+    console.log(`Log: [ULDERenderContextBuilderServic] finalAst=`, finalAst);
+
 
     // 3. Render HTML
     const html = renderUldeAstToHtml(finalAst);
+    // console.log(`Log: [ULDERenderContextBuilderServic] 3. Render HTML FINISHED! \nhtml=`, html);
 
     // 4. Assemble render context
     const currentFrame = this.overlay.currentFrame();
     return {
       pageId: page.pageId,
-      ast: sectionAst,
+      ast: finalAst, //sectionAst,
       html,
       layout: 'sections',
       frame: (currentFrame !== null) ? currentFrame : undefined,

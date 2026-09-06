@@ -2,7 +2,9 @@
 
 import { ULDEPlugin } from "@ulde/types/plugin";
 import { ULDERenderContext } from "@ulde/types/context";
-import { visitUldeAst } from "@ulde/engine";
+import { visitUldeAst, renderUldeAstToHtml } from "@ulde/engine";
+
+// import { renderUldeAstToHtml } from './ulde-ast-renderer.engine';
 
 export const AutoTOC: ULDEPlugin = {
   pluginKind: 'layout',
@@ -11,6 +13,8 @@ export const AutoTOC: ULDEPlugin = {
   enabled: true,
   hooks: {
     async onBeforeRender(ctx: ULDERenderContext) {
+
+      // console.log(`Log: [AutoToc Plugin] onBeforeRender`);
 
       // const headings = ctx.ast.map(n =>
       //   n.children?.filter((n: any) => /^h[1-6]$/.test(n.tag))
@@ -48,6 +52,11 @@ export const AutoTOC: ULDEPlugin = {
 
       // Inject TOC at top
       ctx.ast.unshift(tocNode);
+      console.log(`Log: AutoTOC Plugin] onBeforeRender \nctx.ast=`, ctx.ast);
+      // New addition in debugginf
+      // ctx.html = renderUldeAstToHtml(ctx.ast);
+
+
     }
   }
 };
