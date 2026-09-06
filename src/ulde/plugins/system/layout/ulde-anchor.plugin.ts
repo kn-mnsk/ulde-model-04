@@ -9,6 +9,9 @@ export const AutoAnchors: ULDEPlugin = {
   enabled: true,
   hooks: {
     onBeforeRender(ctx) {
+
+      console.log(`Log: [AutoAnchors Plugin] onBeforeRender`);
+
       visitUldeAst(ctx.ast, {
         pre(node) {
           if (node.type === 'heading') {

@@ -70,6 +70,9 @@ constructor(
 
     // AFTER RENDER
     this.startPhase('afterRender');
+
+    this.pluginRegistry.destroyAll();
+
     this.runtime.finalizeFrameAndAnalyze();
     this.endPhase('afterRender');
 
