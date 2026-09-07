@@ -54,12 +54,52 @@ export const AutoTOC: ULDEPlugin = {
       ctx.ast.unshift(tocNode);
       console.log(`Log: AutoTOC Plugin] onBeforeRender \nctx.ast=`, ctx.ast);
 
-      // New addition in debugginf
-      const ast = ctx.ast;
-      ctx.html = renderUldeAstToHtml(ast);
+      // // New addition in debugginf
+      // const ast = ctx.ast;
+      // ctx.html = renderUldeAstToHtml(ast);
 
-    }
+    },
+
+    // onAfterRender(ctx) {
+    //   const headings: { depth: number; id: string, text: string }[] = [];
+    //   visitUldeAst(ctx.ast, {
+    //     pre(node) {
+    //       if (node.type === 'section') {
+    //         const id = node.meta?.['id'];
+    //         const depth = node.meta?.['depth'];
+
+    //         const heading = node.children?.map(c => c)
+    //           .filter(c => c.type === 'heading');
+
+    //         const anchor = heading?.map(c => c?.children?.filter(c => c.type==='anchor'));
+    //         // ?.map(c=>c).filter(c => c.type ==='anchor');
+    //         // .filter(c => c.type==='anchor');
+    //         const text = heading?.map(c => c?.children?.filter(c => c.type==='text')).map(c => c?.values).join('') ?? '';;
+
+    //           // .filter(c => c?.type === 'anchor').join('') ?? '';
+
+
+    //         headings.push({ depth: depth, id: id, text });
+    //       }
+    //     }
+    //   });
+
+
+
+    //   console.log(`Log: AutoTOC Plugin] onAfterRender \nheadins=\n`, headings);
+
+    //   const tocHtml = headings
+    //     .map((h: any) => `<li><a href="#${h.id}">${h.text}</a></li>`)
+    //     .join("");
+
+    //   ctx.html = `<nav class="toc"><ul>${tocHtml}</ul></nav>` + ctx.html;
+
+
+    //   console.log(`Log: AutoTOC Plugin] onAfterRender \nctx.html=\n`, ctx.html);
+    // },
+
   }
+
 };
 
 function slugify(s: string) {

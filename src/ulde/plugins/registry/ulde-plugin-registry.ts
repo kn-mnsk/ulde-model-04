@@ -39,7 +39,7 @@ export function createUldeStringPluginRegistry() {
     CodeBlockEnhancer,
     FrontmatterNormalizer,
 
-    // Layout PHASE
+    // Layout
     AutoAnchors,
     AutoTOC,
     DemoBlockPlugin,

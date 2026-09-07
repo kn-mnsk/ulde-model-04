@@ -56,6 +56,7 @@ export class ULDERenderContextBuilderService {
     return {
       pageId: page.pageId,
       ast: finalAst, //sectionAst,
+      // html: '',
       html,
       layout: 'sections',
       frame: (currentFrame !== null) ? currentFrame : undefined,
