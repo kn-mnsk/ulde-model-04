@@ -6,7 +6,7 @@ import { ULDEOverlayService } from '@ulde/core/overlay';
 import { ULDEPageContext, ULDERenderContext, } from '@ulde/types/context';
 import { ULDELifecyclePhase } from '@ulde/types/lifecycle';
 
-import { ULDERenderContextBuilderService } from '@ulde/engine';
+import { renderUldeAstToHtml, ULDERenderContextBuilderService } from '@ulde/engine';
 
 @Injectable({ providedIn: 'root' })
 export class ULDELifecycleService {
@@ -64,6 +64,10 @@ constructor(
     // RENDER
     const renderContext = await this.renderContextBuilder.build(pageContext);
     await this.runPhase('render', 'onBeforeRender', renderContext);
+
+    const ast = renderContext.ast;
+    const html = renderUldeAstToHtml(ast);
+    renderContext.html = html;
 
     // HYDRATE
     await this.runPhase('hydrate', 'onAfterRender', renderContext);

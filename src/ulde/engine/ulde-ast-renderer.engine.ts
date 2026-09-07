@@ -13,6 +13,11 @@ export function renderUldeAstToHtml(nodes: ULDEAstNode[]): string {
       // ---------------------------------------------------------
       case 'heading': {
         // buf.push(`<h${node.depth} id=${node.meta?.['id']}>`);
+
+        // const anchor = node.children?.map(c => c?.children?.filter(c => c.type === 'anchor'));
+        // const id = anchor?.map(c=>c?.filter(c=> (c.meta?.['id'] !==null))).join('')??'';
+        // buf.push(`<h${node.depth} id="${id}">`);
+
         buf.push(`<h${node.depth}>`);
         node.children?.forEach(renderNode);
         buf.push(`</h${node.depth}>`);
