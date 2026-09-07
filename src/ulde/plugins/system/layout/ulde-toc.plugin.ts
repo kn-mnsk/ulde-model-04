@@ -53,9 +53,10 @@ export const AutoTOC: ULDEPlugin = {
       // Inject TOC at top
       ctx.ast.unshift(tocNode);
       console.log(`Log: AutoTOC Plugin] onBeforeRender \nctx.ast=`, ctx.ast);
-      // New addition in debugginf
-      // ctx.html = renderUldeAstToHtml(ctx.ast);
 
+      // New addition in debugginf
+      const ast = ctx.ast;
+      ctx.html = renderUldeAstToHtml(ast);
 
     }
   }

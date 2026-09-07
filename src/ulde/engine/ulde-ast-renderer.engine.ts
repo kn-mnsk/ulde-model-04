@@ -182,7 +182,7 @@ export function renderUldeAstToHtml(nodes: ULDEAstNode[]): string {
         const id = node.meta?.['id'] ?? '';
         buf.push(`<a id="${escapeHtml(id)}" data-ulde-anchor="${escapeHtml(id)}"></a>`);
 
-        console.log(`Log: [ulde-ast-renderer.engine.ts renderUldeAstToHtml()]  \nnode type=anchor`, id);
+        // console.log(`Log: [ulde-ast-renderer.engine.ts renderUldeAstToHtml()]  \nnode type=anchor`, id);
         // buf.push(`<a id="${escapeHtml(id)}"></a>`);
         break;
       }
