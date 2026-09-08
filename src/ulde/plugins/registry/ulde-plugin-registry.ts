@@ -1,59 +1,83 @@
 // src/ulde/plugins/registry/ulde-plugin-registry.ts
 
-// ------------------------------
-// content PLUGINS
-// ------------------------------
-import { CodeBlockEnhancer } from '@ulde/plugins/system/content';
-import { FrontmatterNormalizer } from '@ulde/plugins/system/content';
+import {
+  ULDECodeblockPlugin,
+} from '@ulde/plugins/system/content/ulde-codeblock.plugin';
+import {
+  ULDEFrontmatterNormalizerPlugin,
+} from '@ulde/plugins/system/content/ulde-frontmatter-normalizer.plugin';
+import { ULDELifecyclePhase } from '@ulde/types/lifecycle';
 
-// ------------------------------
-// Layout PLUGINS
-// ------------------------------
-import { AutoAnchors, AutoTOC } from '@ulde/plugins/system/layout';
+import {
+  ULDEDemoPlugin,
+} from '@ulde/plugins/system/demo/ulde-demo.plugin';
+import {
+  ULDEPlaygroundInjectorPlugin,
+} from '@ulde/plugins/system/demo/ulde-playground-injector.plugin';
 
-// ------------------------------
-//Interactive PLUGINS
-// ------------------------------
-import { createDummyTestPlugin } from '@ulde/plugins/system/interactive';
+import {
+  ULDEDummyTestPlugin,
+} from '@ulde/plugins/system/interactive/ulde-dummy-test.plugin';
 
-// ------------------------------
-// Navigation PLUGINS
-// ------------------------------
-import { Breadcrumbs } from '@ulde/plugins/system/navigation'
+import {
+  ULDEAnchorPlugin,
+} from '@ulde/plugins/system/layout/ulde-anchor.plugin';
+import {
+  ULDETocPlugin,
+} from '@ulde/plugins/system/layout/ulde-toc.plugin';
 
-// ------------------------------
-// ulde PLUGINS
-// ------------------------------
-import { OverlayCustomPanel } from '@ulde/plugins/system/ulde'
-import { SlowPluginDetector } from '@ulde/plugins/system/ulde'
-import { TimelineProfiler } from '@ulde/plugins/system/ulde'
-import { DemoBlockPlugin } from '@ulde/plugins/system';
+import {
+  ULDENavigationBreadcrumbsPlugin,
+} from '@ulde/plugins/system/navigation/ulde-navigation-breadcrumbs.plugin';
 
+import {
+  ULDEOverlayCustomPanelPlugin,
+} from '@ulde/plugins/system/ulde/ulde-overlay-custom-panel.plugin';
+import {
+  ULDESlowPluginDetectorPlugin,
+} from '@ulde/plugins/system/ulde/ulde-slow-plugin-detector.plugin';
+import {
+  ULDETimelineProfilerPlugin,
+} from '@ulde/plugins/system/ulde/ulde-timeline-profiler.plugin';
 
-// -----------------------------------------------------
-// BUILD REGISTRY (ORDER MATTERS) - String World
-// -----------------------------------------------------
-export function createUldeStringPluginRegistry() {
-  return [
-    // Content PHASE
-    CodeBlockEnhancer,
-    FrontmatterNormalizer,
+export type ULDEPluginClass = new (...args: any[]) => any;
 
-    // Layout
-    AutoAnchors,
-    AutoTOC,
-    DemoBlockPlugin,
+export type ULDEPluginRegistryMap = {
+  [P in ULDELifecyclePhase]?: ULDEPluginClass[];
+};
 
-    // Interactive PHASE
-    createDummyTestPlugin(),
+/**
+ * Phase‑aware, deterministic ULDE plugin registry.
+ * This is the single source of truth for plugin ordering.
+ */
+export const ULDE_PLUGIN_REGISTRY: ULDEPluginRegistryMap = {
+  // Reserved for future init‑only plugins
+  init: [],
 
-    // Navigation PHASE
-    Breadcrumbs,
+  // Content + navigation: operate on page context / tokens / early AST
+  load: [
+    ULDEFrontmatterNormalizerPlugin,
+    ULDECodeblockPlugin,
+    ULDEDemoPlugin,
+    ULDEDummyTestPlugin,
+    ULDENavigationBreadcrumbsPlugin,
+  ],
 
-    //ulde Phase
-    OverlayCustomPanel,
-    SlowPluginDetector,
-    TimelineProfiler
-  ];
+  // Layout: operate on AST structure (sections, anchors, TOC)
+  render: [
+    ULDEAnchorPlugin,
+    ULDETocPlugin,
+  ],
 
-}
+  // Interactive: operate on rendered HTML / DOM
+  hydrate: [
+    ULDEPlaygroundInjectorPlugin,
+  ],
+
+  // ULDE system: diagnostics, overlay, performance analysis
+  afterRender: [
+    ULDEOverlayCustomPanelPlugin,
+    ULDESlowPluginDetectorPlugin,
+    ULDETimelineProfilerPlugin,
+  ],
+};

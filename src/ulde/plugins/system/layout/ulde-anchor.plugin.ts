@@ -1,8 +1,9 @@
 // src/ulde/plugins/system/layout/ulde-anchor.plugin.ts
+
 import { ULDEPlugin } from '@ulde/types/plugin';
 import { visitUldeAst } from '@ulde/engine';
 
-export const AutoAnchors: ULDEPlugin = {
+export const ULDEAnchorPlugin: ULDEPlugin = {
   pluginKind: 'layout',
   pluginName: 'auto-anchors',
   description: 'Add <a id="slug"></a> before each heading.',

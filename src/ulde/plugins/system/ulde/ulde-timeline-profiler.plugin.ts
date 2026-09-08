@@ -2,7 +2,7 @@
 
 import { ULDEPlugin } from "@ulde/types/plugin";
 
-export const TimelineProfiler: ULDEPlugin = {
+export const ULDETimelineProfilerPlugin: ULDEPlugin = {
   pluginKind: 'ulde',
   pluginName: "TimelineProfiler",
   description: "Logs ULDE phase durations to console",

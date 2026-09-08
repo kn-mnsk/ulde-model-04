@@ -2,7 +2,7 @@
 
 import { ULDEPlugin } from "@ulde/types/plugin";
 
-export const CodeBlockEnhancer: ULDEPlugin = {
+export const ULDECodeblockPlugin: ULDEPlugin = {
   pluginKind: 'content',
   pluginName: "CodeblockEnhancer",
   description: "Markdown Code Block Enhancer: Enhances fenced code blocks with metadata",
