@@ -3,7 +3,7 @@
 import { ULDEPlugin } from "@ulde/types/plugin";
 import { ULDEPluginTiming } from "@ulde/types/timing";
 
-export const SlowPluginDetector: ULDEPlugin = {
+export const ULDESlowPluginDetectorPlugin: ULDEPlugin = {
   pluginKind: 'ulde',
   pluginName: "SlowPluginDetector",
   description: "Warns when plugin execution exceeds threshold",
@@ -11,7 +11,7 @@ export const SlowPluginDetector: ULDEPlugin = {
   hooks: {
     async onAfterRender(ctx) {
       if (ctx.frame === undefined) return;
-      
+
       const timings: ULDEPluginTiming[] = ctx.frame.pluginTimings; // ULDE exposes timing store
       // const timings = window.ULDE.timings; // ULDE exposes timing store
       const threshold = 8; // ms

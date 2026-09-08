@@ -232,7 +232,13 @@ export function renderUldeAstToHtml(nodes: ULDEAstNode[]): string {
   };
 
   nodes.forEach(renderNode);
-  return buf.join('');
+
+
+  // return buf.join('');
+
+  const html = buf.join('');
+
+  return html;
 }
 
 function escapeHtml(s: string): string {

@@ -3,7 +3,7 @@
 import { ULDEPlugin } from '@ulde/types/plugin';
 import { visitUldeAst } from '@ulde/engine';
 
-export const DemoBlockPlugin: ULDEPlugin = {
+export const ULDEDemoPlugin: ULDEPlugin = {
   pluginKind: 'demo',
   pluginName: 'demo-block',
   description: 'Convert fenced code blocks with demo info into ULDE demo nodes.',

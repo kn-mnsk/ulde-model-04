@@ -5,13 +5,24 @@
 ```
 src/
   app/
+    demo/
+      ulde-demo-01/
+        ulde-demo-01.html
+        ulde-demo-01.scss
+        ulde-demo-01.spec.ts
+        ulde-demo-01.ts
+    ...
+    app.html
+    app.routes.ts
+    app.scss
+    app.spec.ts
+    app.ts
   ...
-
   ulde/
     configurator/
       index.ts
       ulde-configurator.html
-      ulde-configurator.route.ts
+      ulde-configurator.routes.ts
       ulde-configurator.ts
     core/
       debug/
@@ -33,9 +44,9 @@ src/
       ulde-ast-renderer.engine.ts
       ulde-ast-visitor.engine.ts
       ulde-content.engine.service.ts
-      ulde-render-context-builder.engine.service.ts
       ulde-interactive.engine.service.ts
-      ulde-layout.engine.service.ts
+      ulde-layout.engine.service.
+      ulde-render-context-builder.engine.service.ts
     plugins/
       contributor/ // for the future
       registry/
@@ -48,12 +59,14 @@ src/
           ulde-frontmatter-normalizer.plugin.ts
         demo/
           index.ts
+          ulde-demo.plugin.ts
           ulde-playground-injector.plugin.ts
         interactive/
           index.ts
           ulde-dummy-test.plugin.ts
         layout/
           index.ts
+          ulde-anchor.plugin.ts
           ulde-toc.plugin.ts
         navigation/
           index.ts
@@ -98,16 +111,274 @@ src/
       ulde-viewer.html
       ulde-viewer.scss
       ulde-viewer.ts
-
+  ...
 ...
 
 ```
 
 ## 2. File contents by the folder structure
 
-### 1. src/ulde/configurator/
+### 1. app/
 
-#### 1-1. index.ts
+#### 1-1. demo/ulde-demo-01/ulde-demo-01.html
+```html
+<!-- src/app/demo/ulde-demo-01/ulde-demo-01.html
+  -->
+<!-- <p>ulde-demo-01 works!</p> -->
+<ulde-viewer class="ulde-viewer-host" #HostUldeViewerRef [$rendererState]="$rendererState()" (stateChange)="onViewerStateChange($event)" (error)="onError($event)">
+</ulde-viewer>
+```
+
+#### 1-2. demo/ulde-demo-01/ulde-demo-01.scss
+```scss
+// src/app/demo/ulde-demo-01/ulde-demo-01.scss
+
+.ulde-viewer-host {
+  // width: 80%;
+  // height: 100vh;
+  position: relative;
+  overflow-y: hidden;
+}
+
+```
+
+#### 1-3. demo/ulde-demo-01/ulde-demo-01.ts
+```ts
+// src/app/demo/ulde-demo-01/ulde-demo-01.ts
+
+import { Component, signal, AfterViewInit, OnInit, ViewChild, ElementRef } from '@angular/core';
+
+import { ULDEPageContext, ULDERenderContext } from '@ulde/types/context';
+import { ULDELifecycleService } from '@ulde/core';
+
+import { UldeViewer } from '@ulde/viewer';
+import { ULDERendererState } from '@ulde/types/renderer/ulde-renderer.types';
+import { isBrowser } from '../../global.utils/global.utils';
+import { ContentEngineService } from '@ulde/engine';
+
+
+
+@Component({
+  selector: 'app-ulde-demo-01',
+  imports: [UldeViewer],
+  templateUrl: './ulde-demo-01.html',
+  styleUrl: './ulde-demo-01.scss',
+})
+export class UldeDemo01 implements AfterViewInit, OnInit {
+
+  component = 'UldeDemo01';
+
+  renderContext: ULDERenderContext | undefined = undefined;
+
+  $pageId = signal<string>('docs/index'); // initila value
+
+  $rendererState = signal<ULDERendererState>({
+    modelId: 'ulde-demo-01',
+    variantId: 'default',
+    zoom: 1,
+    rotation: { x: 0, y: 0, z: 0 },
+    renderContext: undefined,
+    currentLifecyclePhase: undefined,
+    diagnostics: undefined,
+    frame: undefined,
+  });
+
+  // private md = new MarkdownIt();
+
+  private async buildDemoPageContext(): Promise<ULDEPageContext | void> {
+
+    // load markdown file
+    const markdown = await this.contenEngine.load(this.$pageId());
+    if (!markdown) return;
+
+    const tokens = await this.contenEngine.transform(markdown);
+    // const tokens = this.md.parse(markdown, {});
+
+    return {
+      pageId: this.$pageId(),
+      raw: markdown,
+      token: tokens,
+      meta: {},
+    };
+  }
+
+  private async runUldeDemo(lifecycle: ULDELifecycleService) {
+    const pageContext = await this.buildDemoPageContext();
+    if (!pageContext) return undefined;
+    const renderContext = await lifecycle.executeLifecycle(pageContext);
+
+    return renderContext;
+  }
+
+
+  @ViewChild('hostUldeViewerRef', { static: true }) hostUldeViewerRef!: ElementRef<HTMLElement>;
+  constructor(
+    private contenEngine: ContentEngineService,
+    private lifecycle: ULDELifecycleService) { }
+
+  async ngOnInit() {
+    // this.renderContext = await this.runUldeDemo(this.lifecycle);
+  }
+
+  async ngAfterViewInit() {
+    if (!isBrowser()) return;
+
+    const renderContext = await this.runUldeDemo(this.lifecycle);
+    if (!renderContext) {
+      console.error('Error: [UldeDemo01] Render context is not available.');
+      return;
+    }
+
+    this.$rendererState.update(state => ({ ...state, renderContext }));
+
+    console.log(`Log: [${this.component}] ngAfterViewInit\n rendererState:`, this.$rendererState());
+
+  }
+
+  onViewerStateChange(state: ULDERendererState) {
+
+    console.log(`Log: [${this.component}] onViewerStateChanged state=`, state);
+    // sync UI or analytics
+  }
+
+  onError(error: Error) {
+    console.error(`Log: [${this.component}] onError error=`, JSON.stringify(error, null, 2));
+
+  }
+
+}
+
+```
+
+#### 1-4. app.html
+```ts
+<!-- src/app/app.html -->
+ 
+<p>App Works!</p>
+<!-- <ulde-configurator></ulde-configurator> -->
+<app-ulde-demo-01></app-ulde-demo-01>
+
+```
+
+#### 1-5. app.routes.ts
+```ts
+// src/app/app.routes.ts
+
+import type { Routes } from '@angular/router';;
+// import { PageNotFound } from './page-not-found/page-not-found';
+// import { Error } from './page-error/error';
+
+
+export const routes: Routes = [
+  // {
+  //   path: '',
+  //   redirectTo: 'configure',
+  //   pathMatch: 'full'
+  // },
+  {
+    path: '',
+    redirectTo: 'home',
+    pathMatch: 'full'
+  },
+
+  // {
+  //   path: 'configure',
+  //   loadChildren: () =>
+  //     import('./product-configurator/product-configurator.routes')
+  //       .then(m => m.PRODUCT_CONFIGURATOR_ROUTES)
+  // },
+
+  {
+    path: 'home',
+    loadComponent: () =>
+      import('./app')
+        .then(m => m.App)
+  },
+
+  // {
+  //   path: 'docs',
+  //   loadChildren: () =>
+  //     import('./docs-viewer/docs-viewer.routes')
+  //       .then(m => m.DOCS_VIEWER_ROUTES)
+  // },
+
+  {
+    path: 'viewer-demo',
+    loadComponent: () =>
+      import('../ulde/viewer/ulde-viewer')
+        .then(m => m.UldeViewer)
+  },
+  {
+    path: 'PageNotFound',
+    loadComponent: () => import('./page-not-found/page-not-found').then(m => m.PageNotFound)
+  },
+
+  {
+    path: '**',
+    redirectTo: 'PageNotFound'
+  }
+];
+
+// export const routes: Routes = [
+// {
+//     path: 'home',
+//     title: 'home-UldeModel-v1',
+//     loadComponent:  () => import('./app').then(m => m.App)
+//   },
+//   {
+//     path: "fallback",
+//     title: "Page Not Found",
+//     component: PageNotFound
+//   },
+//   {
+//     path: 'error',
+//     title: 'Error on Page',
+//     component: Error
+//   },
+//     {
+//     path: '',
+//     redirectTo: "home",
+//     pathMatch: 'full'
+//   },
+//   {
+//     path: '**',
+//     redirectTo: "fallback"
+//   }
+// ];
+
+```
+
+#### 1-6. app.scss
+
+None
+
+
+#### 1-7. app.ts
+```ts
+// src/app/app.ts
+
+import { Component, signal } from '@angular/core';
+// import { DocsViewer } from './docs-viewer/docs-viewer';
+import { ProductConfigurator } from '../ulde/configurator/ulde-configurator';
+import { UldeDemo01 } from './demo/ulde-demo-01/ulde-demo-01';
+
+@Component({
+  selector: 'app-root',
+  imports: [UldeDemo01],
+  templateUrl: './app.html',
+  styleUrl: './app.scss'
+})
+export class App {
+  protected readonly title = signal('App');
+
+}
+
+```
+
+
+### 2. src/ulde/configurator/
+
+#### 2-1. index.ts
 ```ts
 // src/ulde/configurator/index.ts
 
@@ -115,17 +386,14 @@ export * from "./ulde-configurator";
 
 ```
 
-#### 1-2. ulde-configurator.html
+#### 2-2. ulde-configurator.html
 ```ts
 // src/ulde/configurator/ulde-configurator.html
 
 <div class="configurator-layout">
   <div class="viewer-pane">
     <ulde-viewer
-      [modelId]="selectedModelId"
-      [variantId]="selectedVariantId"
-      [zoom]="zoom"
-      [rotation]="rotation"
+      [$rendererState]="rendererState"
       (stateChange)="onViewerStateChange($event)"
     ></ulde-viewer>
   </div>
@@ -137,10 +405,9 @@ export * from "./ulde-configurator";
 
 ```
 
-#### 1-3. ulde-configurator.route.ts
+#### 2-3. ulde-configurator.routes.ts
 ```ts
 // src/ulde/configurator/ulde-configurator.routes.ts
-
 
 import type { Routes } from '@angular/router';
 import { ProductConfigurator } from '@ulde/configurator';
@@ -154,11 +421,12 @@ export const PRODUCT_CONFIGURATOR_ROUTES: Routes = [
 
 ```
 
-#### 1-4. ulde-configurator.ts
+#### 2-4. ulde-configurator.ts
 ```ts
-// src/ulde/configurator/configurator.ts
+/// src/ulde/configurator/configurator.ts
 
 import { Component } from '@angular/core';
+import { ULDERendererState } from '@ulde/types/renderer/ulde-renderer.types';
 import { UldeViewer } from '@ulde/viewer';
 
 @Component({
@@ -168,23 +436,31 @@ import { UldeViewer } from '@ulde/viewer';
   templateUrl: 'ulde-configurator.html'
 })
 export class ProductConfigurator {
-  selectedModelId = 'ULDE-MODEL';
-  selectedVariantId = 'default';
-  zoom = 1;
-  rotation = { x: 0, y: 0, z: 0 };
 
-  onViewerStateChange(state: any) {
+  rendererState = {
+    modelId: 'ULDE-MODEL',
+    variantId: 'default',
+    zoom: 1,
+    rotation: { x: 0, y: 0, z: 0 },
+    renderContext: undefined,
+    currentLifecyclePhase: undefined,
+    diagnostics: [],
+    frame: undefined,
+  };
+
+  onViewerStateChange(state: ULDERendererState) {
     // sync UI or analytics
   }
+
 }
 
 ```
 
-### 2. src/ulde/core/
+### 3. src/ulde/core/
 
-#### 2-1. debug/
+#### 3-1. debug/
 
-##### 2-1-1. index.ts
+##### 3-1-1. index.ts
 ```ts
 // src/ulde/core/debug/index.ts
 
@@ -192,7 +468,7 @@ export * from "./ulde-debug-tools.service";
 
 ```
 
-##### 2-1-2. ulde-debug.tools.service.ts
+##### 3-1-2. ulde-debug.tools.service.ts
 ```ts
 // src/ulde/core/debug/ulde-debug.tools.service.ts
 
@@ -209,12 +485,12 @@ export class ULDEDebugToolsService {
    */
   buildTimeline(): ULDETimelinePoint[] {
     return this.overlay.frames().map(frame => {
-      const total = frame.lifecyclePhases.reduce((sum, p) => sum + p.duration, 0);
+      const total = frame.lifecyclePhaseTimings.reduce((sum, p) => sum + p.duration, 0);
 
       return {
         frameId: frame.id,
         totalDuration: total,
-        phases: frame.lifecyclePhases.map(p => ({
+        phases: frame.lifecyclePhaseTimings.map(p => ({
           lifecyclePhase: p.lifecyclePhase,
           duration: p.duration
         }))
@@ -251,7 +527,7 @@ export class ULDEDebugToolsService {
 
     const lastThree = frames.slice(-3);
     const durations = lastThree.map(f =>
-      f.lifecyclePhases.reduce((sum, p) => sum + p.duration, 0)
+      f.lifecyclePhaseTimings.reduce((sum, p) => sum + p.duration, 0)
     );
 
     const avg = durations.reduce((a, b) => a + b, 0) / durations.length;
@@ -277,9 +553,9 @@ export class ULDEDebugToolsService {
 
 ```
 
-#### 2-2. overay/
+#### 3-2. overay/
 
-##### 2-2-1. index.ts
+##### 3-2-1. index.ts
 ```ts
 // src/ulde/core/overlay/index.ts
 
@@ -288,10 +564,12 @@ export * from "./ulde-overlay";
 
 ```
 
-##### 2-2-2. ulde-overlay.html
-```ts
+##### 3-2-2. ulde-overlay.html
+```html
 <!-- src/ulde/core/overlay/ulde-overlay.html -->
-
+<!-- src/ulde/core/overlay/ulde-overlay.html -->
+ 
+<p>UldeOverlay Works!</p>
 <div class="ulde-overlay" [class.hidden]="!visible()" [style.opacity]="opacity()">
 
   <!-- Header -->
@@ -311,7 +589,7 @@ export * from "./ulde-overlay";
 
   <!-- Lifecycle Phases Timeline -->
   <section class="phase-timeline">
-    @for (p of lifecyclePhases(); track p.lifecyclePhase) {
+    @for (p of lifecyclePhaseTimings(); track p.lifecyclePhase) {
     <div class="phase" [class.warn]="p.duration > thresholds.phaseWarn"
       [class.error]="p.duration > thresholds.phaseError" (click)="selectPhase(p)">
       <span class="label">{{ p.lifecyclePhase }}</span>
@@ -375,7 +653,7 @@ export * from "./ulde-overlay";
       <span class="timestamp">{{ f.timestamp | date:'mediumTime' }}</span>
       <span class="total">
         {{
-        f.lifecyclePhases.reduce((a, p) => a + p.duration, 0)
+        f.lifecyclePhaseTimings.reduce((a, p) => a + p.duration, 0)
         | number:'1.0-1'
         }}ms
       </span>
@@ -385,10 +663,11 @@ export * from "./ulde-overlay";
 
 </div>
 
+
 ```
 
-##### 2-2-3. ulde-overaly.scss
-```ts
+##### 3-2-3. ulde-overaly.scss
+```scss
 // src/ulde/core/overlay/ulde-overlay.scss
 
 .ulde-overlay {
@@ -607,7 +886,7 @@ export * from "./ulde-overlay";
 
 ```
 
-##### 2-2-4. ulde-overlay.service.ts
+##### 3-2-4. ulde-overlay.service.ts
 ```ts
 // src/ulde/core/overlay/ulde-overlay.service.ts
 
@@ -625,8 +904,8 @@ export class ULDEOverlayService {
   opacity = signal(1);
 
   // Lifecycle state
-  lifecyclePhases = signal<ULDELifecyclePhaseTiming[]>([]);
-  currentPhase = signal<ULDELifecyclePhaseTiming | null>(null);
+  lifecyclePhaseTimings = signal<ULDELifecyclePhaseTiming[]>([]);
+  currentLifecyclePhaseTiming = signal<ULDELifecyclePhaseTiming | null>(null);
 
   // Plugin timings
   pluginTimings = signal<ULDEPluginTiming[]>([]);
@@ -651,7 +930,7 @@ export class ULDEOverlayService {
 
     return history
       .map((f, i) => {
-        const total = f.lifecyclePhases.reduce((a, p) => a + p.duration, 0);
+        const total = f.lifecyclePhaseTimings.reduce((a, p) => a + p.duration, 0);
         return `${i * 10},${40 - Math.min(total, 40)}`;
       })
       .join(' ');
@@ -659,11 +938,11 @@ export class ULDEOverlayService {
 
   // Derived: filtered plugin timings by lifecycle phase
   filteredPluginTimings = computed(() => {
-    const phase = this.currentPhase();
+    const lifecyclePhaseTiming = this.currentLifecyclePhaseTiming();
     const timings = this.pluginTimings();
 
-    if (!phase) return timings;
-    return timings.filter(t => t.lifecyclePhase === phase.lifecyclePhase);
+    if (!lifecyclePhaseTiming) return timings;
+    return timings.filter(t => t.lifecyclePhase === lifecyclePhaseTiming.lifecyclePhase);
   });
 
   // Overlay control methods
@@ -681,7 +960,7 @@ export class ULDEOverlayService {
 
   // Lifecycle event handlers
   startPhase(lifecyclePhase: ULDELifecyclePhase) {
-    this.currentPhase.set({
+    this.currentLifecyclePhaseTiming.set({
       lifecyclePhase,
       startTime: performance.now(),
       endTime: 0,
@@ -690,7 +969,7 @@ export class ULDEOverlayService {
   }
 
   endPhase(lifecyclePhase: ULDELifecyclePhase) {
-    const phase = this.currentPhase();
+    const phase = this.currentLifecyclePhaseTiming();
     if (!phase || phase.lifecyclePhase !== lifecyclePhase) return;
 
     const end = performance.now();
@@ -702,8 +981,8 @@ export class ULDEOverlayService {
       duration,
     };
 
-    this.lifecyclePhases.update(list => [...list, updatedPhase]);
-    this.currentPhase.set(null);
+    this.lifecyclePhaseTimings.update(list => [...list, updatedPhase]);
+    this.currentLifecyclePhaseTiming.set(null);
   }
 
   // Plugin timing recording
@@ -716,7 +995,7 @@ export class ULDEOverlayService {
     const frame: ULDEFrame = {
       id: crypto.randomUUID(),
       timestamp: Date.now(),
-      lifecyclePhases: this.lifecyclePhases(),
+      lifecyclePhaseTimings: this.lifecyclePhaseTimings(),
       pluginTimings: this.pluginTimings(),
       diagnostics: this.diagnostics()
     };
@@ -725,7 +1004,7 @@ export class ULDEOverlayService {
     this.currentFrame.set(frame);
 
     // reset for next frame
-    this.lifecyclePhases.set([]);
+    this.lifecyclePhaseTimings.set([]);
     this.pluginTimings.set([]);
   }
 
@@ -733,11 +1012,13 @@ export class ULDEOverlayService {
   addDiagnostic(diag: ULDEDiagnostic) {
     this.diagnostics.update(list => [...list, diag]);
   }
+
+
 }
 
 ```
 
-##### 2-2-5. ulde-overlay.ts
+##### 3-2-5. ulde-overlay.ts
 ```ts
 // src/ulde/core/overlay/ulde-overlay.ts
 
@@ -756,12 +1037,12 @@ import { ULDELifecyclePhaseTiming } from '@ulde/types/lifecycle';
 })
 export class ULDEOverlay {
   // Declare fields (uninitialized)
-  lifecyclePhases!: typeof this.store.lifecyclePhases;
+  lifecyclePhaseTimings!: typeof this.store.lifecyclePhaseTimings;
   pluginTimings!: typeof this.store.pluginTimings;
   frameHistory!: typeof this.store.frames;
   diagnostics!: typeof this.store.diagnostics;
 
-  currentPhase!: typeof this.store.currentPhase;
+  currentLifecyclePhaseTiming!: typeof this.store.currentLifecyclePhaseTiming;
   currentFrame!: typeof this.store.currentFrame;
 
   sparklinePoints!: typeof this.store.sparklinePoints;
@@ -775,12 +1056,12 @@ export class ULDEOverlay {
 
   constructor(private store: ULDEOverlayService) {
     // Assign AFTER DI is ready
-    this.lifecyclePhases = store.lifecyclePhases;
+    this.lifecyclePhaseTimings = store.lifecyclePhaseTimings;
     this.pluginTimings = store.pluginTimings;
     this.frameHistory = store.frames;
     this.diagnostics = store.diagnostics;
 
-    this.currentPhase = store.currentPhase;
+    this.currentLifecyclePhaseTiming = store.currentLifecyclePhaseTiming;
     this.currentFrame = store.currentFrame;
 
     this.sparklinePoints = store.sparklinePoints;
@@ -809,11 +1090,11 @@ export class ULDEOverlay {
 
   // Phase selection (for filtering plugin timings)
   selectPhase(phase: ULDELifecyclePhaseTiming) {
-    this.store.currentPhase.set(phase);
+    this.store.currentLifecyclePhaseTiming.set(phase);
   }
 
   clearPhaseSelection() {
-    this.store.currentPhase.set(null);
+    this.store.currentLifecyclePhaseTiming.set(null);
   }
 
   // Frame selection (for timeline/sparkline)
@@ -824,7 +1105,7 @@ export class ULDEOverlay {
 
 ```
 
-#### 2-3. index.ts
+#### 3-3. index.ts
 ```ts
 // src/ulde/core/index.ts
 
@@ -836,7 +1117,7 @@ export * from "./ulde-runtime.service";
 
 ```
 
-#### 2-4. ulde-lifecycle.service.ts
+#### 3-4. ulde-lifecycle.service.ts
 ```ts
 // src/ulde/core/ulde-lifecycle.service.ts
 
@@ -846,7 +1127,7 @@ import { ULDEOverlayService } from '@ulde/core/overlay';
 import { ULDEPageContext, ULDERenderContext, } from '@ulde/types/context';
 import { ULDELifecyclePhase } from '@ulde/types/lifecycle';
 
-import { ULDERenderContextBuilderService } from '@ulde/engine';
+import { renderUldeAstToHtml, ULDERenderContextBuilderService } from '@ulde/engine';
 
 @Injectable({ providedIn: 'root' })
 export class ULDELifecycleService {
@@ -858,21 +1139,21 @@ constructor(
   private renderContextBuilder: ULDERenderContextBuilderService,
 ) {}
 
-  startPhase(lifecyclePhase: ULDELifecyclePhase) {
+  startLifecyclePhase(lifecyclePhase: ULDELifecyclePhase) {
     this.overlay.startPhase(lifecyclePhase);
   }
 
-  endPhase(lifecyclePhase: ULDELifecyclePhase) {
+  endLifecyclePhase(lifecyclePhase: ULDELifecyclePhase) {
     this.overlay.endPhase(lifecyclePhase);
   }
 
-  async runPhase(
+  async runPluginByLifecyclePhase(
     lifecyclePhase: ULDELifecyclePhase,
     hookName?: keyof ULDEPluginRegistryService['hookMap'],
     ctx?: ULDEPageContext | ULDERenderContext | Record<string, any>,
   ) {
     try {
-      this.startPhase(lifecyclePhase);
+      this.startLifecyclePhase(lifecyclePhase);
 
       if (hookName) {
         await this.pluginRegistry.run(hookName, {
@@ -881,7 +1162,7 @@ constructor(
         });
       }
 
-      this.endPhase(lifecyclePhase);
+      this.endLifecyclePhase(lifecyclePhase);
     } catch (err) {
       this.overlay.addDiagnostic({
         level: 'error',
@@ -896,22 +1177,29 @@ constructor(
    */
   async executeLifecycle(pageContext: ULDEPageContext): Promise<ULDERenderContext> {
     // INIT
-    await this.runPhase('init', 'onInit');
+    await this.runPluginByLifecyclePhase('init', 'onInit');
 
     // LOAD
-    await this.runPhase('load', 'onPageLoad', pageContext);
+    await this.runPluginByLifecyclePhase('load', 'onPageLoad', pageContext);
 
     // RENDER
     const renderContext = await this.renderContextBuilder.build(pageContext);
-    await this.runPhase('render', 'onBeforeRender', renderContext);
+    await this.runPluginByLifecyclePhase('render', 'onBeforeRender', renderContext);
+
+    const ast = renderContext.ast;
+    const html = renderUldeAstToHtml(ast);
+    renderContext.html = html;
 
     // HYDRATE
-    await this.runPhase('hydrate', 'onAfterRender', renderContext);
+    await this.runPluginByLifecyclePhase('hydrate', 'onAfterRender', renderContext);
 
     // AFTER RENDER
-    this.startPhase('afterRender');
+    this.startLifecyclePhase('afterRender');
+
+    this.pluginRegistry.destroyAll();
+
     this.runtime.finalizeFrameAndAnalyze();
-    this.endPhase('afterRender');
+    this.endLifecyclePhase('afterRender');
 
     return renderContext;
   }
@@ -919,7 +1207,7 @@ constructor(
 
 ```
 
-#### 2-5. ulde-plugin-registry.service.ts
+#### 3-5. ulde-plugin-registry.service.ts
 ```ts
 // src/ulde/core/ulde-plugin-registry.service.ts
 
@@ -963,7 +1251,7 @@ export class ULDEPluginRegistryService {
     if (plugin.enabled === false) return;
 
     this.plugins.push(plugin);
-    // this.plugins.sort((a, b) => a.name.localeCompare(b.name)); // deterministic order
+    // this.plugins.sort((a, b) => a.pluginKind.localeCompare(b.pluginKind)); // deterministic order
   }
 
   /**
@@ -984,8 +1272,8 @@ export class ULDEPluginRegistryService {
       } catch (err) {
         this.overlay.addDiagnostic({
           level: 'error',
-          message: `Plugin "${plugin.name}" failed in hook "${hookName}": ${String(err)}`,
-          pluginName: plugin.name,
+          message: `Plugin "${plugin.pluginName}" failed in hook "${hookName}": ${String(err)}`,
+          pluginName: plugin.pluginKind,
           lifecyclePhase: ctx?.lifecyclePhase,
         });
       }
@@ -993,8 +1281,8 @@ export class ULDEPluginRegistryService {
       const end = performance.now();
 
       const timing: ULDEPluginTiming = {
-        pluginName: plugin.name,
-        pluginKind: plugin.pluginKind as ULDEPluginKind,
+        pluginName: plugin.pluginName,
+        pluginKind: plugin.pluginKind,
         hookName,
         lifecyclePhase: ctx?.lifecyclePhase ?? 'init',
         duration: end - start,
@@ -1019,21 +1307,24 @@ export class ULDEPluginRegistryService {
       } catch (err) {
         this.overlay.addDiagnostic({
           level: 'error',
-          message: `Plugin "${plugin.name}" failed in onDestroy: ${String(err)}`,
-          pluginName: plugin.name,
+          message: `Plugin "${plugin.pluginName}" failed in onDestroy: ${String(err)}`,
+          pluginName: plugin.pluginKind,
         });
       }
 
       const end = performance.now();
 
       this.overlay.recordPluginTiming({
-        pluginName: plugin.name,
+        pluginName: plugin.pluginName,
         pluginKind: plugin.pluginKind,
         hookName: 'onDestroy',
         lifecyclePhase: 'afterRender',
         duration: end - start,
       });
     }
+
+    this.plugins = [];
+
   }
 
   /**
@@ -1046,13 +1337,14 @@ export class ULDEPluginRegistryService {
 
 ```
 
-#### 2-6. ulde-runtime.service.ts
+#### 3-6. ulde-runtime.service.ts
 ```ts
 // src/ulde/core/ulde-runtime.service.ts
 
 import { Injectable } from '@angular/core';
-import { ULDEOverlayService } from '@ulde/core';
+import {ULDEOverlayService } from '@ulde/core';
 import { ULDEFrame } from '@ulde/types/frame';
+
 
 @Injectable({ providedIn: 'root' })
 export class ULDERuntimeService {
@@ -1062,7 +1354,10 @@ export class ULDERuntimeService {
   private pluginWarnThreshold = 8;   // ms
   private pluginErrorThreshold = 16; // ms
 
-  constructor(private overlay: ULDEOverlayService) { }
+  constructor(
+    private overlay: ULDEOverlayService,
+
+  ) { }
 
   /**
    * Called at the end of each full lifecycle (afterRender).
@@ -1079,7 +1374,7 @@ export class ULDERuntimeService {
   }
 
   private detectPhaseAnomalies(frame: ULDEFrame) {
-    for (const phase of frame.lifecyclePhases) {
+    for (const phase of frame.lifecyclePhaseTimings) {
       if (phase.duration > this.phaseErrorThreshold) {
         this.overlay.addDiagnostic({
           level: 'error',
@@ -1115,13 +1410,20 @@ export class ULDERuntimeService {
       }
     }
   }
+
+  // in ULDERuntimeService
+  // async runForPage(pageCtx: ULDEPageContext, renderCtx: ULDERenderContext) {
+  //   await this.lifecycle.run(pageCtx, renderCtx);
+  //   this.finalizeFrameAndAnalyze();
+  // }
+
 }
 
 ```
 
-### 3. src/ulde/engine/
+### 4. src/ulde/engine/
 
-#### 3-1. index.ts
+#### 4-1. index.ts
 ```ts
 // src/ulde/engine/index.ts
 
@@ -1129,18 +1431,17 @@ export * from "./ulde-ast-builder.engine";
 export * from "./ulde-ast-renderer.engine";
 export * from "./ulde-ast-visitor.engine";
 export * from "./ulde-content.engine.service";
-export * from "./ulde-render-context-builder.engine.service";
 export * from "./ulde-interactive.engine.service";
 export * from "./ulde-layout.engine.service";
+export * from "./ulde-render-context-builder.engine.service";
 
 ```
 
-#### 3-2. ulde-ast-builder.engine.ts
+#### 4-2. ulde-ast-builder.engine.ts
 ```ts
 // src/ulde/engine/ulde-ast-builder.engine.ts
 
 import Token from 'markdown-it/lib/token.mjs';
-
 import { ULDEAstNode } from '@ulde/types/context';
 
 export function buildUldeAst(tokens: Token[]): ULDEAstNode[] {
@@ -1163,9 +1464,7 @@ export function buildUldeAst(tokens: Token[]): ULDEAstNode[] {
   for (const t of tokens) {
     switch (t.type) {
 
-      // ---------------------------------------------------------
       // Headings
-      // ---------------------------------------------------------
       case 'heading_open':
         open({
           type: 'heading',
@@ -1177,9 +1476,7 @@ export function buildUldeAst(tokens: Token[]): ULDEAstNode[] {
         close();
         break;
 
-      // ---------------------------------------------------------
       // Paragraphs
-      // ---------------------------------------------------------
       case 'paragraph_open':
         open({ type: 'paragraph' });
         break;
@@ -1188,9 +1485,7 @@ export function buildUldeAst(tokens: Token[]): ULDEAstNode[] {
         close();
         break;
 
-      // ---------------------------------------------------------
       // Lists
-      // ---------------------------------------------------------
       case 'bullet_list_open':
         open({ type: 'list', meta: { ordered: false } });
         break;
@@ -1212,9 +1507,7 @@ export function buildUldeAst(tokens: Token[]): ULDEAstNode[] {
         close();
         break;
 
-      // ---------------------------------------------------------
       // Blockquote
-      // ---------------------------------------------------------
       case 'blockquote_open':
         open({ type: 'blockquote' });
         break;
@@ -1223,9 +1516,62 @@ export function buildUldeAst(tokens: Token[]): ULDEAstNode[] {
         close();
         break;
 
-      // ---------------------------------------------------------
-      // Code blocks
-      // ---------------------------------------------------------
+      // Thematic break (horizontal rule)
+      case 'hr':
+        push({ type: 'thematicBreak' });
+        break;
+
+      // Images
+      case 'image':
+        push({
+          type: 'image',
+          meta: {
+            src: t.attrGet('src') || '',
+            alt: t.attrGet('alt') || undefined,
+            title: t.attrGet('title') || undefined,
+          },
+        });
+        break;
+
+      // Tables
+      case 'table_open':
+        open({ type: 'table' });
+        break;
+
+      case 'table_close':
+        close();
+        break;
+
+      case 'thead_open':
+      case 'tbody_open':
+        // treat as section-like containers if needed
+        open({ type: 'section', meta: { id: t.type } });
+        break;
+
+      case 'thead_close':
+      case 'tbody_close':
+        close();
+        break;
+
+      case 'tr_open':
+        open({ type: 'tableRow' });
+        break;
+
+      case 'tr_close':
+        close();
+        break;
+
+      case 'th_open':
+      case 'td_open':
+        open({ type: 'tableCell' });
+        break;
+
+      case 'th_close':
+      case 'td_close':
+        close();
+        break;
+
+      // Code blocks (fence)
       case 'fence':
         push({
           type: 'code',
@@ -1234,9 +1580,7 @@ export function buildUldeAst(tokens: Token[]): ULDEAstNode[] {
         });
         break;
 
-      // ---------------------------------------------------------
       // Inline tokens
-      // ---------------------------------------------------------
       case 'inline':
         for (const child of t.children || []) {
           switch (child.type) {
@@ -1278,14 +1622,19 @@ export function buildUldeAst(tokens: Token[]): ULDEAstNode[] {
                 value: child.content,
               });
               break;
+
+            case 'softbreak':
+            case 'hardbreak':
+              push({ type: 'break' });
+              break;
           }
         }
         break;
 
-      // ---------------------------------------------------------
-      // Ignore everything else for now
-      // ---------------------------------------------------------
+      // Default: ignore or log
       default:
+        // you can optionally push a meta node for unknown tokens
+        // push({ type: 'meta', meta: { tokenType: t.type } });
         break;
     }
   }
@@ -1293,9 +1642,14 @@ export function buildUldeAst(tokens: Token[]): ULDEAstNode[] {
   return root;
 }
 
+//-----------------------------------------
+// NOTE:
+// If addinng custom tokens (for frontmatter, demos, ULDE blocks) later, can extend this switch with those types and map them to ULDEFrontmatterNode, ULDEDemoNode, ULDEUldeBlockNode, etc.
+//-------------------------------------
+
 ```
 
-#### 3-3. ulde-ast-renderer.engine.ts
+#### 4-3. ulde-ast-renderer.engine.ts
 ```ts
 // src/ulde/engine/ulde-ast-renderer.engine.ts
 
@@ -1310,23 +1664,32 @@ export function renderUldeAstToHtml(nodes: ULDEAstNode[]): string {
       // ---------------------------------------------------------
       // Block nodes
       // ---------------------------------------------------------
-      case 'heading':
+      case 'heading': {
+        // buf.push(`<h${node.depth} id=${node.meta?.['id']}>`);
+
+        // const anchor = node.children?.map(c => c?.children?.filter(c => c.type === 'anchor'));
+        // const id = anchor?.map(c=>c?.filter(c=> (c.meta?.['id'] !==null))).join('')??'';
+        // buf.push(`<h${node.depth} id="${id}">`);
+
         buf.push(`<h${node.depth}>`);
         node.children?.forEach(renderNode);
         buf.push(`</h${node.depth}>`);
         break;
+      }
 
-      case 'paragraph':
+      case 'paragraph': {
         buf.push('<p>');
         node.children?.forEach(renderNode);
         buf.push('</p>');
         break;
+      }
 
-      case 'blockquote':
+      case 'blockquote': {
         buf.push('<blockquote>');
         node.children?.forEach(renderNode);
         buf.push('</blockquote>');
         break;
+      }
 
       case 'list': {
         const ordered = node.meta?.['ordered'] === true;
@@ -1336,44 +1699,51 @@ export function renderUldeAstToHtml(nodes: ULDEAstNode[]): string {
         break;
       }
 
-      case 'listItem':
+      case 'listItem': {
         buf.push('<li>');
         node.children?.forEach(renderNode);
         buf.push('</li>');
         break;
+      }
 
-      case 'thematicBreak':
+      case 'thematicBreak': {
         buf.push('<hr />');
         break;
+      }
 
       // ---------------------------------------------------------
       // Inline nodes
       // ---------------------------------------------------------
-      case 'text':
+      case 'text': {
         buf.push(escapeHtml(node.value ?? ''));
         break;
+      }
 
-      case 'strong':
+      case 'strong': {
         buf.push('<strong>');
         node.children?.forEach(renderNode);
         buf.push('</strong>');
         break;
+      }
 
-      case 'emphasis':
+      case 'emphasis': {
         buf.push('<em>');
         node.children?.forEach(renderNode);
         buf.push('</em>');
         break;
+      }
 
-      case 'inlineCode':
+      case 'inlineCode': {
         buf.push('<code>');
         buf.push(escapeHtml(node.value ?? ''));
         buf.push('</code>');
         break;
+      }
 
-      case 'break':
+      case 'break': {
         buf.push('<br />');
         break;
+      }
 
       case 'link': {
         const href = escapeHtml(node.meta?.['href'] ?? '');
@@ -1407,17 +1777,19 @@ export function renderUldeAstToHtml(nodes: ULDEAstNode[]): string {
         break;
       }
 
-      case 'math':
+      case 'math': {
         buf.push(`<div class="ulde-math">`);
         buf.push(escapeHtml(node.value ?? ''));
         buf.push('</div>');
         break;
+      }
 
-      case 'inlineMath':
+      case 'inlineMath': {
         buf.push(`<span class="ulde-math-inline">`);
         buf.push(escapeHtml(node.value ?? ''));
         buf.push('</span>');
         break;
+      }
 
       // ---------------------------------------------------------
       // ULDE custom nodes (minimal handling)
@@ -1445,33 +1817,81 @@ export function renderUldeAstToHtml(nodes: ULDEAstNode[]): string {
 
       case 'demo': {
         const id = node.meta?.['id'] ?? '';
-        buf.push(`<div class="ulde-demo" data-demo-id="${escapeHtml(id)}">`);
+        buf.push(`
+          <div class="ulde-demo"
+          data-demo-id="${escapeHtml(id)}"
+          data-demo-code="${escapeHtml(node.meta?.['code'])}">
+          <pre>${escapeHtml(node.meta?.['code'])}</pre>
+          `);
+        // buf.push(`
+        //   <div class="ulde-demo" data-demo-id="${escapeHtml(id)}">
+        //   `);
         node.children?.forEach(renderNode);
         buf.push('</div>');
         break;
       }
 
-      case 'toc':
+      case 'toc': {
         buf.push('<div class="ulde-toc"></div>');
         break;
+      }
 
       case 'anchor': {
         const id = node.meta?.['id'] ?? '';
-        buf.push(`<a id="${escapeHtml(id)}"></a>`);
+        buf.push(`<a id="${escapeHtml(id)}" data-ulde-anchor="${escapeHtml(id)}"></a>`);
+
+        // console.log(`Log: [ulde-ast-renderer.engine.ts renderUldeAstToHtml()]  \nnode type=anchor`, id);
+        // buf.push(`<a id="${escapeHtml(id)}"></a>`);
         break;
       }
+
+      case 'section': {
+        buf.push('<section>');
+        node.children?.forEach(renderNode);
+        buf.push('</section>');
+        break;
+      }
+
+      case 'diagnostic': {
+        const level = node.meta?.['level'] ?? 'info';
+        const message = escapeHtml(node.meta?.['message'] ?? '');
+        const phase = node.meta?.['lifecyclePhase'];
+        const plugin = node.meta?.['pluginName'];
+
+        buf.push(`<div class="ulde-diagnostic ulde-diagnostic-${level}">`);
+        buf.push(`<strong>${level.toUpperCase()}</strong>: ${message}`);
+
+        if (phase) {
+          buf.push(`<span class="meta"> (phase: ${escapeHtml(phase)})</span>`);
+        }
+
+        if (plugin) {
+          buf.push(`<span class="meta"> (plugin: ${escapeHtml(plugin)})</span>`);
+        }
+
+        buf.push(`</div>`);
+        break;
+      }
+
 
       // ---------------------------------------------------------
       // Fallback: render children only
       // ---------------------------------------------------------
-      default:
+      default: {
         node.children?.forEach(renderNode);
         break;
+      }
     }
   };
 
   nodes.forEach(renderNode);
-  return buf.join('');
+
+
+  // return buf.join('');
+
+  const html = buf.join('');
+
+  return html;
 }
 
 function escapeHtml(s: string): string {
@@ -1483,9 +1903,8 @@ function escapeHtml(s: string): string {
     .replace(/'/g, '&#39;');
 }
 
-
 ```
-#### 3-4. ulde-ast-visitor.engine.ts
+#### 4-4. ulde-ast-visitor.engine.ts
 ```ts
 // src/ulde/engine/ulde-ast-visitor.engine.ts
 
@@ -1514,9 +1933,7 @@ export function visitUldeAst(
 
   const walk = (node: ULDEAstNode, parent: ULDEAstNode | null): ULDEAstNode | null => {
 
-    // ---------------------------------------------------------
     // PRE-VISIT (before children)
-    // ---------------------------------------------------------
     if (pre) {
       const result = pre(node, parent);
 
@@ -1529,9 +1946,7 @@ export function visitUldeAst(
       }
     }
 
-    // ---------------------------------------------------------
     // Visit children
-    // ---------------------------------------------------------
     if (node.children && node.children.length > 0) {
       const newChildren: ULDEAstNode[] = [];
 
@@ -1545,9 +1960,7 @@ export function visitUldeAst(
       node.children = newChildren;
     }
 
-    // ---------------------------------------------------------
     // POST-VISIT (after children)
-    // ---------------------------------------------------------
     if (post) {
       const result = post(node, parent);
 
@@ -1563,9 +1976,7 @@ export function visitUldeAst(
     return node;
   };
 
-  // ---------------------------------------------------------
   // Walk root array
-  // ---------------------------------------------------------
   const result: ULDEAstNode[] = [];
 
   for (const node of nodes) {
@@ -1578,10 +1989,9 @@ export function visitUldeAst(
   return result;
 }
 
-
 ```
 
-#### 3-5. ulde-content.engine.service.ts
+#### 4-5. ulde-content.engine.service.ts
 ```ts
 // src/ulde/engine/ulde-content.engine.service.ts
 
@@ -1589,6 +1999,12 @@ import { inject, Injectable } from '@angular/core';
 
 import { navigate } from '../../app/global.utils/global.utils';
 import { Router } from '@angular/router';
+
+
+import MarkdownIt from 'markdown-it';
+
+import Token from 'markdown-it/lib/token.mjs';
+
 
 @Injectable({
   providedIn: 'root',
@@ -1600,7 +2016,6 @@ export class ContentEngineService {
   async load(pageId: string): Promise<string | undefined> {
     /* existing loader */
 
-    console.log(`Log: ${this.title} load \nid=`, pageId);
 
     const url = `assets/${pageId}.md`;
 
@@ -1615,62 +2030,31 @@ export class ContentEngineService {
 
       const raw = await response.text();
 
+
+      // console.log(`Log: ${this.title} load \nid=`, pageId, `raw=`, raw);
+
       return raw;
 
     } catch (err) {
-      console.error('${component} loadAndRender error:', err);
+      console.error(`${this.title} load() error:`, err);
       return undefined;
     }
 
   }
-  transform(docId: string): Promise<any> {
+  async transform(raw: string): Promise<Token[]> {
     /* existing parser */
 
+    const md = new MarkdownIt();
+    const tokens = md.parse(raw, {});
 
-    return new Promise<any>(() => { });
+    return tokens;
 
   }
 }
 
 ```
 
-#### 3-6. ulde-render-context-builder.engine.service.ts
-```ts
-// src/ulde/engine/ulde-render-context-builder.service.ts
-
-import { Injectable } from '@angular/core';
-import { ULDEPageContext, ULDERenderContext } from '@ulde/types/context';
-import { buildUldeAst } from './ulde-ast-builder.engine';
-import { renderUldeAstToHtml } from './ulde-ast-renderer.engine';
-import { visitUldeAst } from './ulde-ast-visitor.engine';
-
-@Injectable({ providedIn: 'root' })
-export class ULDERenderContextBuilderService {
-
-  async build(page: ULDEPageContext): Promise<ULDERenderContext> {
-    // 1. Build AST
-    const ast = buildUldeAst(page.token);
-
-    // 2. Run AST visitors (plugins may hook into this later)
-    const astAfterPlugins = visitUldeAst(ast, {});
-
-    // 3. Render HTML
-    const html = renderUldeAstToHtml(astAfterPlugins);
-
-    // 4. Assemble render context
-    return {
-      pageId: page.pageId,
-      ast: astAfterPlugins,
-      html,
-      layout: undefined,
-      frame: undefined,
-    };
-  }
-}
-
-```
-
-#### 3-7. ulde-interactive.engine.service.ts
+#### 4-6. ulde-interactive.engine.service.ts
 ```ts
 // src/ulde/engine/ulde-interactive.engine.service.ts
 
@@ -1689,47 +2073,140 @@ export class InteractiveEngineService {
 
 ```
 
-#### 3-8. ulde-layout.engine.service.ts
+#### 4-7. ulde-layout.engine.service.ts
 ```ts
 // src/ulde/engine/ulde-layout.engine.service.ts
 
 import { Injectable } from '@angular/core';
-import { SafeHtml } from '@angular/platform-browser';
+import { ULDEAstNode, ULDESectionNode, ULDEHeadingNode } from '@ulde/types/context';
 
-@Injectable({
-  providedIn: 'root',
-})
-export class LayoutEngineService {
+@Injectable({ providedIn: 'root' })
+export class ULDELayoutEngineService {
 
-  prepare(pageId: string): any {
-    /* choose layout, gather metadata */
+  buildSections(ast: ULDEAstNode[]): ULDEAstNode[] {
+    const result: ULDEAstNode[] = [];
+    let currentSection: ULDESectionNode | null = null;
 
-    const layout: any = {};
+    for (const node of ast) {
+      if (node.type === 'heading') {
+        // start a new section
+        const section: ULDESectionNode = {
+          type: 'section',
+          meta: {
+            id: slugify(collectHeadingText(node)),
+            depth: (node as ULDEHeadingNode).depth
+          },
+          children: [node]
+        };
 
-    return layout;
+        result.push(section);
+        currentSection = section;
+      } else if (currentSection) {
+        // attach node to current section
+        currentSection.children!.push(node);
+      } else {
+        // content before first heading stays at root
+        result.push(node);
+      }
+    }
+
+    return result;
   }
+}
 
-  render(astOrHtml: any): string | SafeHtml {
-    /* apply layout */
+function collectHeadingText(node: ULDEAstNode): string {
+  return (node.children || [])
+    .filter(c => c.type === 'text')
+    .map(c => c.value ?? '')
+    .join('');
+}
 
-    const html: String | SafeHtml = {};
-
-    return html;
-
-   }
+function slugify(s: string) {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 }
 
 ```
 
-### 4. src/ulde/plugins/
 
-#### 4-1. contributor/
+#### 4-8. ulde-render-context-builder.engine.service.ts
+```ts
+// src/ulde/engine/ulde-render-context-builder.engine.service.ts
+
+import { Injectable } from '@angular/core';
+import { ULDEPageContext, ULDERenderContext } from '@ulde/types/context';
+import { buildUldeAst } from './ulde-ast-builder.engine';
+import { renderUldeAstToHtml } from './ulde-ast-renderer.engine';
+import { visitUldeAst } from './ulde-ast-visitor.engine';
+import { ULDELayoutEngineService } from './ulde-layout.engine.service';
+
+import { ULDEDiagnosticNode } from '@ulde/types/context';
+import { ULDEOverlayService } from '@ulde/core/overlay';
+import { ULDEDiagnostic } from '@ulde/types';
+
+
+@Injectable({ providedIn: 'root' })
+export class ULDERenderContextBuilderService {
+
+
+  constructor(
+    private layoutEngine: ULDELayoutEngineService,
+    private overlay: ULDEOverlayService,
+  ) { }
+
+  async build(page: ULDEPageContext): Promise<ULDERenderContext> {
+
+    // 1. Build AST
+    const ast = buildUldeAst(page.token);
+
+    // layout: sections
+    const sectionAst = this.layoutEngine.buildSections(ast);
+
+    // 🔥 Inject diagnostics into AST
+    const diagnostics = this.overlay.diagnostics();
+    const diagnosticNodes: ULDEDiagnosticNode[] = diagnostics.map((d: ULDEDiagnostic) => ({
+      type: 'diagnostic',
+      meta: {
+        level: d.level,
+        message: d.message,
+        // code: d.code
+        lifecyclePhase: d.lifecyclePhase,
+        pluginName: d.pluginName
+      }
+    }));
+
+    // Append diagnostics at the end of the AST
+    const finalAst = [...sectionAst, ...diagnosticNodes];
+    console.log(`Log: [ULDERenderContextBuilderServic] finalAst=`, finalAst);
+
+
+    // 3. Render HTML
+    const html = renderUldeAstToHtml(finalAst);
+    // console.log(`Log: [ULDERenderContextBuilderServic] 3. Render HTML FINISHED! \nhtml=`, html);
+
+    // 4. Assemble render context
+    const currentFrame = this.overlay.currentFrame();
+    return {
+      pageId: page.pageId,
+      ast: finalAst, //sectionAst,
+      // html: '',
+      html,
+      layout: 'sections',
+      frame: (currentFrame !== null) ? currentFrame : undefined,
+    };
+  }
+}
+
+```
+
+### 5. src/ulde/plugins/
+
+#### 5-1. contributor/
 
 Maybe for the future
 
-#### 4-2. registry/
+#### 5-2. registry/
 
-##### 4-2-1. index.ts
+##### 5-2-1. index.ts
 ```ts
 // src/ulde/plugins/registry/index.ts
 
@@ -1737,24 +2214,9 @@ export * from './ulde-plugin-registry';
 
 ```
 
-##### 4-2-2. ulde-plugin-registry.ts
+##### 5-2-2. ulde-plugin-registry.ts
 ```ts
 // src/ulde/plugins/registry/ulde-plugin-registry.ts
-
-/**
- * ULDE older version
- * Those phases to be changed to ULDEPlugingKind
- *
- * This registry returns ONLY ULDE pipeline plugins:
- *   - CONTENT phase
- *   - TRANSFORM phase
- *   - DIAGNOSTICS phase
- *   - ASSEMBLE phase
- *
- * Browser DOM plugins (Mermaid, KaTeX auto-render, Anchors, ScrollSpy)
- * are NOT included here — they are registered in UldeBrowserHost.
- */
-
 
 // ------------------------------
 // content PLUGINS
@@ -1765,7 +2227,7 @@ import { FrontmatterNormalizer } from '@ulde/plugins/system/content';
 // ------------------------------
 // Layout PLUGINS
 // ------------------------------
-import { AutoTOC } from '@ulde/plugins/system/layout';
+import { AutoAnchors, AutoTOC } from '@ulde/plugins/system/layout';
 
 // ------------------------------
 //Interactive PLUGINS
@@ -1783,6 +2245,7 @@ import { Breadcrumbs } from '@ulde/plugins/system/navigation'
 import { OverlayCustomPanel } from '@ulde/plugins/system/ulde'
 import { SlowPluginDetector } from '@ulde/plugins/system/ulde'
 import { TimelineProfiler } from '@ulde/plugins/system/ulde'
+import { DemoBlockPlugin } from '@ulde/plugins/system';
 
 
 // -----------------------------------------------------
@@ -1794,8 +2257,10 @@ export function createUldeStringPluginRegistry() {
     CodeBlockEnhancer,
     FrontmatterNormalizer,
 
-    // Layout PHASE
+    // Layout
+    AutoAnchors,
     AutoTOC,
+    DemoBlockPlugin,
 
     // Interactive PHASE
     createDummyTestPlugin(),
@@ -1813,11 +2278,11 @@ export function createUldeStringPluginRegistry() {
 
 ```
 
-#### 4-3. system/
+#### 5-3. system/
 
-##### 4-3-1. content/
+##### 5-3-1. content/
 
-###### 4-3-1-1. index.ts
+###### 5-3-1-1. index.ts
 ```ts
 // src/ulde/plugins/system/content/index.ts
 
@@ -1826,7 +2291,7 @@ export * from "./ulde-frontmatter-normalizer.plugin";
 
 ```
 
-###### 4-3-1-2. ulde-codeblock.plugin.ts
+###### 5-3-1-2. ulde-codeblock.plugin.ts
 ```ts
 // src/ulde/plugins/system/content/ulde-codeblock.plugin.ts
 
@@ -1834,7 +2299,7 @@ import { ULDEPlugin } from "@ulde/types/plugin";
 
 export const CodeBlockEnhancer: ULDEPlugin = {
   pluginKind: 'content',
-  name: "CodeblockEnhancer",
+  pluginName: "CodeblockEnhancer",
   description: "Markdown Code Block Enhancer: Enhances fenced code blocks with metadata",
   enabled: true,
   hooks: {
@@ -1861,7 +2326,7 @@ export const CodeBlockEnhancer: ULDEPlugin = {
 
 ```
 
-###### 4-3-1-3. ulde-frontmatter-normalizer.plugin.ts
+###### 5-3-1-3. ulde-frontmatter-normalizer.plugin.ts
 ```ts
 // src/ulde/plugins/system/content/ulde-frontmatter-normalizer.plugin.ts
 
@@ -1869,7 +2334,7 @@ import { ULDEPlugin } from '@ulde/types/plugin';
 
 export const FrontmatterNormalizer: ULDEPlugin = {
   pluginKind: 'content',
-  name: "FrontmatterNormalizer",
+  pluginName: "FrontmatterNormalizer",
   description: "Normalizes frontmatter fields",
   enabled: true,
   hooks: {
@@ -1883,38 +2348,82 @@ export const FrontmatterNormalizer: ULDEPlugin = {
 
 ```
 
-##### 4-3-2. demo/
+##### 5-3-2. demo/
 
-###### 4-3-2-1. index.ts
+###### 5-3-2-1. index.ts
 ```ts
 // src/ulde/plugins/system/demo/index.ts
 
+export * from "./ulde-demo.plugin";
 export * from "./ulde-playground-injector.plugin";
 
 ```
 
-###### 4-3-2-2. ulde-playground-injector.plugin.ts
+
+###### 5-3-2-2. ulde-demo.plugin.ts
+```ts
+// src/ulde/plugins/system/demo/ulde-demo.plugin.ts
+
+import { ULDEPlugin } from '@ulde/types/plugin';
+import { visitUldeAst } from '@ulde/engine';
+
+export const DemoBlockPlugin: ULDEPlugin = {
+  pluginKind: 'demo',
+  pluginName: 'demo-block',
+  description: 'Convert fenced code blocks with demo info into ULDE demo nodes.',
+  enabled: true,
+  hooks: {
+    onBeforeRender(ctx) {
+      visitUldeAst(ctx.ast, {
+        pre(node) {
+          if (node.type === 'code' && node.lang?.startsWith('demo')) {
+            const parts = node.lang.split(/\s+/);
+            const idPart = parts.find(p => p.startsWith('id='));
+            const id = idPart ? idPart.split('=')[1] : 'demo';
+
+            return {
+              type: 'demo',
+              meta: {
+                id,
+                code: node.value,
+                lang: 'javascript'
+              },
+              children: []
+            };
+          } else{
+            return undefined;
+          }
+
+        }
+      });
+    }
+  }
+};
+
+```
+
+###### 5-3-2-3. ulde-playground-injector.plugin.ts
 ```ts
 // src/ulde/plugins/system/demo/ulde-playground-injector.plugin.ts
 
 import { ULDEPlugin } from "@ulde/types/plugin";
 
 import { createComponent, EnvironmentInjector } from "@angular/core";
-import { Example01 } from "../../../../app/babylon/example01/example01";
+import { Example02 } from "../../../../app/demo/example02/example02"; // TBD
 
 export const PlaygroundInjector: ULDEPlugin = {
   pluginKind: 'demo',
-  name: "PlaygroundInjector",
+  pluginName: "PlaygroundInjector",
   description: "Hydrates <demo-playground> blocks into live Angular components",
   enabled: true,
   hooks: {
     async onAfterRender(ctx) {
       const placeholders = document.querySelectorAll("demo-playground");
-     // You must provide the Angular environment injector
+      // You must provide the Angular environment injector
       const injector = (window as any).ngEnvironment as EnvironmentInjector;
 
       for (const el of placeholders) {
-        const cmpRef = createComponent(Example01, {
+        const cmpRef = createComponent(Example02, {
           hostElement: el,
           environmentInjector: injector
         });
@@ -1927,9 +2436,9 @@ export const PlaygroundInjector: ULDEPlugin = {
 
 ```
 
-##### 4-3-3. interactive/
+##### 5-3-3. interactive/
 
-###### 4-3-3-1. index.ts
+###### 5-3-3-1. index.ts
 ```ts
 // src/ulde/plugins/system/interactive/index.ts
 
@@ -1937,7 +2446,7 @@ export * from "./ulde-dummy-test.plugin";
 
 ```
 
-###### 4-3-3-2. ulde-dummy-test.plugin.ts
+###### 5-3-3-2. ulde-dummy-test.plugin.ts
 ```ts
 // src/ulde/plugins/system/interactive/ulde-dummy-test.plugin.ts
 
@@ -1948,7 +2457,7 @@ import { ULDEPlugin } from '@ulde/types/plugin';
 export function createDummyTestPlugin(): ULDEPlugin {
   return {
     pluginKind: 'content',
-    name: 'DummyTestPlugin',
+    pluginName: 'DummyTestPlugin',
     version: '0.0.1',
     description: 'create dummy test plugin',
     enabled: true,
@@ -1958,7 +2467,7 @@ export function createDummyTestPlugin(): ULDEPlugin {
         const { frame } = ctx;
 
         /**
-         * To ne coded
+         * To be coded
          */
 
 
@@ -1969,48 +2478,177 @@ export function createDummyTestPlugin(): ULDEPlugin {
 
 ```
 
-##### 4-3-4. layout/
+##### 5-3-4. layout/
 
-###### 4-3-4-1. index.ts
+###### 5-3-4-1. index.ts
 ```ts
 // src/ulde/plugins/system/layout/index.ts
 
+export * from "./ulde-anchor.plugin";
 export * from "./ulde-toc.plugin";
 
 ```
 
-###### 4-3-4-2. ulde-toc.plugin.ts
+###### 5-3-4-2. ulde-anchor.plugin.ts
+```ts
+// src/ulde/plugins/system/layout/ulde-anchor.plugin.ts
+
+import { ULDEPlugin } from '@ulde/types/plugin';
+import { visitUldeAst } from '@ulde/engine';
+
+export const AutoAnchors: ULDEPlugin = {
+  pluginKind: 'layout',
+  pluginName: 'auto-anchors',
+  description: 'Add <a id="slug"></a> before each heading.',
+  enabled: true,
+  hooks: {
+    onBeforeRender(ctx) {
+
+      console.log(`Log: [AutoAnchors Plugin] onBeforeRender`);
+
+      visitUldeAst(ctx.ast, {
+        pre(node) {
+          if (node.type === 'heading') {
+            const text = node.children
+              ?.filter(c => c.type === 'text')
+              .map(c => c.value)
+              .join('') ?? '';
+
+            const id = slugify(text);
+
+            // Inject anchor node at the beginning of heading children
+            node.children?.unshift({
+              type: 'anchor',
+              meta: { id }
+            });
+          }
+        }
+      });
+    }
+  }
+};
+
+function slugify(s: string) {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+}
+
+```
+
+###### 5-3-4-3. ulde-toc.plugin.ts
 ```ts
 // src/ulde/plugins/system/layout/ulde-toc.plugin.ts
 
 import { ULDEPlugin } from "@ulde/types/plugin";
 import { ULDERenderContext } from "@ulde/types/context";
+import { visitUldeAst, renderUldeAstToHtml } from "@ulde/engine";
+
+// import { renderUldeAstToHtml } from './ulde-ast-renderer.engine';
 
 export const AutoTOC: ULDEPlugin = {
   pluginKind: 'layout',
-  name: "AutoTOC",
+  pluginName: "auto-toc",
   description: "Generates a table of contents from headings",
   enabled: true,
   hooks: {
     async onBeforeRender(ctx: ULDERenderContext) {
-      const headings = ctx.ast.map(n =>
-        n.children?.filter((n: any) => /^h[1-6]$/.test(n.tag))
-      );
-      const tocHtml = headings
-        .map((h: any) => `<li><a href="#${h.id}">${h.text}</a></li>`)
-        .join("");
 
-      ctx.html = `<nav class="toc"><ul>${tocHtml}</ul></nav>` + ctx.html;
-    }
+      // console.log(`Log: [AutoToc Plugin] onBeforeRender`);
+
+      // const headings = ctx.ast.map(n =>
+      //   n.children?.filter((n: any) => /^h[1-6]$/.test(n.tag))
+      // );
+      // const tocHtml = headings
+      //   .map((h: any) => `<li><a href="#${h.id}">${h.text}</a></li>`)
+      //   .join("");
+
+      // ctx.html = `<nav class="toc"><ul>${tocHtml}</ul></nav>` + ctx.html;
+
+      const headings: { depth: number; text: string }[] = [];
+
+      // Collect headings
+      visitUldeAst(ctx.ast, {
+        pre(node) {
+          if (node.type === 'heading') {
+            const text = node.children
+              ?.filter(c => c.type === 'text')
+              .map(c => c.value)
+              .join('') ?? '';
+            headings.push({ depth: node.depth!, text });
+          }
+        }
+      });
+
+      // Build TOC AST node
+      const tocNode = {
+        type: 'toc',
+        children: headings.map(h => ({
+          type: 'link',
+          meta: { href: `#${slugify(h.text)}` },
+          children: [{ type: 'text', value: h.text }]
+        }))
+      };
+
+      // Inject TOC at top
+      ctx.ast.unshift(tocNode);
+      console.log(`Log: AutoTOC Plugin] onBeforeRender \nctx.ast=`, ctx.ast);
+
+      // // New addition in debugginf
+      // const ast = ctx.ast;
+      // ctx.html = renderUldeAstToHtml(ast);
+
+    },
+
+    // onAfterRender(ctx) {
+    //   const headings: { depth: number; id: string, text: string }[] = [];
+    //   visitUldeAst(ctx.ast, {
+    //     pre(node) {
+    //       if (node.type === 'section') {
+    //         const id = node.meta?.['id'];
+    //         const depth = node.meta?.['depth'];
+
+    //         const heading = node.children?.map(c => c)
+    //           .filter(c => c.type === 'heading');
+
+    //         const anchor = heading?.map(c => c?.children?.filter(c => c.type==='anchor'));
+    //         // ?.map(c=>c).filter(c => c.type ==='anchor');
+    //         // .filter(c => c.type==='anchor');
+    //         const text = heading?.map(c => c?.children?.filter(c => c.type==='text')).map(c => c?.values).join('') ?? '';;
+
+    //           // .filter(c => c?.type === 'anchor').join('') ?? '';
+
+
+    //         headings.push({ depth: depth, id: id, text });
+    //       }
+    //     }
+    //   });
+
+
+
+    //   console.log(`Log: AutoTOC Plugin] onAfterRender \nheadins=\n`, headings);
+
+    //   const tocHtml = headings
+    //     .map((h: any) => `<li><a href="#${h.id}">${h.text}</a></li>`)
+    //     .join("");
+
+    //   ctx.html = `<nav class="toc"><ul>${tocHtml}</ul></nav>` + ctx.html;
+
+
+    //   console.log(`Log: AutoTOC Plugin] onAfterRender \nctx.html=\n`, ctx.html);
+    // },
+
   }
+
 };
 
+function slugify(s: string) {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+}
 
 ```
 
-##### 4-3-5. navigation/
+##### 5-3-5. navigation/
 
-###### 4-3-5-1. index.ts
+###### 5-3-5-1. index.ts
 ```ts
 // src/ulde/plugins/system/navigation/index.ts
 
@@ -2018,7 +2656,7 @@ export * from "./ulde-navigation-breadcrumbs.plugin";
 
 ```
 
-###### 4-3-5-2. ulde-navigation-breadcrumbs.plugin.ts
+###### 5-3-5-2. ulde-navigation-breadcrumbs.plugin.ts
 ```ts
 // src/ulde/plugins/system/navigation/ulde-navigation-breadcrumbs.plugin.ts
 
@@ -2026,7 +2664,7 @@ import { ULDEPlugin } from "@ulde/types/plugin";
 
 export const Breadcrumbs: ULDEPlugin = {
   pluginKind: 'navigation',
-  name: "Breadcrumbs",
+  pluginName: "Breadcrumbs",
   description: "Generates breadcrumb navigation from route",
   enabled: true,
   hooks: {
@@ -2042,9 +2680,9 @@ export const Breadcrumbs: ULDEPlugin = {
 
 ```
 
-##### 4-3-6. ulde/
+##### 5-3-6. ulde/
 
-###### 4-3-6-1. index.ts
+###### 5-3-6-1. index.ts
 ```ts
 // src/ulde/plugins/system/ulde/index.ts
 
@@ -2054,7 +2692,7 @@ export * from './ulde-timeline-profiler.plugin'
 
 ```
 
-###### 4-3-6-2. ulde-overlay-custom-panel.plugin.ts
+###### 5-3-6-2. ulde-overlay-custom-panel.plugin.ts
 ```ts
 // src/ulde/plugins/system/ulde/ulde-overlay-custom-panel.plugin.ts
 
@@ -2062,22 +2700,35 @@ import { ULDEPlugin } from "@ulde/types//plugin";
 
 export const OverlayCustomPanel: ULDEPlugin = {
   pluginKind: 'ulde',
-  name: "OverlayCustomPanel",
+  pluginName: "OverlayCustomPanel",
   description: "Adds a custom panel to the ULDE overlay",
   enabled: true,
   hooks: {
-    onInit() {
-      const panel = document.createElement("div");
-      panel.className = "ulde-custom-panel";
-      panel.innerHTML = "<strong>Custom ULDE Panel</strong>";
-      document.body.appendChild(panel);
+    // onInit() {
+    //   const panel = document.createElement("div");
+    //   panel.className = "ulde-custom-panel";
+    //   panel.innerHTML = "<strong>Custom ULDE Panel</strong>";
+    //   document.body.appendChild(panel);
+    // },
+
+    async onAfterRender(ctx) {
+
+      const customPanel: string = `
+      <div class="ulde-custom-panel">
+      <strong>Custom ULDE Panel</strong>
+      </div>
+      `;
+
+      ctx.html = customPanel;
+
     }
+
   }
 };
 
 ```
 
-###### 4-3-6-3. ulde-slow-plugin-detector.plugin.ts
+###### 5-3-6-3. ulde-slow-plugin-detector.plugin.ts
 ```ts
 // src/ulde/plugins/system/ulde/ulde-slow-pluging-detector.plugin.ts
 
@@ -2086,11 +2737,13 @@ import { ULDEPluginTiming } from "@ulde/types/timing";
 
 export const SlowPluginDetector: ULDEPlugin = {
   pluginKind: 'ulde',
-  name: "SlowPluginDetector",
+  pluginName: "SlowPluginDetector",
   description: "Warns when plugin execution exceeds threshold",
   enabled: true,
   hooks: {
     async onAfterRender(ctx) {
+      if (ctx.frame === undefined) return;
+      
       const timings: ULDEPluginTiming[] = ctx.frame.pluginTimings; // ULDE exposes timing store
       // const timings = window.ULDE.timings; // ULDE exposes timing store
       const threshold = 8; // ms
@@ -2108,7 +2761,7 @@ export const SlowPluginDetector: ULDEPlugin = {
 
 ```
 
-###### 4-3-6-4. ulde-timeline-profiler.plugin.ts
+###### 5-3-6-4. ulde-timeline-profiler.plugin.ts
 ```ts
 // src/ulde/plugins/system/ulde/ulde-timeline-profiler.plugin.ts
 
@@ -2116,7 +2769,7 @@ import { ULDEPlugin } from "@ulde/types/plugin";
 
 export const TimelineProfiler: ULDEPlugin = {
   pluginKind: 'ulde',
-  name: "TimelineProfiler",
+  pluginName: "TimelineProfiler",
   description: "Logs ULDE phase durations to console",
   enabled: true,
   hooks: {
@@ -2132,7 +2785,7 @@ export const TimelineProfiler: ULDEPlugin = {
 
 ```
 
-##### 4-3-7. index.ts
+##### 5-3-7. index.ts
 ```ts
 // src/ulde/plugins/system/index.ts
 
@@ -2145,7 +2798,7 @@ export * from "./ulde/index";
 
 ```
 
-#### 4-4. index.ts
+#### 5-4. index.ts
 ```ts
 // src/ulde/plugins/index.ts
 
@@ -2154,15 +2807,15 @@ export * from "./system/index";
 
 ```
 
-### 5. src/ulde/tools/
+### 6. src/ulde/tools/
 
 Maybe for the future
 
-### 6. src/ulde/types/
+### 7. src/ulde/types/
 
-#### 6-1. context/
+#### 7-1. context/
 
-##### 6-1-1. index.ts
+##### 7-1-1. index.ts
 
 ```ts
 // src/ulde/types/context/index.ts
@@ -2171,12 +2824,16 @@ export * from "./ulde-context.types";
 
 ```
 
-##### 6-1-2. udel-context.types.ts
+##### 7-1-2. udel-context.types.ts
 ```ts
 // src/ulde/types/context/ulde-context.types.ts
 
-import type Token from 'markdown-it';
+import type Token from 'markdown-it/lib/token.mjs';
 import { ULDEFrame } from "@ulde/types/frame";
+import { ULDELifecyclePhase } from '@ulde/types/lifecycle';
+import { ULDEPluginTiming } from '@ulde/types/timing';
+import { ULDEPluginKind } from '@ulde/types/plugin';
+import { ULDEDiagnosticLevel } from '@ulde/types/diagnostic';
 // import { UldeArtifacts } from "@ulde/types/ulde-artifacts";
 // ---------------------------------------------------------
 // ULDE Context Objects
@@ -2204,7 +2861,7 @@ export interface ULDERenderContext {
   ast: ULDEAstNode[];
   html: string;
   layout?: string;
-  frame: ULDEFrame;
+  frame?: ULDEFrame; // optional, attached after lifecycle, as “observability attachment”
 }
 
 // Block Nodes
@@ -2391,9 +3048,12 @@ export interface ULDEMetaNode extends ULDEAstNode {
 export interface ULDEDiagnosticNode extends ULDEAstNode {
   type: 'diagnostic';
   meta: {
-    level: 'warning' | 'error';
+    level: ULDEDiagnosticLevel;
     message: string;
     code?: string;
+    lifecyclePhase?: ULDELifecyclePhase;
+    pluginName?: string;
+    pluginKind?: ULDEPluginKind;
   };
 }
 
@@ -2432,12 +3092,11 @@ export type ULDEAstNodeUnion =
   | ULDEMetaNode
   | ULDEDiagnosticNode;
 
-
 ```
 
-#### 6-2. debug/
+#### 7-2. debug/
 
-##### 6-2-1. index.ts
+##### 7-2-1. index.ts
 ```ts
 // src/ulde/types/debug/index.ts
 
@@ -2445,7 +3104,7 @@ export * from "./ulde-debug.types";
 
 ```
 
-##### 6-2-2. ulde-debug.types.ts
+##### 7-2-2. ulde-debug.types.ts
 ```ts
 // src/ulde/types/debug/ulde-debug.types.ts
 
@@ -2474,39 +3133,40 @@ export interface ULDEHeatmapCell {
 
 ```
 
-#### 6-3. diagnostic/
+#### 7-3. diagnostic/
 
-##### 6-3-1. index.ts
+##### 7-3-1. index.ts
 ```ts
 // src/ulde/types/diagnostic/index.ts
 
 export * from "./ulde-diagnostic.types";
 
-
 ```
 
-##### 6-3-2. ulde-diagnostic.types.ts
+##### 7-3-2. ulde-diagnostic.types.ts
 ```ts
 // src/ulde/types/diagnostic/ulde-diagnostic.types.ts
 
+import { ULDEPluginKind } from "@ulde/types/plugin";
 import { ULDELifecyclePhase } from "../lifecycle/ulde-lifecycle.types";
 
-// ---------------------------------------------------------
+
 // ULDE Diagnostics
-// ---------------------------------------------------------
+export type ULDEDiagnosticLevel = 'info' | 'warn' | 'error';
 
 export interface ULDEDiagnostic {
-  level: 'info' | 'warn' | 'error';
+  level: ULDEDiagnosticLevel;
   message: string;
   lifecyclePhase?: ULDELifecyclePhase;
   pluginName?: string;
+  pluginKind?: ULDEPluginKind;
 }
 
 ```
 
-#### 6-4. frame/
+#### 7-4. frame/
 
-##### 6-4-1. index.ts
+##### 7-4-1. index.ts
 ```ts
 // src/ulde/types/frame/index.ts
 
@@ -2514,7 +3174,7 @@ export * from "./ulde-frame.types";
 
 ```
 
-##### 6-4-2. ulde-frame.types.ts
+##### 7-4-2. ulde-frame.types.ts
 ```ts
 // src/ulde/types/frame/ulde-frame.types.ts
 
@@ -2524,21 +3184,22 @@ import { ULDEPluginTiming } from "@ulde/types/timing";
 
 // ---------------------------------------------------------
 // ULDE Frame
-// ---------------------------------------------------------
+// Use ULDEFrame for introspection, not for endering
+//---------------------------------------------------------
 
 export interface ULDEFrame {
   id: string;
   timestamp: number;
-  lifecyclePhases: ULDELifecyclePhaseTiming[];
+  lifecyclePhaseTimings: ULDELifecyclePhaseTiming[];
   pluginTimings: ULDEPluginTiming[];
   diagnostics: ULDEDiagnostic[] //warning or error generated by ULDE
 }
 
 ```
 
-#### 6-5. lifecycle/
+#### 7-5. lifecycle/
 
-##### 6-5-1. index.ts
+##### 7-5-1. index.ts
 ```ts
 // src/ulde/types/lifecycle/index.ts
 
@@ -2546,7 +3207,7 @@ export * from "./ulde-lifecycle.types";
 
 ```
 
-##### 6-5-2. ulde-lifecycle.types.ts
+##### 7-5-2. ulde-lifecycle.types.ts
 ```ts
 // src/ulde/types/lifecycle/ulde-lifecycle.types.ts
 
@@ -2570,9 +3231,9 @@ export interface ULDELifecyclePhaseTiming {
 
 ```
 
-#### 6-6. plugin/
+#### 7-6. plugin/
 
-##### 6-6-1. index.ts
+##### 7-6-1. index.ts
 ```ts
 // src/ulde/types/plugin/index.ts
 
@@ -2580,7 +3241,7 @@ export * from "./ulde-plugin.types";
 
 ```
 
-##### 6-6-2. ulde-plugin.types.ts
+##### 7-6-2. ulde-plugin.types.ts
 ```ts
 // src/ulde/types/plugin/ulde-plugin.types.ts
 
@@ -2604,7 +3265,7 @@ export type ULDEPluginKind =
 
 export interface ULDEPlugin {
   pluginKind: ULDEPluginKind;
-  name: string;
+  pluginName: string;
   version?: string;
   description?: string;
   enabled?: boolean;
@@ -2625,9 +3286,9 @@ export interface ULDEPluginHooks {
 
 ```
 
-#### 6-7. renderer/
+#### 7-7. renderer/
 
-##### 6-7-1. index.ts
+##### 7-7-1. index.ts
 ```ts
 // src/ulde/types/renderer/index.ts
 
@@ -2635,9 +3296,14 @@ export * from "./ulde-renderer.types";
 
 ```
 
-##### 6-7-2. ulde-renderer.types.ts
+##### 7-7-2. ulde-renderer.types.ts
 ```ts
 // src/ulde/types/renderer/ulde-renderer.types.ts
+
+import { ULDERenderContext } from "@ulde/types/context";
+import { ULDEDiagnostic } from "@ulde/types/diagnostic";
+import { ULDEFrame } from "@ulde/types/frame";
+import { ULDELifecyclePhase } from "@ulde/types/lifecycle";
 
 export interface ULDERendererConfig {
   container: HTMLElement;
@@ -2647,10 +3313,16 @@ export interface ULDERendererConfig {
 }
 
 export interface ULDERendererState {
-  modelId: string;
+  modelId?: string;
   variantId?: string;
-  zoom: number;
-  rotation: { x: number; y: number; z: number };
+  zoom?: number;
+  rotation?: { x: number; y: number; z: number };
+
+  // ULDE docs rendering
+  renderContext?: ULDERenderContext;
+  currentLifecyclePhase?: ULDELifecyclePhase;
+  diagnostics?: ULDEDiagnostic[];
+  frame?: ULDEFrame;
 }
 
 export interface ULDERendererEvents {
@@ -2667,9 +3339,9 @@ export interface ULDERendererHandle {
 
 ```
 
-#### 6-8. timing/
+#### 7-8. timing/
 
-##### 6-8-1. index.ts
+##### 7-8-1. index.ts
 ```ts
 // src/ulde/types/timing/index.ts
 
@@ -2677,7 +3349,7 @@ export * from "./ulde-timing.types";
 
 ```
 
-##### 6-8-2. ulde-timing.types.ts
+##### 7-8-2. ulde-timing.types.ts
 ```ts
 // src/ulde/types/timing/ulde-timing.types.ts
 
@@ -2699,7 +3371,7 @@ export interface ULDEPluginTiming {
 
 ```
 
-#### 6-9. index.ts
+#### 7-9. index.ts
 ```ts
 // src/ulde/types/index.ts
 
@@ -2715,9 +3387,9 @@ export * from "./timing/index";
 
 ```
 
-### 7. src/ulde/viewer/
+### 8. src/ulde/viewer/
 
-#### 7-1. index.ts
+#### 8-1. index.ts
 ```ts
 // src/ulde/viewer/index.ts
 
@@ -2726,157 +3398,373 @@ export * from "./ulde-viewer";
 
 ```
 
-#### 7-2. ulde-renderer.service.ts
+#### 8-2. ulde-renderer.service.ts
 ```ts
 // src/ulde/viewer/ulde-renderer.service.ts
 
 import { Injectable, ElementRef } from '@angular/core';
-import type { ULDERendererHandle, ULDERendererConfig, ULDERendererEvents, ULDERendererState } from '@ulde/types/renderer';
+import {
+  ULDERendererConfig, ULDERendererEvents, ULDERendererHandle, ULDERendererState
+} from '@ulde/types/renderer';
+import { ULDERenderContext, } from '@ulde/types/context';
+import { ULDEDiagnostic } from '@ulde/types/diagnostic';
+import { ULDEFrame } from '@ulde/types/frame';
 
 @Injectable({ providedIn: 'root' })
 export class ULDERendererService {
-  private handle?: ULDERendererHandle;
+  private handle: ULDERendererHandle | null = null;
 
   init(
     host: ElementRef<HTMLElement>,
-    config: Omit<ULDERendererConfig, 'container'>,
+    size: { width: number; height: number },
     events?: ULDERendererEvents
-  ) {
-    this.dispose();
+  ): void {
+    const config: ULDERendererConfig = {
+      container: host.nativeElement,
+      width: size.width,
+      height: size.height,
+      backgroundColor: '#ffffff'
+    };
 
-    this.handle = this.createUldeRenderer(
-      { container: host.nativeElement, ...config },
-      events
-    );
+    this.handle = this.createUldeRenderer(config, events);
+    events?.onReady?.();
   }
 
-  setState(state: Partial<ULDERendererState>) {
-    this.handle?.setState(state);
+  setState(partial: Partial<ULDERendererState>): void {
+    this.handle?.setState(partial);
   }
 
   getState(): ULDERendererState | null {
     return this.handle ? this.handle.getState() : null;
   }
 
-  dispose() {
+  dispose(): void {
     this.handle?.dispose();
-    this.handle = undefined;
+    this.handle = null;
   }
 
+  private createUldeRenderer(
+    config: ULDERendererConfig,
+    events?: ULDERendererEvents
+  ): ULDERendererHandle {
+    let state: ULDERendererState = {
+      modelId: '',
+      variantId: undefined,
+      zoom: 1,
+      rotation: { x: 0, y: 0, z: 0 },
+      renderContext: undefined,
+      currentLifecyclePhase: undefined,
+      diagnostics: [],
+      frame: undefined
+    };
 
-private createUldeRenderer(
-  config: ULDERendererConfig,
-  events?: ULDERendererEvents
-): ULDERendererHandle {
+    // initial placeholder
+    config.container.innerHTML = '<p>ULDE Viewer READY</p>';
 
-  config.container.innerHTML = '<p> ULDE Viewer TEST</p>';
-  config.width = 500;
-  config.height = 500;
-  config.backgroundColor = '#FF5733';
+    function renderFromContext(renderContext: ULDERenderContext | undefined) {
+      if (!renderContext) return;
+      config.container.innerHTML = renderContext.html;
+      bindInteractivity(config.container);
+    }
 
-  // implementation in renderer layer (no Angular imports)
-  // ...
-  return {
-    setState(partial) { /* ... */ },
-    getState() { /* ... */ return {} as ULDERendererState; },
-    dispose() { /* ... */ }
-  };
-}
+    function renderLifecyclePhase(phase: string | undefined) {
+      // optional: could add a data attribute or small badge
+      if (!phase) {
+        delete config.container.dataset['uldeLifecyclePhase'];
+        return;
+      }
+
+      config.container.dataset['uldeLifecyclePhase'] = phase;
+    }
+
+    function renderDiagnosticsOverlay(diags: ULDEDiagnostic[] | undefined) {
+
+      if (!diags || diags.length === 0) {
+        delete config.container.dataset['uldeDiagnosticsCount'];
+        return;
+      }
+      config.container.dataset['uldeDiagnosticsCount'] = String(diags.length);
+    }
 
 
+    function renderFrameInfo(frame: ULDEFrame | undefined) {
+      // optional: could add timing info; keep minimal for now
+      if (!frame) {
+        delete config.container.dataset['uldeFrameId'];
+        delete config.container.dataset['uldeFrameTimestamp'];
+        return;
+      }
+      config.container.dataset['uldeFrameId'] = frame.id;
+      config.container.dataset['uldeFrameTimestamp'] = String(frame.timestamp);
+    }
+
+    function bindInteractivity(container: HTMLElement) {
+      // clear previous listeners by resetting innerHTML already done in renderFromContext
+
+      // add event to highlight active section on scroll
+      const sections = Array.from(container.querySelectorAll('section'));
+
+      window.addEventListener('scroll', () => {
+        const scrollPos = window.scrollY;
+
+        for (const section of sections) {
+          const rect = section.getBoundingClientRect();
+          if (rect.top <= 100 && rect.bottom >= 100) {
+            section.classList.add('active');
+          } else {
+            section.classList.remove('active');
+          }
+        }
+      });
+
+      // add event to highlight TOC entry for active section
+      const tocLinks = Array.from(container.querySelectorAll('.ulde-toc a'));
+
+      window.addEventListener('scroll', () => {
+        const scrollPos = window.scrollY;
+
+        tocLinks.forEach(link => {
+          const href = link.getAttribute('href');
+          if (!href) return;
+
+          const target = container.querySelector(href);
+          if (!target) return;
+
+          const rect = target.getBoundingClientRect();
+          if (rect.top <= 100 && rect.bottom >= 100) {
+            link.classList.add('active');
+          } else {
+            link.classList.remove('active');
+          }
+        });
+      });
+
+
+      // TOC links: .ulde-toc a[href="#section-id"]
+      container.querySelectorAll('.ulde-toc a').forEach(a => {
+        a.addEventListener('click', ev => {
+          ev.preventDefault();
+          const href = (ev.currentTarget as HTMLAnchorElement).getAttribute('href');
+          if (!href) return;
+          const target = container.querySelector(href);
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      });
+
+      // Anchors: a[data-ulde-anchor="id"]
+      container.querySelectorAll('a[data-ulde-anchor]').forEach(a => {
+        a.addEventListener('click', ev => {
+          ev.preventDefault();
+          const id = (ev.currentTarget as HTMLElement).getAttribute('data-ulde-anchor');
+          if (!id) return;
+          const target = container.querySelector(`#${id}`);
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      });
+
+      // Demo blocks: .ulde-demo[data-demo-code]
+      container.querySelectorAll('.ulde-demo').forEach(demo => {
+        demo.addEventListener('click', () => {
+          const code = demo.getAttribute('data-demo-code');
+          if (!code) return;
+          try {
+            const fn = new Function('console', code);
+            fn(console);
+            // console.log('[ULDE Demo] Running code:', code);
+            // // eslint-disable-next-line no-eval
+            // eval(code);
+          } catch (err) {
+            console.error('[ULDE Demo] Error running code:', err);
+          }
+        });
+      });
+    }
+
+    return {
+      setState(partial: Partial<ULDERendererState>) {
+        state = { ...state, ...partial };
+
+        if (partial.renderContext !== undefined) {
+          renderFromContext(state.renderContext);
+        }
+
+        if (partial.currentLifecyclePhase !== undefined) {
+          renderLifecyclePhase(state.currentLifecyclePhase);
+        }
+
+        if (partial.diagnostics !== undefined) {
+          renderDiagnosticsOverlay(state.diagnostics);
+        }
+
+        if (partial.frame !== undefined) {
+          renderFrameInfo(state.frame);
+        }
+
+        events?.onStateChange?.(state);
+      },
+
+      getState() {
+        return state;
+      },
+
+      dispose() {
+        config.container.innerHTML = '';
+        delete config.container.dataset['uldeLifecyclePhase'];
+        delete config.container.dataset['uldeDiagnosticsCount'];
+        delete config.container.dataset['uldeFrameId'];
+        delete config.container.dataset['uldeFrameTimestamp'];
+      }
+    };
+  }
 }
 
 ```
 
-#### 7-3. ulde-viewer.html
-```ts
+#### 8-3. ulde-viewer.html
+```html
 <!-- src/ulde/viewer/ulde-viewer.html -->
 
 <div class="ulde-viewer">
-  <p>UldeViewer Works</p>
-  <div #canvasHost class="canvas-host"></div>`
+  <!-- <p>UldeViewer Works</p> -->
+  <div #viewerHost class="viewerHost"></div>
 </div>
 
 ```
 
-#### 7-4. ulde-viewer.scss
-```ts
+#### 8-4. ulde-viewer.scss
+```scss
 // src/ulde/viewer/ulde-viewer.scss
 
 .ulde-viewer {
   width: 80%;
-  height: 80%;
+  height: 85vh;
   display: block;
-  background-color: red;
+  padding: 20px;
+  background-color: rgba(147, 192, 237, 0.779);
+  overflow-y: scroll;
 }
 
 ```
 
-#### 7-5. ulde-viewer.ts
+#### 8-5. ulde-viewer.ts
 ```ts
 // src/ulde/viewer/ulde-viewer.ts
 
-import { Component, ElementRef, ViewChild, input, output } from '@angular/core';
-import type { AfterViewInit, OnDestroy, } from '@angular/core';
-import { ULDERendererService } from '@ulde/viewer';
+import {
+  AfterViewInit,
+  OnDestroy,
+  Component,
+  ElementRef,
+  ViewChild,
+  effect,
+  input,
+  output,
+} from '@angular/core';
+import { ULDEOverlayService } from '@ulde/core';
 import type { ULDERendererState } from '@ulde/types/renderer';
+import { ULDERendererService } from '@ulde/viewer';
+import { isBrowser } from '../../app/global.utils/global.utils';
 
 @Component({
   selector: 'ulde-viewer',
-  templateUrl: `ulde-viewer.html`,
-  styleUrl: 'ulde-viewer.scss'
+  templateUrl: 'ulde-viewer.html',
+  styleUrl: 'ulde-viewer.scss',
 })
 export class UldeViewer implements AfterViewInit, OnDestroy {
-  @ViewChild('canvasHost', { static: true })
+  @ViewChild('viewerHost', { static: true })
   hostRef!: ElementRef<HTMLElement>;
 
-  modelId = input<string>();
-  variantId = input<string>();
-  zoom = input<number>(1);
-  rotation = input<ULDERendererState['rotation']>({ x: 0, y: 0, z: 0 });
+  // Full renderer state comes in as a signal input
+  $rendererState = input<ULDERendererState>();
 
   ready = output<void>();
   error = output<Error>();
   stateChange = output<ULDERendererState>();
 
-  constructor(private rendererService: ULDERendererService) { }
+  constructor(
+    private rendererService: ULDERendererService,
+    private overlay: ULDEOverlayService,
+  ) {
+    // 🔥 React to ULDE lifecycle phases
+    effect(() => {
+      const phase = this.overlay.currentLifecyclePhaseTiming();
+      if (!phase) return;
+
+      this.rendererService.setState({
+        currentLifecyclePhase: phase.lifecyclePhase,
+      });
+    });
+
+    // 🔥 React to diagnostics
+    effect(() => {
+      const diagnostics = this.overlay.diagnostics();
+      if (diagnostics.length < 1) return;
+
+      this.rendererService.setState({ diagnostics });
+    });
+
+    // 🔥 React to frame finalization
+    effect(() => {
+      const frame = this.overlay.currentFrame();
+      if (!frame) return;
+
+      this.rendererService.setState({ frame });
+    });
+
+    // 🔥 React to rendererState signal input (without re-init)
+    effect(() => {
+      const s = this.$rendererState();
+      if (!s) return;
+
+      this.syncSignalInput();
+    });
+  }
 
   ngAfterViewInit(): void {
+    if (!isBrowser()) return;
+
     this.rendererService.init(
       this.hostRef,
       {
         width: this.hostRef.nativeElement.clientWidth,
-        height: this.hostRef.nativeElement.clientHeight
+        height: this.hostRef.nativeElement.clientHeight,
       },
       {
         onReady: () => this.ready.emit(),
         onError: (e) => this.error.emit(e),
-        onStateChange: (s) => this.stateChange.emit(s)
-      }
+        onStateChange: (s) => this.stateChange.emit(s),
+      },
     );
 
-    this.syncInputs();
+    // Push initial state after init
+    this.syncSignalInput();
   }
 
   ngOnDestroy(): void {
     this.rendererService.dispose();
   }
 
-  ngOnChanges(): void {
-    this.syncInputs();
-  }
+  private syncSignalInput(): void {
+    const s = this.$rendererState();
+    if (!s) return;
 
-  private syncInputs() {
     this.rendererService.setState({
-      modelId: this.modelId(),
-      variantId: this.variantId(),
-      zoom: this.zoom(),
-      rotation: this.rotation()
+      modelId: s.modelId,
+      variantId: s.variantId,
+      zoom: s.zoom,
+      rotation: s.rotation,
+      renderContext: s.renderContext,
     });
   }
 }
 
 ```
+
+**NOTE: The below is my mmemo**
 
 ## 3. Page vs Context vs Meta
 

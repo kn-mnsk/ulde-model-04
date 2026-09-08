@@ -1,3 +1,5 @@
+// src/app/app.ts
+
 import { Component, signal } from '@angular/core';
 // import { DocsViewer } from './docs-viewer/docs-viewer';
 import { ProductConfigurator } from '../ulde/configurator/ulde-configurator';

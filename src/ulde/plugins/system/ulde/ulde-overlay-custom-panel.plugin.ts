@@ -2,7 +2,7 @@
 
 import { ULDEPlugin } from "@ulde/types//plugin";
 
-export const OverlayCustomPanel: ULDEPlugin = {
+export const ULDEOverlayCustomPanelPlugin: ULDEPlugin = {
   pluginKind: 'ulde',
   pluginName: "OverlayCustomPanel",
   description: "Adds a custom panel to the ULDE overlay",

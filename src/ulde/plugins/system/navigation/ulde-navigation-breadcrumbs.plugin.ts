@@ -2,7 +2,7 @@
 
 import { ULDEPlugin } from "@ulde/types/plugin";
 
-export const Breadcrumbs: ULDEPlugin = {
+export const ULDENavigationBreadcrumbsPlugin: ULDEPlugin = {
   pluginKind: 'navigation',
   pluginName: "Breadcrumbs",
   description: "Generates breadcrumb navigation from route",

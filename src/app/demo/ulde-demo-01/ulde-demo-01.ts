@@ -1,3 +1,5 @@
+// src/app/demo/ulde-demo-01/ulde-demo-01.ts
+
 import { Component, signal, AfterViewInit, OnInit, ViewChild, ElementRef } from '@angular/core';
 
 import { ULDEPageContext, ULDERenderContext } from '@ulde/types/context';

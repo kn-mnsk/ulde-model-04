@@ -3,9 +3,9 @@
 import { ULDEPlugin } from "@ulde/types/plugin";
 
 import { createComponent, EnvironmentInjector } from "@angular/core";
-import { Example02 } from "../../../../app/demo/example02/example02";
+import { Example02 } from "../../../../app/demo/example02/example02"; // TBD
 
-export const PlaygroundInjector: ULDEPlugin = {
+export const ULDEPlaygroundInjectorPlugin: ULDEPlugin = {
   pluginKind: 'demo',
   pluginName: "PlaygroundInjector",
   description: "Hydrates <demo-playground> blocks into live Angular components",

@@ -6,7 +6,7 @@ import { visitUldeAst, renderUldeAstToHtml } from "@ulde/engine";
 
 // import { renderUldeAstToHtml } from './ulde-ast-renderer.engine';
 
-export const AutoTOC: ULDEPlugin = {
+export const ULDETocPlugin: ULDEPlugin = {
   pluginKind: 'layout',
   pluginName: "auto-toc",
   description: "Generates a table of contents from headings",

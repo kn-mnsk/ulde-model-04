@@ -2,7 +2,7 @@
 
 import { ULDEPlugin } from '@ulde/types/plugin';
 
-export const FrontmatterNormalizer: ULDEPlugin = {
+export const ULDEFrontmatterNormalizerPlugin: ULDEPlugin = {
   pluginKind: 'content',
   pluginName: "FrontmatterNormalizer",
   description: "Normalizes frontmatter fields",
