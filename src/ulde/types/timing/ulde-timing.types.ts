@@ -1,6 +1,6 @@
 // src/ulde/types/timing/ulde-timing.types.ts
 
-import { ULDEPluginKind, ULDEPluginHooks } from "../plugin/ulde-plugin.types";
+import { ULDEPluginKind, ULDEPluginExecutionHook } from "@ulde/types/plugin";
 import { ULDELifecyclePhase } from "../lifecycle/ulde-lifecycle.types";
 
 // ---------------------------------------------------------
@@ -11,7 +11,7 @@ import { ULDELifecyclePhase } from "../lifecycle/ulde-lifecycle.types";
 export interface ULDEPluginTiming {
   pluginName: string;
   pluginKind: ULDEPluginKind;
-  hookName: keyof ULDEPluginHooks;
+  hookName: ULDEPluginExecutionHook;
   lifecyclePhase: ULDELifecyclePhase;
   duration: number;
 }

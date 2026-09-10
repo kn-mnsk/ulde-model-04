@@ -1,6 +1,7 @@
 // src/ulde/types/plugin/ulde-plugin.types.ts
 
 import { ULDEPageContext, ULDERenderContext } from "@ulde/types/context";
+import { ULDELifecyclePhase } from "@ulde/types/lifecycle";
 
 // ---------------------------------------------------------
 // ULDE Plugin Kinds
@@ -15,7 +16,7 @@ export type ULDEPluginKind =
   | 'ulde';
 
 // ---------------------------------------------------------
-// ULDE Plugin Definition
+// ULDE Plugin Definition - Legacy
 // ---------------------------------------------------------
 
 export interface ULDEPlugin {
@@ -28,7 +29,7 @@ export interface ULDEPlugin {
 }
 
 // ---------------------------------------------------------
-// ULDE Plugin Hooks
+// ULDE Plugin Hooks - Legacy
 // ---------------------------------------------------------
 
 export interface ULDEPluginHooks {
@@ -38,3 +39,61 @@ export interface ULDEPluginHooks {
   onAfterRender?(ctx: ULDERenderContext): void | Promise<void>;
   onDestroy?(): void | Promise<void>;
 }
+
+/**
+ * ULDE Plugin Instance - Unified Runtime Plugin
+ * Every plugin ULDE executes will be an instance of this type.
+ */
+export interface ULDEPluginInstance {
+  pluginKind: ULDEPluginKind;
+  pluginName: string;
+  enabled?: boolean;
+
+  /**
+   * Unified execution entry point.
+   * The registry decides which lifecycle phase is being executed.
+   */
+  run(ctx: any): void | Promise<void>;
+
+  /**
+   * Optional teardown hook.
+   */
+  destroy?(): void | Promise<void>;
+}
+
+/**
+ * ULDE Plugin Classs
+ * This is the type stored in the registry
+ * This ensures:
+ *  registry stores classes
+*   registry instantiates instances
+*   lifecycle executes run()
+ */
+export type ULDEPluginClass = {
+  new (...args: any[]): ULDEPluginInstance;
+};
+
+
+/**
+ * Factory type:
+ * Returns either:
+ *  - a legacy ULDEPlugin (object)
+ *  - a new ULDEPluginInstance (class instance)
+ */
+export type ULDEPluginFactory = () => ULDEPlugin | ULDEPluginInstance;
+
+/**
+ * Phase-aware plugin registry using factories.
+ */
+export type ULDEPluginRegistryMap = {
+  [P in ULDELifecyclePhase]?: ULDEPluginFactory[];
+};
+
+
+export type ULDEPluginExecutionHook =
+  | 'run'
+  | 'destroy'
+  | keyof ULDEPluginHooks;
+
+
+
