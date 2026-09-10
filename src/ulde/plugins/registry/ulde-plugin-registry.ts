@@ -40,13 +40,11 @@ import {
   ULDETimelineProfilerPlugin,
 } from '@ulde/plugins/system/ulde/ulde-timeline-profiler.plugin';
 
-export type ULDEPluginClass = new (...args: any[]) => any;
+import { ULDEPluginRegistryMap } from '@ulde/types/plugin';
 
-export type ULDEPluginRegistryMap = {
-  [P in ULDELifecyclePhase]?: ULDEPluginClass[];
-};
 
-/**
+
+/** ULDE Plugin Registry (factory-based)
  * Phase‑aware, deterministic ULDE plugin registry.
  * This is the single source of truth for plugin ordering.
  */
@@ -56,28 +54,28 @@ export const ULDE_PLUGIN_REGISTRY: ULDEPluginRegistryMap = {
 
   // Content + navigation: operate on page context / tokens / early AST
   load: [
-    ULDEFrontmatterNormalizerPlugin,
-    ULDECodeblockPlugin,
-    ULDEDemoPlugin,
-    ULDEDummyTestPlugin,
-    ULDENavigationBreadcrumbsPlugin,
+    () => ULDEFrontmatterNormalizerPlugin,
+    () => ULDECodeblockPlugin,
+    () => ULDEDemoPlugin,
+    () => ULDEDummyTestPlugin,
+    () => ULDENavigationBreadcrumbsPlugin,
   ],
 
   // Layout: operate on AST structure (sections, anchors, TOC)
   render: [
-    ULDEAnchorPlugin,
-    ULDETocPlugin,
+    () => ULDEAnchorPlugin,
+    () => new ULDETocPlugin(),
   ],
 
   // Interactive: operate on rendered HTML / DOM
   hydrate: [
-    ULDEPlaygroundInjectorPlugin,
+    () => ULDEPlaygroundInjectorPlugin,
   ],
 
   // ULDE system: diagnostics, overlay, performance analysis
   afterRender: [
-    ULDEOverlayCustomPanelPlugin,
-    ULDESlowPluginDetectorPlugin,
-    ULDETimelineProfilerPlugin,
+    () => ULDEOverlayCustomPanelPlugin,
+    () => ULDESlowPluginDetectorPlugin,
+    () => ULDETimelineProfilerPlugin,
   ],
 };

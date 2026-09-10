@@ -1,7 +1,7 @@
 // src/ulde/types/debug/ulde-debug.types.ts
 
 import { ULDELifecyclePhase } from "../lifecycle/ulde-lifecycle.types";
-import { ULDEPluginKind, ULDEPluginHooks } from "../plugin/ulde-plugin.types";
+import { ULDEPluginKind, ULDEPluginHooks, ULDEPluginExecutionHook } from "../plugin/ulde-plugin.types";
 
 // ---------------------------------------------------------
 // ULDE Debug Tools Types
@@ -19,6 +19,6 @@ export interface ULDETimelinePoint {
 export interface ULDEHeatmapCell {
   pluginName: string;
   pluginKind: ULDEPluginKind;
-  hookName: keyof ULDEPluginHooks;
+  hookName: ULDEPluginExecutionHook//keyof ULDEPluginHooks;
   intensity: number; // normalized 0–1
 }

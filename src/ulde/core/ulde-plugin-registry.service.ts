@@ -3,31 +3,68 @@
 import { Injectable } from '@angular/core';
 import { ULDEOverlayService } from '@ulde/core';
 import { ULDELifecyclePhase } from '@ulde/types/lifecycle';
-import { ULDEPlugin, ULDEPluginTiming } from '@ulde/types/plugin';
+import { ULDEPluginClass, ULDEPluginInstance, ULDEPlugin, ULDEPluginFactory } from '@ulde/types/plugin';
+import { ULDEPluginTiming } from '@ulde/types/timing';
 
 import { ULDE_PLUGIN_REGISTRY } from '@ulde/plugins/registry'; // updated registry
+import { ULDEPluginHookAdapter } from '@ulde/plugins/adaptors';
 
 @Injectable({ providedIn: 'root' })
 export class ULDEPluginRegistryService {
 
+
   /**
-   * All instantiated plugins (flattened from registry).
+   * All instantiated plugins (run‑based instances).
+   * Legacy plugins are wrapped using ULDEPluginHookAdapter.
    */
-  private instances: ULDEPlugin[] = [];
+  private instances: ULDEPluginInstance[] = [];
 
   constructor(private overlay: ULDEOverlayService) {
-    this.loadPlugins();
+    this.instantiateAllPlugins();
   }
 
   /**
-   * Instantiate all plugins from the phase‑grouped registry.
-   */
-  loadPlugins() {
+  * Instantiate all plugins from the registry using factories.
+  */
+  private instantiateAllPlugins() {
     this.instances = Object.values(ULDE_PLUGIN_REGISTRY)
       .flat()
-      .map(PluginClass => new PluginClass())
-      .filter(p => p.enabled !== false);
+      .map(factory => this.instantiateFromFactory(factory))
+      .filter(plugin => plugin.enabled !== false);
   }
+
+  /**
+   * Instantiate plugin from factory.
+   * Detect legacy plugins (ULDEPlugin) vs new plugins (ULDEPluginInstance).
+   */
+  private instantiateFromFactory(factory: ULDEPluginFactory): ULDEPluginInstance {
+    const raw = factory();
+
+    // Legacy plugin: has "hooks"
+    if ((raw as ULDEPlugin).hooks) {
+      return new ULDEPluginHookAdapter(raw as ULDEPlugin);
+    }
+
+    // New plugin: already run‑based
+    return raw as ULDEPluginInstance;
+  }
+
+  // /**
+  //   * Instantiate plugin class.
+  //   * Detect whether plugin is legacy (ULDEPlugin) or new (ULDEPluginInstance).
+  //   */
+  // private instantiatePlugin(PluginClass: ULDEPluginClass): ULDEPluginInstance {
+  //   const instance = new PluginClass();
+
+  //   // Legacy plugin: has "hooks"
+  //   if ((instance as any).hooks) {
+  //     return new ULDEPluginHookAdapter(instance as unknown as ULDEPlugin);
+  //   }
+
+  //   // New plugin: already run‑based
+  //   return instance;
+  // }
+
 
   /**
    * Run all plugins assigned to a lifecycle phase.
@@ -37,16 +74,20 @@ export class ULDEPluginRegistryService {
     ctx: Record<string, any> = {}
   ): Promise<void> {
 
-    const plugins = ULDE_PLUGIN_REGISTRY[phase] || [];
+    const factories = ULDE_PLUGIN_REGISTRY[phase] || [];
 
-    for (const PluginClass of plugins) {
-      const plugin = this.instances.find(p => p instanceof PluginClass);
+    for (const factory of factories) {
+      const raw: ULDEPlugin |  ULDEPluginInstance = factory();
+      const plugin =  ('hooks' in raw) ?
+        new ULDEPluginHookAdapter(raw as ULDEPlugin)
+        : (raw as ULDEPluginInstance);
+
       if (!plugin) continue;
 
       const start = performance.now();
 
       try {
-        await plugin.run?.({
+        await plugin.run({
           ...ctx,
           lifecyclePhase: phase,
         });
@@ -61,15 +102,14 @@ export class ULDEPluginRegistryService {
 
       const end = performance.now();
 
-      const timing: ULDEPluginTiming = {
+      this.overlay.recordPluginTiming({
         pluginName: plugin.pluginName,
         pluginKind: plugin.pluginKind,
         hookName: 'run',
         lifecyclePhase: phase,
         duration: end - start,
-      };
-
-      this.overlay.recordPluginTiming(timing);
+      })
+        ;
     }
   }
 
