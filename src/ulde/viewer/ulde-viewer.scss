@@ -1,10 +1,16 @@
 // src/ulde/viewer/ulde-viewer.scss
 
-.ulde-viewer {
-  width: 80%;
-  height: 85vh;
-  display: block;
-  padding: 20px;
-  background-color: rgba(147, 192, 237, 0.779);
-  overflow-y: scroll;
+/* Import ulde-viwer styles */
+@use './styles/ulde-viewer-base.scss';
+@use './styles/ulde-viewer-components.scss';
+@use './styles/ulde-viewer-diagnostics.scss';
+@use './styles/ulde-viewer-theme-light.scss';
+@use './styles/ulde-viewer-theme-dark.scss';
+
+.ulde-viewer-root {
+  position: relative;
+}
+
+.viewer-host {
+  min-height: 400px;
 }

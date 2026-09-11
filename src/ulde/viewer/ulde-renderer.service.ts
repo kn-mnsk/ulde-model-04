@@ -1,12 +1,12 @@
 // src/ulde/viewer/ulde-renderer.service.ts
 
-import { Injectable, ElementRef } from '@angular/core';
+import { ElementRef, Injectable } from '@angular/core';
+import { ULDERenderContext, } from '@ulde/types/context';
+import { ULDEDiagnostic } from '@ulde/types/diagnostics';
+import { ULDEFrame } from '@ulde/types/frame';
 import {
   ULDERendererConfig, ULDERendererEvents, ULDERendererHandle, ULDERendererState
 } from '@ulde/types/renderer';
-import { ULDERenderContext, } from '@ulde/types/context';
-import { ULDEDiagnostic } from '@ulde/types/diagnostic';
-import { ULDEFrame } from '@ulde/types/frame';
 
 @Injectable({ providedIn: 'root' })
 export class ULDERendererService {
@@ -34,6 +34,10 @@ export class ULDERendererService {
 
   getState(): ULDERendererState | null {
     return this.handle ? this.handle.getState() : null;
+  }
+
+  highlightDiagnostic(message: string): void{
+    this.handle?.highlightDiagnostic(message);
   }
 
   dispose(): void {
@@ -94,6 +98,20 @@ export class ULDERendererService {
       }
       config.container.dataset['uldeFrameId'] = frame.id;
       config.container.dataset['uldeFrameTimestamp'] = String(frame.timestamp);
+    }
+
+    function highlightDiagnostic(message: string) {
+      const nodes = config.container.querySelectorAll('.ulde-diagnostic');
+
+      nodes.forEach(n => {
+        if (n.textContent?.includes(message)) {
+          n.classList.add('ulde-diagnostic-highlight');
+
+          setTimeout(() => {
+            n.classList.remove('ulde-diagnostic-highlight');
+          }, 1500);
+        }
+      });
     }
 
     function bindInteractivity(container: HTMLElement) {
@@ -182,6 +200,7 @@ export class ULDERendererService {
       });
     }
 
+
     return {
       setState(partial: Partial<ULDERendererState>) {
         state = { ...state, ...partial };
@@ -207,6 +226,11 @@ export class ULDERendererService {
 
       getState() {
         return state;
+      },
+
+
+      highlightDiagnostic(message: string) {
+        highlightDiagnostic(message);
       },
 
       dispose() {

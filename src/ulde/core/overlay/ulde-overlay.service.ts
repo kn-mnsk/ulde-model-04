@@ -1,7 +1,7 @@
 // src/ulde/core/overlay/ulde-overlay.service.ts
 
 import { computed, Injectable, signal } from '@angular/core';
-import { ULDEDiagnostic } from '@ulde/types/diagnostic';
+import { ULDEDiagnostic } from '@ulde/types/diagnostics';
 import { ULDEFrame } from '@ulde/types/frame';
 import { ULDELifecyclePhase, ULDELifecyclePhaseTiming } from '@ulde/types/lifecycle';
 import { ULDEPluginTiming } from '@ulde/types/timing';

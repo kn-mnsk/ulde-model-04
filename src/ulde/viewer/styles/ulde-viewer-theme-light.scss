@@ -1,0 +1,15 @@
+// src/ulde/viewer/styles/ulde-viewer-theme-light.scss
+
+
+/* Light theme (default) */
+
+[data-theme="light"] {
+  --ulde-bg: #ffffff;
+  --ulde-text: #222222;
+  --ulde-accent: #0078d4;
+  --ulde-border: #e0e0e0;
+  --ulde-muted: #666666;
+
+  --ulde-demo-bg: #f5f7fa;
+  --ulde-demo-border: #d0d7e0;
+}

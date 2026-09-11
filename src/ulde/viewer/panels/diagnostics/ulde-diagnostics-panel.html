@@ -1,0 +1,30 @@
+<!-- src/ulde/viewer/panels/diagnostics/ulde-diagnostics-panel.html -->
+
+<p>ulde-diagnostics-panel works!</p>
+
+<div class="ulde-diagnostics-panel" [class.collapsed]="!$expanded()">
+
+  <div class="header" (click)="toggle()">
+    <span>Diagnostics ({{ $diagnostics().length }})</span>
+    <span class="chevron">{{ $expanded() ? '▼' : '▲' }}</span>
+  </div>
+
+  @if ($expanded()) {
+    <div class="body">
+      @for (d of $diagnostics(); track trackDiag($index, d)) {
+        <div class="diag-item diag-{{ d.level }}" (click)="onHighlight(d.message)">
+          <strong>{{ d.level.toUpperCase() }}</strong>
+          <span class="msg">{{ d.message }}</span>
+
+          @if (d.pluginName) {
+            <span class="meta">plugin: {{ d.pluginName }}</span>
+          }
+
+          @if (d.lifecyclePhase) {
+            <span class="meta">phase: {{ d.lifecyclePhase }}</span>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

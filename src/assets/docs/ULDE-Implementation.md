@@ -3764,6 +3764,247 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
 
 ```
 
+## 3. Road Map - 1
+
+Great — let’s continue **ULDE Implementation Part 3** exactly in the order you chose.  
+We’ll build each layer cleanly, one after another, without touching legacy code until the new viewer stack is complete.
+
+Below is the **full roadmap**, with each item expanded into a concrete, implementable module.  
+Every section includes Guided Links so you can jump directly into the next step.
+
+---
+
+**⭐ 1. ULDE Viewer Styling**  
+This is the foundation. Before diagnostics panels, timelines, or inspectors, the viewer needs a **visual identity**.
+
+### What we add
+- Base typography  
+- Section spacing  
+- TOC styling  
+- Anchor styling  
+- Demo block styling  
+- Diagnostic block styling  
+- Frame/timeline badges  
+- Theme variables (light/dark)
+
+### Structure
+```
+src/ulde/viewer/styles/
+  viewer-base.scss
+  viewer-theme-light.scss
+  viewer-theme-dark.scss
+  viewer-components.scss
+```
+
+### Key goals
+- Make ULDE pages readable  
+- Make diagnostics visually distinct  
+- Make demo blocks look interactive  
+- Prepare for theme switching  
+
+### Next step  
+Proceed to **viewer styling**.
+
+---
+
+**⭐ 2. Viewer Diagnostics Panel**  
+Once styling exists, we add a **diagnostics panel** that shows:
+
+- lifecycle diagnostics  
+- plugin diagnostics  
+- AST diagnostics  
+- viewer diagnostics (render errors, missing nodes)
+
+### UI
+A collapsible panel:
+
+```
+┌──────────────────────────────┐
+│ Diagnostics (4)              │
+├──────────────────────────────┤
+│ [warn] Hydrate slow          │
+│ [error] Plugin toc failed    │
+│ [info] Section missing id    │
+└──────────────────────────────┘
+```
+
+### Implementation
+- Add a diagnostics overlay component  
+- Bind to `rendererService.setState({ diagnostics })`  
+- Render diagnostics in a floating panel  
+- Click to expand/collapse  
+
+### Next step  
+Proceed to **viewer diagnostics panel**.
+
+---
+
+**# ⭐ 3. Viewer Frame Timeline**  
+This visualizes ULDE lifecycle timing:
+
+```
+Render → Layout → Plugins → Hydrate → Finalize
+```
+
+### UI
+A horizontal timeline:
+
+```
+Render (3ms) | Layout (1ms) | Plugins (8ms) | Hydrate (2ms) | Finalize (1ms)
+```
+
+### Implementation
+- Add a timeline component  
+- Bind to `rendererService.setState({ frame })`  
+- Render timing bars  
+- Color-code slow phases  
+
+### Next step  
+Proceed to **viewer frame timeline**.
+
+---
+
+**# ⭐ 4. Plugin Execution Timeline**  
+This is a per-plugin breakdown:
+
+```
+toc: 3ms
+anchors: 1ms
+demo: 5ms
+sections: 2ms
+```
+
+### UI
+A vertical list or bar chart:
+
+```
+┌──────────────────────────────┐
+│ Plugin Execution Timeline    │
+├──────────────────────────────┤
+│ toc        ███ 3ms           │
+│ anchors    █ 1ms             │
+│ demo       █████ 5ms         │
+│ sections   ██ 2ms            │
+└──────────────────────────────┘
+```
+
+### Implementation
+- Add plugin timing to ULDEFrame  
+- Viewer renders plugin timing bars  
+- Highlight slow plugins  
+
+### Next step  
+Proceed to **plugin execution timeline**.
+
+---
+
+**# ⭐ 5. ULDE Runtime Inspector**  
+This is the most powerful viewer feature.  
+It lets you inspect:
+
+- AST  
+- Layout tree  
+- Sections  
+- TOC  
+- Anchors  
+- Diagnostics  
+- Plugin metadata  
+
+### UI
+A sidebar inspector:
+
+```
+AST
+  - section
+  - heading
+  - paragraph
+  - demo
+  - diagnostic
+
+Layout
+  - section depth=1
+  - section depth=2
+```
+
+### Implementation
+- Add inspector panel  
+- Bind to `renderContext.ast`  
+- Render AST tree  
+- Click nodes to highlight them in the viewer  
+
+### Next step  
+Proceed to **runtime inspector**.
+
+---
+
+**# ⭐ 6. ULDE Plugin Sandbox**  
+This replaces `eval()` with a safe execution environment.
+
+### Features
+- Safe JS execution  
+- No global scope access  
+- No bundler warnings  
+- Optional console capture  
+- Optional iframe sandbox  
+
+### Implementation options
+#### Option A — `new Function()` sandbox  
+Simple, safe, bundler-friendly.
+
+#### Option B — iframe sandbox  
+Full isolation.
+
+#### Option C — Web Worker sandbox  
+Async + safe.
+
+### Next step  
+Proceed to **plugin sandbox**.
+
+---
+
+**# ⭐ 7. ULDE Viewer Theme System**  
+Finally, we add:
+
+- Light theme  
+- Dark theme  
+- Custom theme  
+- Theme switcher  
+- CSS variables  
+
+### Implementation
+```
+:root {
+  --ulde-bg: #fff;
+  --ulde-text: #222;
+  --ulde-accent: #0078d4;
+}
+[data-theme="dark"] {
+  --ulde-bg: #111;
+  --ulde-text: #eee;
+  --ulde-accent: #4da3ff;
+}
+```
+
+### Next step  
+Proceed to **viewer theme system**.
+
+---
+
+**# 🎉 You now have a complete ULDE Viewer Phase roadmap**  
+We will implement each module one by one, cleanly, without touching legacy code until the viewer stack is complete.
+
+Which module do you want to start with?
+
+- **ULDE viewer styling**  
+- **Viewer diagnostics panel**  
+- **Viewer frame timeline**  
+- **Plugin execution timeline**  
+- **Runtime inspector**  
+- **Plugin sandbox**  
+- **Viewer theme system**
+
+
+
 **NOTE: The below is my mmemo**
 
 ## 3. Page vs Context vs Meta
@@ -3814,3 +4055,5 @@ Data about data — attribute information that explains “what the page is.”
 - **Characteristics:** Usually written in the webpage’s source code (inside the `<head>` tag) and used as the title or description in search results.
 
 ---
+
+

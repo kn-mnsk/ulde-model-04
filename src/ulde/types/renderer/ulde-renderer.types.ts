@@ -1,7 +1,7 @@
 // src/ulde/types/renderer/ulde-renderer.types.ts
 
 import { ULDERenderContext } from "@ulde/types/context";
-import { ULDEDiagnostic } from "@ulde/types/diagnostic";
+import { ULDEDiagnostic } from "@ulde/types/diagnostics";
 import { ULDEFrame } from "@ulde/types/frame";
 import { ULDELifecyclePhase } from "@ulde/types/lifecycle";
 
@@ -34,5 +34,6 @@ export interface ULDERendererEvents {
 export interface ULDERendererHandle {
   setState(state: Partial<ULDERendererState>): void;
   getState(): ULDERendererState;
+  highlightDiagnostic(message: string): void;
   dispose(): void;
 }

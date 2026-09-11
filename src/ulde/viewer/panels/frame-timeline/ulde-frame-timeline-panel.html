@@ -1,0 +1,32 @@
+<!-- src/ulde/viewer/panels/frame-timeline/ulde-frame-timeline-panel.html -->
+
+<p>ulde-frame-timeline-panel works!</p>
+<div class="frame-timeline-root" @if($frame())>
+
+  <div class="header">
+    <span>Frame {{ $frame()?.id }}</span>
+    <span>{{ $frame()?.timestamp }} ms</span>
+  </div>
+
+  <div class="timeline">
+    @for (p of phases(); track p.name) {
+      <div
+        class="segment"
+        [style.width.%]="p.ratio * 100"
+        [style.background]="p.color"
+        [title]="p.name + ': ' + p.ms + ' ms'"
+      ></div>
+    }
+  </div>
+
+  <div class="legend">
+    @for (p of phases(); track p.name) {
+      <div class="legend-item">
+        <span class="color" [style.background]="p.color"></span>
+        <span class="name">{{ p.name }}</span>
+        <span class="ms">{{ p.ms }} ms</span>
+      </div>
+    }
+  </div>
+
+</div>
