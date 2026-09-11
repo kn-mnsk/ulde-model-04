@@ -1,6 +1,12 @@
 <!-- src/ulde/viewer/ulde-viewer.html -->
 
-<div class="ulde-viewer">
-  <!-- <p>UldeViewer Works</p> -->
-  <div #viewerHost class="viewerHost"></div>
+<div class="ulde-viewer-root">
+  <div #viewerHost class="viewer-host"></div>
+
+  <ulde-diagnostics-panel [$diagnostics]="$rendererState()?.diagnostics ?? []" ($highlight)="onHighLight($event)">
+  </ulde-diagnostics-panel>
+
+  <ulde-frame-timeline-panel [$frame]="$rendererState()?.frame ?? null">
+  </ulde-frame-timeline-panel>
+
 </div>

@@ -1,0 +1,72 @@
+// src/ulde/viewer/panels/diagnostics/ulde-diagnostics-panel.scss
+
+.ulde-diagnostics-panel {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  width: 320px;
+  background: var(--ulde-bg);
+  color: var(--ulde-text);
+  border: 1px solid var(--ulde-border);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  font-size: 0.9rem;
+  z-index: 9999;
+}
+
+.ulde-diagnostics-panel.collapsed {
+  height: auto;
+}
+
+.header {
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 1px solid var(--ulde-border);
+  display: flex;
+  justify-content: space-between;
+}
+
+.body {
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 0.5rem 1rem;
+}
+
+.diag-item {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--ulde-border);
+}
+
+.diag-item:last-child {
+  border-bottom: none;
+}
+
+.diag-info {
+  color: var(--ulde-diagnostic-info);
+}
+
+.diag-warn {
+  color: var(--ulde-diagnostic-warn);
+}
+
+.diag-error {
+  color: var(--ulde-diagnostic-error);
+}
+
+.msg {
+  display: block;
+  margin: 0.25rem 0;
+}
+
+.meta {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin-right: 0.5rem;
+}
+
+
+.highlight {
+  background: rgba(255, 255, 0, 0.3);
+  transition: background 0.5s ease;
+}

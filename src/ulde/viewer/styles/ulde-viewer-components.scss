@@ -1,0 +1,55 @@
+// src/ulde/viewer/styles/ulde-viewer-components.scss
+
+/* This file styles ULDE AST ouput */
+
+/* Headings */
+.ulde-section > h1,
+.ulde-section > h2,
+.ulde-section > h3 {
+  margin-top: var(--ulde-heading-spacing);
+  margin-bottom: var(--ulde-heading-spacing);
+  font-weight: 600;
+}
+
+/* Paragraphs */
+.ulde-paragraph {
+  margin-bottom: var(--ulde-paragraph-spacing);
+}
+
+/* TOC */
+.ulde-toc {
+  border-left: 3px solid var(--ulde-accent);
+  padding-left: 1rem;
+  margin-bottom: 2rem;
+}
+
+.ulde-toc a {
+  display: block;
+  color: var(--ulde-accent);
+  text-decoration: none;
+  margin-bottom: 0.25rem;
+}
+
+.ulde-toc a:hover {
+  text-decoration: underline;
+}
+
+/* Anchors */
+a[data-ulde-anchor] {
+  cursor: pointer;
+  color: var(--ulde-accent);
+}
+
+/* Demo Blocks */
+.ulde-demo {
+  background: var(--ulde-demo-bg);
+  border: 1px solid var(--ulde-demo-border);
+  padding: 1rem;
+  margin: 1rem 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.ulde-demo:hover {
+  background: #eef2f7;
+}

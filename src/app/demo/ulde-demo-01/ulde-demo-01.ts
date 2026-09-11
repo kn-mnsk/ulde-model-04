@@ -1,14 +1,14 @@
 // src/app/demo/ulde-demo-01/ulde-demo-01.ts
 
-import { Component, signal, AfterViewInit, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, signal, ViewChild } from '@angular/core';
 
-import { ULDEPageContext, ULDERenderContext } from '@ulde/types/context';
 import { ULDELifecycleService } from '@ulde/core';
+import { ULDEPageContext, ULDERenderContext } from '@ulde/types/context';
 
-import { UldeViewer } from '@ulde/viewer';
-import { ULDERendererState } from '@ulde/types/renderer/ulde-renderer.types';
-import { isBrowser } from '../../global.utils/global.utils';
 import { ContentEngineService } from '@ulde/engine';
+import { ULDERendererState } from '@ulde/types/renderer/ulde-renderer.types';
+import { UldeViewer } from '@ulde/viewer';
+import { isBrowser } from '../../global.utils/global.utils';
 
 
 

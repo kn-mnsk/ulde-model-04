@@ -1,0 +1,33 @@
+// src/ulde/viewer/styles/ulde-viewer-base.scss
+
+/* This file defines the global look of ULDE pages */
+
+:root {
+  --ulde-font: 'Segoe UI', Roboto, sans-serif;
+  --ulde-bg: #ffffff;
+  --ulde-text: #222222;
+  --ulde-accent: #0078d4;
+  --ulde-border: #e0e0e0;
+  --ulde-muted: #666666;
+
+  --ulde-section-spacing: 2rem;
+  --ulde-heading-spacing: 1.2rem;
+  --ulde-paragraph-spacing: 0.75rem;
+
+  --ulde-demo-bg: #f5f7fa;
+  --ulde-demo-border: #d0d7e0;
+
+  --ulde-diagnostic-info: #0078d4;
+  --ulde-diagnostic-warn: #e6a100;
+  --ulde-diagnostic-error: #d83b01;
+}
+
+ulder-viewer,
+.ulde-viewer-root {
+  font-family: var(--ulde-font);
+  background: var(--ulde-bg);
+  color: var(--ulde-text);
+  line-height: 1.6;
+  padding: 1rem;
+}
+

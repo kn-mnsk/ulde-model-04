@@ -12,11 +12,14 @@ import {
 } from '@angular/core';
 import { ULDEOverlayService } from '@ulde/core';
 import type { ULDERendererState } from '@ulde/types/renderer';
-import { ULDERendererService } from '@ulde/viewer';
+import { ULDERendererService, UldeDiagnosticsPanel, UldeFrameTimelinePanel } from '@ulde/viewer';
 import { isBrowser } from '../../app/global.utils/global.utils';
 
 @Component({
   selector: 'ulde-viewer',
+  imports: [
+    UldeDiagnosticsPanel, UldeFrameTimelinePanel
+  ],
   templateUrl: 'ulde-viewer.html',
   styleUrl: 'ulde-viewer.scss',
 })
@@ -27,12 +30,12 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
   // Full renderer state comes in as a signal input
   $rendererState = input<ULDERendererState>();
 
-  ready = output<void>();
-  error = output<Error>();
-  stateChange = output<ULDERendererState>();
+  $ready = output<void>();
+  $error = output<Error>();
+  $stateChange = output<ULDERendererState>();
 
   constructor(
-    private rendererService: ULDERendererService,
+    public rendererService: ULDERendererService,
     private overlay: ULDEOverlayService,
   ) {
     // 🔥 React to ULDE lifecycle phases
@@ -80,9 +83,9 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
         height: this.hostRef.nativeElement.clientHeight,
       },
       {
-        onReady: () => this.ready.emit(),
-        onError: (e) => this.error.emit(e),
-        onStateChange: (s) => this.stateChange.emit(s),
+        onReady: () => this.$ready.emit(),
+        onError: (e) => this.$error.emit(e),
+        onStateChange: (s) => this.$stateChange.emit(s),
       },
     );
 
@@ -106,4 +109,17 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
       renderContext: s.renderContext,
     });
   }
+
+  /**
+   * Theme Switcher
+   * @param theme
+   */
+  setTheme(theme: 'light' | 'dark') {
+    this.hostRef.nativeElement.setAttribute('data-theme', theme);
+  }
+
+  onHighLight(message: string){
+    this.rendererService.highlightDiagnostic(message)
+  }
+
 }
