@@ -1,32 +1,38 @@
 <!-- src/ulde/viewer/panels/frame-timeline/ulde-frame-timeline-panel.html -->
 
 <p>ulde-frame-timeline-panel works!</p>
-<div class="frame-timeline-root" @if($frame())>
+<!-- @if($frame()) { -->
+
+<div class="ulde-frame-timeline-panel-root">
 
   <div class="header">
-    <span>Frame {{ $frame()?.id }}</span>
-    <span>{{ $frame()?.timestamp }} ms</span>
+    <span>
+      Frame id: {{ $frame()===null?  `None` :  $frame()?.id}} <br>
+      Timestamp: {{  ($frame()?.timestamp)}} ms <br>
+      Total Duration: {{total}} ms
+    </span>
+    <!-- <span>Timestamp: {{  ($frame()?.timestamp)}} ms</span> -->
+    <!-- <span>Timestamp: {{  $frame()===null? `None` : `{{($frame()?.timestamp).toPrecision()}} ms` }}</span> -->
   </div>
 
   <div class="timeline">
     @for (p of phases(); track p.name) {
-      <div
-        class="segment"
-        [style.width.%]="p.ratio * 100"
-        [style.background]="p.color"
-        [title]="p.name + ': ' + p.ms + ' ms'"
-      ></div>
+    <div class="segment" [style.width.%]="p.ratio * 100" [style.background]="p.color"
+      [title]="p.name + ': ' + p.ms + ' ms'"></div>
     }
   </div>
 
   <div class="legend">
     @for (p of phases(); track p.name) {
-      <div class="legend-item">
-        <span class="color" [style.background]="p.color"></span>
-        <span class="name">{{ p.name }}</span>
-        <span class="ms">{{ p.ms }} ms</span>
-      </div>
+    <div class="legend-item">
+      <span class="color" [style.background]="p.color"></span>
+      <span class="name">{{ p.name }}</span>
+      <span class="ms">{{ p.ms }} ms</span>
+    </div>
     }
+    <span></span>
   </div>
 
 </div>
+
+<!-- } -->
