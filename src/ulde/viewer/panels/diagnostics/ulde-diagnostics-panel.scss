@@ -1,7 +1,8 @@
 // src/ulde/viewer/panels/diagnostics/ulde-diagnostics-panel.scss
 
-.ulde-diagnostics-panel {
-  position: fixed;
+.ulde-diagnostics-panel-root {
+  // position: fixed;
+  display:flex;
   bottom: 1rem;
   right: 1rem;
   width: 320px;

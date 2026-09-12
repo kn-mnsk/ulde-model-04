@@ -1,7 +1,6 @@
 // src/ulde/viewer/panels/diagnostics/ulde-diagnostics-panel.ts
 
-import { Component, input, signal } from '@angular/core';
-import { output } from '@angular/core'
+import { Component, input, output, signal } from '@angular/core';
 import { ULDEDiagnostic } from '@ulde/types/diagnostics';
 
 @Component({

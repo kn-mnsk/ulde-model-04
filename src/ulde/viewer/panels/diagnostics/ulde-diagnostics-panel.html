@@ -2,7 +2,7 @@
 
 <p>ulde-diagnostics-panel works!</p>
 
-<div class="ulde-diagnostics-panel" [class.collapsed]="!$expanded()">
+<div class="ulde-diagnostics-panel-root" [class.collapsed]="!$expanded()">
 
   <div class="header" (click)="toggle()">
     <span>Diagnostics ({{ $diagnostics().length }})</span>

@@ -96,6 +96,7 @@ export class ULDERendererService {
         delete config.container.dataset['uldeFrameTimestamp'];
         return;
       }
+    
       config.container.dataset['uldeFrameId'] = frame.id;
       config.container.dataset['uldeFrameTimestamp'] = String(frame.timestamp);
     }
