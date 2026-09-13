@@ -1,16 +1,18 @@
 // src/ulde/viewer/ulde-viewer.ts
 
-import { AfterViewInit, OnDestroy, Component, ElementRef, ViewChild, effect, input, output, signal} from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild, effect, input, output, signal } from '@angular/core';
 import { ULDEOverlayService } from '@ulde/core';
+import { ULDEDiagnostic, ULDEFrame, ULDEPluginTiming } from '@ulde/types';
 import type { ULDERendererState } from '@ulde/types/renderer';
-import { ULDERendererService, UldeDiagnosticsPanel, UldeFrameTimelinePanel } from '@ulde/viewer';
+import { ULDERendererService, UldeDiagnosticsPanel, UldeFrameTimelinePanel, UldeRuntimeInspectorPanel } from '@ulde/viewer';
+import { UldePluginTimelinePanel } from '@ulde/viewer/panels/plugin-timeline/ulde-plugin-timeline-panel';
 import { isBrowser } from '../../app/global.utils/global.utils';
-import { ULDEDiagnostic, ULDEFrame } from '@ulde/types';
 
 @Component({
   selector: 'ulde-viewer',
   imports: [
-    UldeDiagnosticsPanel, UldeFrameTimelinePanel
+    UldeDiagnosticsPanel, UldeFrameTimelinePanel, UldePluginTimelinePanel,
+    UldeRuntimeInspectorPanel
   ],
   templateUrl: 'ulde-viewer.html',
   styleUrl: 'ulde-viewer.scss',
@@ -21,7 +23,9 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
 
   // Full renderer state comes in as a signal input
   $rendererState = input<ULDERendererState>();
-  $frame = signal<ULDEFrame| null>(null);
+  $frame = signal<ULDEFrame | null>(null);
+  // $lifecyclePhaseTimings = signal<ULDELifecyclePhaseTiming[]>([])
+  $pluginTimings = signal<ULDEPluginTiming[]>([]);
   $diagnostics = signal<ULDEDiagnostic[]>([]);
 
   $ready = output<void>();
@@ -60,6 +64,8 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
       console.log(`Log: [UldeViewer] effect() -> frame=\n`, frame);
       this.rendererService.setState({ frame });
       this.$frame.set(frame);
+      // this.$lifecyclePhaseTimings.set(frame.lifecyclePhaseTimings);
+      this.$pluginTimings.set(frame.pluginTimings);
     });
 
     // 🔥 React to rendererState signal input (without re-init)

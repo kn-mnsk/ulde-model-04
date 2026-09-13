@@ -1,0 +1,77 @@
+<!-- src/ulde/viewer/panels/runtime-inspector/ulde-runtime-inspector-panel.html -->
+
+<p>ulde-runtime-inspector-panel works!</p>
+
+<div class="runtime-inspector-root">
+
+  <div class="header">
+    <span>Runtime Inspector</span>
+    <span class="meta">
+      model: {{ this.$rendererState()?.modelId }} · variant: {{ this.$rendererState()?.variantId }}
+    </span>
+  </div>
+
+  @if($rendererState()){
+  <div class="tabs">
+    <button class="tab" [class.active]="$activeTab() === 'ast'" (click)="setTab('ast')">AST</button>
+
+    <button class="tab" [class.active]="$activeTab() === 'layout'" (click)="setTab('layout')">Layout</button>
+
+    <button class="tab" [class.active]="$activeTab() === 'sections'" (click)="setTab('sections')">Sections</button>
+
+    <button class="tab" [class.active]="$activeTab() === 'toc'" (click)="setTab('toc')">TOC</button>
+
+    <button class="tab" [class.active]="$activeTab() === 'anchors'" (click)="setTab('anchors')">Anchors</button>
+  </div>
+
+  <div class="body">
+
+    @if ($activeTab() === 'ast') {
+    <pre class="json-view">
+{{ $astNodes() | json }}
+      </pre>
+    }
+
+    @if ($activeTab() === 'layout') {
+    <pre class="json-view">
+{{ $layoutTree() | json }}
+      </pre>
+    }
+
+    @if ($activeTab() === 'sections') {
+    <ul class="list-view">
+      @for (s of $sections(); track trackByIndex($index)) {
+      <li>
+        <code>{{ s.id }}</code>
+        <span class="title">{{ s.title }}</span>
+        <span class="depth">depth: {{ s.depth }}</span>
+      </li>
+      }
+    </ul>
+    }
+
+    @if ($activeTab() === 'toc') {
+    <ul class="list-view">
+      @for (t of $toc(); track trackByIndex($index)) {
+      <li>
+        <code>{{ t.href }}</code>
+        <span class="title">{{ t.label }}</span>
+      </li>
+      }
+    </ul>
+    }
+
+    @if ($activeTab() === 'anchors') {
+    <ul class="list-view">
+      @for (a of $anchors(); track trackByIndex($index)) {
+      <li>
+        <code>{{ a.id }}</code>
+        <span class="title">{{ a.text }}</span>
+      </li>
+      }
+    </ul>
+    }
+
+  </div>
+  }
+</div>

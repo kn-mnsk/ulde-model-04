@@ -1,6 +1,7 @@
 // src/ulde/viewer/panels/frame-timeline/ulde-frame-timeline-panel.ts
 
-import { Component, input, signal, computed } from '@angular/core';
+import { Component, input, computed } from '@angular/core';
+import { ULDELifecyclePhase } from '@ulde/types';
 import { ULDEFrame } from '@ulde/types/frame';
 
 @Component({
@@ -21,37 +22,16 @@ export class UldeFrameTimelinePanel {
     const timings = this.$frame()?.lifecyclePhaseTimings ?? [];
     this.total = timings.reduce((sum, t) => sum + t.duration, 0) || 1;
 
-    const listTimings = timings.map(t => ({
+    return timings.map(t => ({
       name: t.lifecyclePhase as string,
       ms: t.duration,
       ratio: t.duration / this.total,
       color: phaseColor(t.lifecyclePhase),
     }));
-
-    // this.total = total;
-    // listTimings.push({
-    //   name: 'total',
-    //   ms: total,
-    //   ratio: 1,
-    //   color: '#000000'
-    // });
-    return listTimings;
-    // return listTimings.push({
-    //   name: 'total',
-    //   ms: total,
-    //   ratio: 1,
-    //   color: '#cccccc'
-    // });
-    // //    timings.map(t => ({
-    //     name: t.lifecyclePhase,
-    //     ms: t.duration,
-    //     ratio: t.duration / total,
-    //     color: phaseColor(t.lifecyclePhase),
-    //   }));
   });
 }
 
-function phaseColor(phase: string) {
+function phaseColor(phase: ULDELifecyclePhase) {
   switch (phase) {
     case 'init': return '#607d8b';
     case 'load': return '#03a9f4';

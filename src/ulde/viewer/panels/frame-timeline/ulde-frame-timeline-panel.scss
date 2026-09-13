@@ -40,13 +40,20 @@
 
 .legend-item {
   display: flex;
-  align-items: center;
+  align-items: end;
+  // width: 30px;
   gap: 0.5rem;
 }
 
 .color {
   width: 12px;
-  height: 12px;
+  height: 15px;
   border-radius: 3px;
+}
+
+.name, .ms{
+  width: 100px;
+  height: 20px;
+  text-align: left;
 }
 
