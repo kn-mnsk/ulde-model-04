@@ -1,3 +1,3 @@
-// src/ulde/viewer/panels/index.ts
+// src/ulde/viewer/panels/frame-panel/index.ts
 
 export * from './ulde-frame-timeline-panel';

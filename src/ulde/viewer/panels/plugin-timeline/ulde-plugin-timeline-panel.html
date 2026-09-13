@@ -1,0 +1,37 @@
+ <!-- src/ulde/viewer/panels/plugin-timeline/ulde-plugin-timeline-panel.html -->
+
+<!-- <p>ulde-plugin-timeline-panel works!</p> -->
+
+<div class="ulde-plugin-timeline-panel-root">
+
+  <div class="header">
+    <span><strong>Plugin Execution Timeline Panel</strong></span>
+    <span>{{ $pluginTimings().length }} plugins</span>
+    <span>total duration: {{total.toFixed(3)}} ms</span>
+  </div>
+
+  @if($pluginTimings().length > 0){
+  <div class="rows">
+    @for (p of plugins(); track p.label) {
+    <div class="row">
+      <div class="color" [style.background]="p.color"></div>
+      <div class="phase">
+        <span>{{p.kind}} [{{p.phase}}]</span>
+      </div>
+      <div class="label">
+        {{ p.label }}
+      </div>
+      <div class="ms" [style.color]="p.color">
+        {{ p.ms.toFixed(3) }} ms
+      </div>
+      <div class="bar-container">
+        <div class="bar" [style.width.%]="p.ratio * 100" [style.background]="p.color">
+        </div>
+      </div>
+
+    </div>
+    }
+  </div>
+  }
+
+</div>

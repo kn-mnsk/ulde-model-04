@@ -1,0 +1,80 @@
+// src/ulde/viewer/panels/plugin-timeline/ulde-plugin-timeline-panel.scss
+
+.ulde-plugin-timeline-panel-root {
+  background: var(--ulde-bg);
+  border: 1px solid var(--ulde-border);
+  border-radius: 6px;
+  padding: 1rem;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 0.5rem;
+}
+
+.row {
+  display: flex;
+  grid-template-columns: 1fr 3fr auto;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+
+.color {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.phase {
+  font-size: 1rem;
+  text-align: left;
+  width: 160px;
+  height: fit-content; //12px;
+
+  color: var(--ulde-text);
+  border-radius: 3px;
+}
+
+.label {
+  font-family: monospace;
+  font-size: 0.85rem;
+  text-align: left;
+  text-wrap: wrap;
+  width: 250px;
+  height: 100%;
+  color: var(--ulde-text);
+}
+
+.bar-container {
+  background: var(--ulde-border);
+  width: 200px;
+  height: 8px;
+  border-radius: 4px;
+  // overflow: hidden;
+  // gap: 5px;
+}
+
+.bar {
+  // width: fit-content;
+  height: 100%;
+  transition: width 0.15s ease-out;
+}
+
+.ms {
+  font-size: 0.85rem;
+  color: var(--ulde-text);
+  opacity: 0.8;
+}
+

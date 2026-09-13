@@ -1,0 +1,82 @@
+/* src/ulde/viewer/panels/runtime-inspector/ulde-runtime-inspector-panel.scss */
+
+.runtime-inspector-root {
+  background: var(--ulde-bg);
+  border: 1px solid var(--ulde-border);
+  border-radius: 6px;
+  padding: 1rem;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.meta {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.tab {
+  border: 1px solid var(--ulde-border);
+  background: var(--ulde-bg);
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.tab.active {
+  background: var(--ulde-accent);
+  color: #fff;
+  border-color: var(--ulde-accent);
+}
+
+.body {
+  max-height: 260px;
+  overflow: auto;
+}
+
+.json-view {
+  font-family: monospace;
+  font-size: 0.8rem;
+  background: #1113;
+  padding: 0.5rem;
+  border-radius: 4px;
+}
+
+.list-view {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.list-view li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid var(--ulde-border);
+}
+
+.list-view li:last-child {
+  border-bottom: none;
+}
+
+code {
+  font-family: monospace;
+  font-size: 0.8rem;
+  background: #0001;
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+}
