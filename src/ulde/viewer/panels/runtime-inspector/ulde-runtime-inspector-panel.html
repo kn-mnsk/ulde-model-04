@@ -5,7 +5,7 @@
 <div class="runtime-inspector-root">
 
   <div class="header">
-    <span>Runtime Inspector</span>
+    <span><strong>Runtime Inspector Panel</strong></span>
     <span class="meta">
       model: {{ this.$rendererState()?.modelId }} · variant: {{ this.$rendererState()?.variantId }}
     </span>
@@ -42,9 +42,9 @@
     <ul class="list-view">
       @for (s of $sections(); track trackByIndex($index)) {
       <li>
-        <code>{{ s.id }}</code>
-        <span class="title">{{ s.title }}</span>
-        <span class="depth">depth: {{ s.depth }}</span>
+        <code>{{ s.meta?.['id'] }}</code>
+        <span class="title">{{ s.type }}</span>
+        <span class="depth">depth: {{ s.meta?.['depth'] }}</span>
       </li>
       }
     </ul>
@@ -53,11 +53,12 @@
     @if ($activeTab() === 'toc') {
     <ul class="list-view">
       @for (t of $toc(); track trackByIndex($index)) {
+      @for (t of t.children; track trackByIndex($index) ){
       <li>
-        <code>{{ t.href }}</code>
-        <span class="title">{{ t.label }}</span>
+        <code>{{ t.meta?.['href'] }}</code>
+        <span class="title">{{ t.meta?.['label'] }}</span>
       </li>
-      }
+      } }
     </ul>
     }
 
@@ -65,8 +66,8 @@
     <ul class="list-view">
       @for (a of $anchors(); track trackByIndex($index)) {
       <li>
-        <code>{{ a.id }}</code>
-        <span class="title">{{ a.text }}</span>
+        <code>{{ a.meta?.['id'] }}</code>
+        <span class="title">{{ a.meta?.['text'] }}</span>
       </li>
       }
     </ul>

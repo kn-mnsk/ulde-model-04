@@ -18,12 +18,20 @@ export class UldeRuntimeInspectorPanel {
   $activeTab = signal<'ast' | 'layout' | 'sections' | 'toc' | 'anchors'>('ast');
 
   $astNodes = computed(() => this.$rendererState()?.renderContext?.ast ?? []);
-  $layoutTree = computed(() => this.$rendererState()?.renderContext?.layout ?? null);
-  $sections = computed(() => this.$astNodes()?.map(n => n.meta?.['section'] ?? []));
+  $layoutTree = computed(() =>
+    this.$rendererState()?.renderContext?.layout ?? null
+  );
+  $sections = computed(() =>
+    this.$astNodes().filter(n => n.type === 'section')
+  );
   // sections = computed(() => this.$rendererState()?.renderContext?.sections ?? []);
-  $toc = computed(() => this.$astNodes()?.map(n => n.meta?.['toc'] ?? []));
+  $toc = computed(() =>
+    this.$astNodes().filter(n => n.type === 'toc')
+    // .flat(n=> n.children?.filter(n=>n.type='toc')));
+  );
   // toc = computed(() => this.$rendererState()?.renderContext?.toc ?? []);
-  $anchors = computed(() => this.$astNodes()?.map(n => n.meta?.['anchor'] ?? []));
+  $anchors = computed(() =>
+    this.$toc().filter(n => n.children?.filter(n => n.type==='anchor')));
   // anchors = computed(() => this.$rendererState()?.renderContext?.anchors ?? []);
 
   setTab(tab: 'ast' | 'layout' | 'sections' | 'toc' | 'anchors') {
