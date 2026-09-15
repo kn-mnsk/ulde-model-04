@@ -7,44 +7,38 @@
   <div class="header">
     <span><strong>Runtime Inspector Panel</strong></span>
     <span class="meta">
-      model: {{ this.$rendererState()?.modelId }} · variant: {{ this.$rendererState()?.variantId }}
+      model: {{ $rendererState()?.modelId }} · variant: {{ $rendererState()?.variantId }}
     </span>
   </div>
 
   @if($rendererState()){
+
   <div class="tabs">
     <button class="tab" [class.active]="$activeTab() === 'ast'" (click)="setTab('ast')">AST</button>
-
     <button class="tab" [class.active]="$activeTab() === 'layout'" (click)="setTab('layout')">Layout</button>
-
     <button class="tab" [class.active]="$activeTab() === 'sections'" (click)="setTab('sections')">Sections</button>
-
     <button class="tab" [class.active]="$activeTab() === 'toc'" (click)="setTab('toc')">TOC</button>
-
     <button class="tab" [class.active]="$activeTab() === 'anchors'" (click)="setTab('anchors')">Anchors</button>
+    <button class="tab" [class.active]="$activeTab() === 'frame'" (click)="setTab('frame')">Frame</button>
   </div>
 
   <div class="body">
 
     @if ($activeTab() === 'ast') {
-    <pre class="json-view">
-{{ $astNodes() | json }}
-      </pre>
+    <pre class="json-view">{{ $astNodes() | json }}</pre>
     }
 
     @if ($activeTab() === 'layout') {
-    <pre class="json-view">
-{{ $layoutTree() | json }}
-      </pre>
+    <pre class="json-view">{{ $layout() | json }}</pre>
     }
 
     @if ($activeTab() === 'sections') {
     <ul class="list-view">
-      @for (s of $sections(); track trackByIndex($index)) {
+      @for (s of $sections(); track track($index)) {
       <li>
-        <code>{{ s.meta?.['id'] }}</code>
-        <span class="title">{{ s.type }}</span>
-        <span class="depth">depth: {{ s.meta?.['depth'] }}</span>
+        <code>{{ s.id }}</code>
+        <!-- <span class="title">{{ s.title }}</span> -->
+        <span class="depth">depth: {{ s.depth }}</span>
       </li>
       }
     </ul>
@@ -52,25 +46,29 @@
 
     @if ($activeTab() === 'toc') {
     <ul class="list-view">
-      @for (t of $toc(); track trackByIndex($index)) {
-      @for (t of t.children; track trackByIndex($index) ){
+      @for (t of $toc(); track track($index)) {
       <li>
-        <code>{{ t.meta?.['href'] }}</code>
-        <span class="title">{{ t.meta?.['label'] }}</span>
+        <code>{{ t.href }}</code>
+        <span class="title">{{ t.label }}</span>
       </li>
-      } }
+      }
     </ul>
     }
 
     @if ($activeTab() === 'anchors') {
     <ul class="list-view">
-      @for (a of $anchors(); track trackByIndex($index)) {
+      @for (a of $anchors(); track track($index)) {
       <li>
-        <code>{{ a.meta?.['id'] }}</code>
-        <span class="title">{{ a.meta?.['text'] }}</span>
+        <code>{{ a.id }}</code>
+        <span class="depth">{{ a.depth }}</span>
+        <span class="title">{{ a.text }}</span>
       </li>
       }
     </ul>
+    }
+
+    @if ($activeTab() === 'frame') {
+    <pre class="json-view">{{ $frame() | json }}</pre>
     }
 
   </div>
