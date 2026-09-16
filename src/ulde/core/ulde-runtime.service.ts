@@ -25,7 +25,7 @@ export class ULDERuntimeService {
   finalizeFrameAndAnalyze() {
     this.overlay.finalizeFrame();
 
-    const frame = this.overlay.currentFrame();
+    const frame = this.overlay.$currentFrame();
     if (!frame) return;
 
     this.detectPhaseAnomalies(frame);

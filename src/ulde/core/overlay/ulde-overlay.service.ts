@@ -9,23 +9,23 @@ import { ULDEPluginTiming } from '@ulde/types/timing';
 @Injectable({ providedIn: 'root' })
 export class ULDEOverlayService {
   // Overlay visibility + controls
-  visible = signal(true);
-  pinned = signal(false);
-  opacity = signal(1);
+  $visible = signal(true);
+  $pinned = signal(false);
+  $opacity = signal(1);
 
   // Lifecycle state
-  lifecyclePhaseTimings = signal<ULDELifecyclePhaseTiming[]>([]);
-  currentLifecyclePhaseTiming = signal<ULDELifecyclePhaseTiming | null>(null);
+  $lifecyclePhaseTimings = signal<ULDELifecyclePhaseTiming[]>([]);
+  $currentLifecyclePhaseTiming = signal<ULDELifecyclePhaseTiming | null>(null);
 
   // Plugin timings
-  pluginTimings = signal<ULDEPluginTiming[]>([]);
+  $pluginTimings = signal<ULDEPluginTiming[]>([]);
 
   // Frame history
-  frames = signal<ULDEFrame[]>([]);
-  currentFrame = signal<ULDEFrame | null>(null);
+  $frames = signal<ULDEFrame[]>([]);
+  $currentFrame = signal<ULDEFrame | null>(null);
 
   // Diagnostics
-  diagnostics = signal<ULDEDiagnostic[]>([]);
+  $diagnostics = signal<ULDEDiagnostic[]>([]);
 
   // Thresholds (tweakable)
   thresholds = {
@@ -34,22 +34,31 @@ export class ULDEOverlayService {
   };
 
   // Derived: sparkline points
-  sparklinePoints = computed(() => {
-    const history = this.frames();
+  $sparklinePoints = computed(() => {
+    const history = this.$frames();
     if (!history.length) return '';
 
-    return history
+    const points = history
       .map((f, i) => {
         const total = f.lifecyclePhaseTimings.reduce((a, p) => a + p.duration, 0);
         return `${i * 10},${40 - Math.min(total, 40)}`;
       })
       .join(' ');
+    console.log(`Log: [ULDEOverlayService] sparklinePoints`, points);
+
+    return points;
+    // return history
+    //   .map((f, i) => {
+    //     const total = f.lifecyclePhaseTimings.reduce((a, p) => a + p.duration, 0);
+    //     return `${i * 10},${40 - Math.min(total, 40)}`;
+    //   })
+    //   .join(' ');
   });
 
   // Derived: filtered plugin timings by lifecycle phase
-  filteredPluginTimings = computed(() => {
-    const lifecyclePhaseTiming = this.currentLifecyclePhaseTiming();
-    const timings = this.pluginTimings();
+  $filteredPluginTimings = computed(() => {
+    const lifecyclePhaseTiming = this.$currentLifecyclePhaseTiming();
+    const timings = this.$pluginTimings();
 
     if (!lifecyclePhaseTiming) return timings;
     return timings.filter(t => t.lifecyclePhase === lifecyclePhaseTiming.lifecyclePhase);
@@ -57,20 +66,20 @@ export class ULDEOverlayService {
 
   // Overlay control methods
   toggle() {
-    this.visible.update(v => !v);
+    this.$visible.update(v => !v);
   }
 
   pin() {
-    this.pinned.update(p => !p);
+    this.$pinned.update(p => !p);
   }
 
   setOpacity(value: number) {
-    this.opacity.set(value);
+    this.$opacity.set(value);
   }
 
   // Lifecycle event handlers
   startPhase(lifecyclePhase: ULDELifecyclePhase) {
-    this.currentLifecyclePhaseTiming.set({
+    this.$currentLifecyclePhaseTiming.set({
       lifecyclePhase,
       startTime: performance.now(),
       endTime: 0,
@@ -79,7 +88,7 @@ export class ULDEOverlayService {
   }
 
   endPhase(lifecyclePhase: ULDELifecyclePhase) {
-    const phase = this.currentLifecyclePhaseTiming();
+    const phase = this.$currentLifecyclePhaseTiming();
     if (!phase || phase.lifecyclePhase !== lifecyclePhase) return;
 
     const end = performance.now();
@@ -91,13 +100,13 @@ export class ULDEOverlayService {
       duration,
     };
 
-    this.lifecyclePhaseTimings.update(list => [...list, updatedPhase]);
-    this.currentLifecyclePhaseTiming.set(null);
+    this.$lifecyclePhaseTimings.update(list => [...list, updatedPhase]);
+    this.$currentLifecyclePhaseTiming.set(null);
   }
 
   // Plugin timing recording
   recordPluginTiming(timing: ULDEPluginTiming) {
-    this.pluginTimings.update(list => [...list, timing]);
+    this.$pluginTimings.update(list => [...list, timing]);
   }
 
   // Frame finalization
@@ -105,22 +114,22 @@ export class ULDEOverlayService {
     const frame: ULDEFrame = {
       id: crypto.randomUUID(),
       timestamp: Date.now(),
-      lifecyclePhaseTimings: this.lifecyclePhaseTimings(),
-      pluginTimings: this.pluginTimings(),
-      diagnostics: this.diagnostics()
+      lifecyclePhaseTimings: this.$lifecyclePhaseTimings(),
+      pluginTimings: this.$pluginTimings(),
+      diagnostics: this.$diagnostics()
     };
 
-    this.frames.update(list => [...list.slice(-50), frame]); // keep last 50 frames
-    this.currentFrame.set(frame);
+    this.$frames.update(list => [...list.slice(-50), frame]); // keep last 50 frames
+    this.$currentFrame.set(frame);
 
     // reset for next frame
-    this.lifecyclePhaseTimings.set([]);
-    this.pluginTimings.set([]);
+    this.$lifecyclePhaseTimings.set([]);
+    this.$pluginTimings.set([]);
   }
 
   // Diagnostics
   addDiagnostic(diag: ULDEDiagnostic) {
-    this.diagnostics.update(list => [...list, diag]);
+    this.$diagnostics.update(list => [...list, diag]);
   }
 
 

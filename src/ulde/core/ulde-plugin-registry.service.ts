@@ -3,8 +3,7 @@
 import { Injectable } from '@angular/core';
 import { ULDEOverlayService } from '@ulde/core';
 import { ULDELifecyclePhase } from '@ulde/types/lifecycle';
-import { ULDEPluginClass, ULDEPluginInstance, ULDEPlugin, ULDEPluginFactory } from '@ulde/types/plugin';
-import { ULDEPluginTiming } from '@ulde/types/timing';
+import { ULDEPluginInstance, ULDEPlugin, ULDEPluginFactory } from '@ulde/types/plugin';
 
 import { ULDE_PLUGIN_REGISTRY } from '@ulde/plugins/registry'; // updated registry
 import { ULDEPluginHookAdapter } from '@ulde/plugins/adaptors';
@@ -77,8 +76,8 @@ export class ULDEPluginRegistryService {
     const factories = ULDE_PLUGIN_REGISTRY[phase] || [];
 
     for (const factory of factories) {
-      const raw: ULDEPlugin |  ULDEPluginInstance = factory();
-      const plugin =  ('hooks' in raw) ?
+      const raw: ULDEPlugin | ULDEPluginInstance = factory();
+      const plugin = ('hooks' in raw) ?
         new ULDEPluginHookAdapter(raw as ULDEPlugin)
         : (raw as ULDEPluginInstance);
 

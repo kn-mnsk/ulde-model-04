@@ -1,11 +1,11 @@
 // src/ulde/core/overlay/ulde-overlay.scss
 
-.ulde-overlay {
+.ulde-overlay-root {
   position: fixed;
   bottom: 0;
   right: 0;
   width: 420px;
-  height: 65vh;
+  height: 80vh;
   background: rgba(20, 20, 20, 0.85);
   color: #eee;
   font-family: system-ui, sans-serif;
@@ -133,11 +133,13 @@
 
   /* Sparkline */
   .sparkline {
+    width: 100px;
     height: 40px;
+    background-color: #d2a2a2;
     margin-bottom: 12px;
 
     .sparkline-line {
-      fill: none;
+      fill: red;
       stroke: #4fc3f7;
       stroke-width: 2;
     }
@@ -182,9 +184,15 @@
   }
 
   /* Frame History */
+
+  .frame-history-container {
+    display: flex;
+  }
+
   .frame-history {
-    max-height: 120px;
-    overflow-y: auto;
+    max-height: 200px;
+    display: flex;
+    // overflow-y: auto
 
     h4 {
       margin: 0 0 6px 0;
@@ -193,11 +201,14 @@
     }
 
     .frame-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr 0.7fr;
+      display: flex;
+      flex-direction: column;
+      // display: grid;
+      // grid-template-columns: 1fr 1fr 0.7fr;
       padding: 4px 0;
       border-bottom: 1px solid #444;
       cursor: pointer;
+      // overflow-y: auto;
 
       &:hover {
         background: rgba(255, 255, 255, 0.05);
@@ -208,8 +219,19 @@
       }
 
       .total {
-        text-align: right;
+        text-align: left;
       }
+
+      .json-view {
+        max-height: 50px;
+        font-family: monospace;
+        font-size: 0.8rem;
+        background: #1113;
+        padding: 0.5rem;
+        border-radius: 4px;
+        overflow: auto;
+      }
+
     }
   }
 }

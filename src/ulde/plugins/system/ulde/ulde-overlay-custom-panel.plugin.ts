@@ -23,7 +23,8 @@ export const ULDEOverlayCustomPanelPlugin: ULDEPlugin = {
       </div>
       `;
 
-      ctx.html = customPanel;
+      ctx.html = ctx.html + customPanel;
+      // ctx.html = customPanel;
 
     }
 

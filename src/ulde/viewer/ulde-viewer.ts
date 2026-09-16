@@ -1,7 +1,7 @@
 // src/ulde/viewer/ulde-viewer.ts
 
 import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild, effect, input, output, signal } from '@angular/core';
-import { ULDEOverlayService } from '@ulde/core';
+import { ULDEOverlay, ULDEOverlayService } from '@ulde/core';
 import { ULDEDiagnostic, ULDEFrame, ULDEPluginTiming } from '@ulde/types';
 import type { ULDERendererState } from '@ulde/types/renderer';
 import { ULDERendererService, UldeDiagnosticsPanel, UldeFrameTimelinePanel, UldeRuntimeInspectorPanel } from '@ulde/viewer';
@@ -12,7 +12,8 @@ import { isBrowser } from '../../app/global.utils/global.utils';
   selector: 'ulde-viewer',
   imports: [
     UldeDiagnosticsPanel, UldeFrameTimelinePanel, UldePluginTimelinePanel,
-    UldeRuntimeInspectorPanel
+    UldeRuntimeInspectorPanel,
+    ULDEOverlay
   ],
   templateUrl: 'ulde-viewer.html',
   styleUrl: 'ulde-viewer.scss',
@@ -38,7 +39,7 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
   ) {
     // 🔥 React to ULDE lifecycle phases
     effect(() => {
-      const phase = this.overlay.currentLifecyclePhaseTiming();
+      const phase = this.overlay.$currentLifecyclePhaseTiming();
       if (!phase) return;
 
       this.rendererService.setState({
@@ -48,7 +49,7 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
 
     // 🔥 React to diagnostics
     effect(() => {
-      const diagnostics = this.overlay.diagnostics();
+      const diagnostics = this.overlay.$diagnostics();
       if (diagnostics.length < 1) return;
 
       console.log(`Log: [UldeViewer] effect() -> diagnostics=\n`, diagnostics);
@@ -58,7 +59,7 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
 
     // 🔥 React to frame finalization
     effect(() => {
-      const frame = this.overlay.currentFrame();
+      const frame = this.overlay.$currentFrame();
       if (!frame) return;
 
       console.log(`Log: [UldeViewer] effect() -> frame=\n`, frame);
