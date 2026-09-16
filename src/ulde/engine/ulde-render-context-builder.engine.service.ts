@@ -42,7 +42,7 @@ export class ULDERenderContextBuilderService {
     const sectionAst = this.layoutEngine.buildSections(ast);
 
     // 2. Inject diagnostics into AST
-    const diagnostics = this.overlay.diagnostics();
+    const diagnostics = this.overlay.$diagnostics();
     const diagnosticNodes: ULDEDiagnosticNode[] = diagnostics.map((d: ULDEDiagnostic) => ({
       type: 'diagnostic',
       meta: {
@@ -59,13 +59,14 @@ export class ULDERenderContextBuilderService {
     const html = renderUldeAstToHtml(finalAst);
 
     // 4. Assemble render context
-    const currentFrame = this.overlay.currentFrame();
+    const currentFrame = this.overlay.$currentFrame();
 
     return {
       pageId: page.pageId,
       ast: finalAst,
       html,
-      layout: 'sections',
+      layout: sectionAst,
+      // layout: 'sections',
       frame: currentFrame ?? undefined,
     };
   }

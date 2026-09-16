@@ -31,7 +31,7 @@ export interface ULDERenderContext {
   pageId: string;
   ast: ULDEAstNode[];
   html: string;
-  layout?: string;
+  layout?: string | ULDEAstNode[];  // ULDEAstNode[]  added 2026-09-16
   frame?: ULDEFrame; // optional, attached after lifecycle, as “observability attachment”
 }
 

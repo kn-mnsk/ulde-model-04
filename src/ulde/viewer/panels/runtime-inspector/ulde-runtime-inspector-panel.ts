@@ -2,8 +2,9 @@
 
 import { JsonPipe } from '@angular/common';
 import { Component, computed, input, signal } from '@angular/core';
-import { ULDERendererState } from '@ulde/types';
+import { ULDERendererState } from '@ulde/types/renderer';
 import { ULDEAstNode } from '@ulde/types/context';
+import { ULDEFrame } from '@ulde/types/frame';
 
 @Component({
   selector: 'ulde-runtime-inspector-panel',
@@ -15,12 +16,13 @@ export class UldeRuntimeInspectorPanel {
 
   $rendererState = input<ULDERendererState | undefined>(undefined);
 
+  $frame = input<ULDEFrame | null>(null);
+
   $activeTab = signal<'ast' | 'layout' | 'sections' | 'toc' | 'anchors' | 'frame'>('ast');
 
   $astNodes = computed(() => this.$rendererState()?.renderContext?.ast ?? []);
   $layout = computed(() => this.$rendererState()?.renderContext?.layout ?? null);
-  $frame = computed(() => this.$rendererState()?.frame ?? null);
-
+  // $frame = computed(() => this.$rendererState()?.frame ?? null);
   $sections = computed(() => this.extractSections(this.$astNodes()));
   $toc = computed(() => this.extractToc(this.$astNodes()));
   $anchors = computed(() => this.extractAnchors(this.$astNodes()));
@@ -58,6 +60,7 @@ export class UldeRuntimeInspectorPanel {
     }
 
     ast.filter(n => n.type === 'toc').forEach(n => walk(n));
+
     return tocs;
   }
 
@@ -75,7 +78,7 @@ export class UldeRuntimeInspectorPanel {
       let id: string ='';
       let text: string ='';
 
-      children.forEach((child, index) => {
+      children.forEach((child) => {
 
         switch (child.type) {
           case 'anchor': {

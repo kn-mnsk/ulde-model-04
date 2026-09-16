@@ -22,7 +22,7 @@
         {{ p.label }}
       </div>
       <div class="ms" [style.color]="p.color">
-        {{ p.ms.toFixed(3) }} ms
+        {{ p.ms.toFixed(6) }} ms
       </div>
       <div class="bar-container">
         <div class="bar" [style.width.%]="p.ratio * 100" [style.background]="p.color">

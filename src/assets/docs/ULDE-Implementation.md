@@ -48,6 +48,9 @@ src/
       ulde-layout.engine.service.
       ulde-render-context-builder.engine.service.ts
     plugins/
+      adaptor/
+        index.ts
+        ulde-plugin-hook-adaptor.ts
       contributor/ // for the future
       registry/
         index.ts
@@ -86,9 +89,9 @@ src/
       debug/
         index.ts
         ulde-debug.types.ts
-      diagnostic/
+      diagnostics/
         index.ts
-        ulde-diagnostic.types.ts
+        ulde-diagnostics.types.ts
       frame/
         index.ts
         ulde-frame.types.ts
@@ -106,6 +109,38 @@ src/
         ulde-timing.types.ts
       index.ts
     viewer/
+      panels/
+        /diagnostics
+          index.ts
+          ulde-diagnostics-panel.html
+          ulde-diagnostics-panel.scss
+          ulde-diagnostics-panel.spec.ts
+          ulde-diagnostics-panel.ts
+        /frame-timeline
+          index.ts
+          ulde-frame-timeline-panel.html
+          ulde-frame-timeline-panel.scss
+          ulde-frame-timeline-panel.spec.ts
+          ulde-frame-timeline-panel.ts
+        /plugin-timeline
+          index.ts
+          ulde-plugin-timeline-panel.html
+          ulde-plugin-timeline-panel.scss
+          ulde-plugin-timeline-panel.spec.ts
+          ulde-plugin-timeline-panel.ts
+        /runtime-inspector
+          index.ts
+          ulde-runtime-inspector-panel.html
+          ulde-runtime-inspector-panel.scss
+          ulde-runtime-inspector-panel.spec.ts
+          ulde-runtime-inspector-panel.ts
+        index.ts
+      styles/
+        ulde-viewer-base.scss
+        ulde-viewer-components.scss
+        ulde-viewer-diagnostics.scss
+        ulde-viewer-theme-dark.scss
+        ulde-viewer-theme-light.scss
       index.ts
       ulde-renderer.service.ts
       ulde-viewer.html
@@ -125,8 +160,10 @@ src/
 <!-- src/app/demo/ulde-demo-01/ulde-demo-01.html
   -->
 <!-- <p>ulde-demo-01 works!</p> -->
-<ulde-viewer class="ulde-viewer-host" #HostUldeViewerRef [$rendererState]="$rendererState()" (stateChange)="onViewerStateChange($event)" (error)="onError($event)">
+<ulde-viewer class="ulde-viewer-host" #HostUldeViewerRef [$rendererState]="$rendererState()"
+  ($stateChange)="onViewerStateChange($event)" ($error)="onError($event)">
 </ulde-viewer>
+
 ```
 
 #### 1-2. demo/ulde-demo-01/ulde-demo-01.scss
@@ -146,15 +183,15 @@ src/
 ```ts
 // src/app/demo/ulde-demo-01/ulde-demo-01.ts
 
-import { Component, signal, AfterViewInit, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, signal, ViewChild } from '@angular/core';
 
-import { ULDEPageContext, ULDERenderContext } from '@ulde/types/context';
 import { ULDELifecycleService } from '@ulde/core';
+import { ULDEPageContext, ULDERenderContext } from '@ulde/types/context';
 
-import { UldeViewer } from '@ulde/viewer';
-import { ULDERendererState } from '@ulde/types/renderer/ulde-renderer.types';
-import { isBrowser } from '../../global.utils/global.utils';
 import { ContentEngineService } from '@ulde/engine';
+import { ULDERendererState } from '@ulde/types/renderer/ulde-renderer.types';
+import { UldeViewer } from '@ulde/viewer';
+import { isBrowser } from '../../global.utils/global.utils';
 
 
 
@@ -253,8 +290,8 @@ export class UldeDemo01 implements AfterViewInit, OnInit {
 #### 1-4. app.html
 ```ts
 <!-- src/app/app.html -->
- 
-<p>App Works!</p>
+
+<!-- <p>App Works!</p> -->
 <!-- <ulde-configurator></ulde-configurator> -->
 <app-ulde-demo-01></app-ulde-demo-01>
 
@@ -264,44 +301,20 @@ export class UldeDemo01 implements AfterViewInit, OnInit {
 ```ts
 // src/app/app.routes.ts
 
-import type { Routes } from '@angular/router';;
-// import { PageNotFound } from './page-not-found/page-not-found';
-// import { Error } from './page-error/error';
-
+import type { Routes } from '@angular/router';
 
 export const routes: Routes = [
-  // {
-  //   path: '',
-  //   redirectTo: 'configure',
-  //   pathMatch: 'full'
-  // },
   {
     path: '',
     redirectTo: 'home',
     pathMatch: 'full'
   },
-
-  // {
-  //   path: 'configure',
-  //   loadChildren: () =>
-  //     import('./product-configurator/product-configurator.routes')
-  //       .then(m => m.PRODUCT_CONFIGURATOR_ROUTES)
-  // },
-
   {
     path: 'home',
     loadComponent: () =>
       import('./app')
         .then(m => m.App)
   },
-
-  // {
-  //   path: 'docs',
-  //   loadChildren: () =>
-  //     import('./docs-viewer/docs-viewer.routes')
-  //       .then(m => m.DOCS_VIEWER_ROUTES)
-  // },
-
   {
     path: 'viewer-demo',
     loadComponent: () =>
@@ -319,33 +332,6 @@ export const routes: Routes = [
   }
 ];
 
-// export const routes: Routes = [
-// {
-//     path: 'home',
-//     title: 'home-UldeModel-v1',
-//     loadComponent:  () => import('./app').then(m => m.App)
-//   },
-//   {
-//     path: "fallback",
-//     title: "Page Not Found",
-//     component: PageNotFound
-//   },
-//   {
-//     path: 'error',
-//     title: 'Error on Page',
-//     component: Error
-//   },
-//     {
-//     path: '',
-//     redirectTo: "home",
-//     pathMatch: 'full'
-//   },
-//   {
-//     path: '**',
-//     redirectTo: "fallback"
-//   }
-// ];
-
 ```
 
 #### 1-6. app.scss
@@ -358,7 +344,6 @@ None
 // src/app/app.ts
 
 import { Component, signal } from '@angular/core';
-// import { DocsViewer } from './docs-viewer/docs-viewer';
 import { ProductConfigurator } from '../ulde/configurator/ulde-configurator';
 import { UldeDemo01 } from './demo/ulde-demo-01/ulde-demo-01';
 
@@ -567,7 +552,6 @@ export * from "./ulde-overlay";
 ##### 3-2-2. ulde-overlay.html
 ```html
 <!-- src/ulde/core/overlay/ulde-overlay.html -->
-<!-- src/ulde/core/overlay/ulde-overlay.html -->
  
 <p>UldeOverlay Works!</p>
 <div class="ulde-overlay" [class.hidden]="!visible()" [style.opacity]="opacity()">
@@ -662,7 +646,6 @@ export * from "./ulde-overlay";
   </section>
 
 </div>
-
 
 ```
 
@@ -891,7 +874,7 @@ export * from "./ulde-overlay";
 // src/ulde/core/overlay/ulde-overlay.service.ts
 
 import { computed, Injectable, signal } from '@angular/core';
-import { ULDEDiagnostic } from '@ulde/types/diagnostic';
+import { ULDEDiagnostic } from '@ulde/types/diagnostics';
 import { ULDEFrame } from '@ulde/types/frame';
 import { ULDELifecyclePhase, ULDELifecyclePhaseTiming } from '@ulde/types/lifecycle';
 import { ULDEPluginTiming } from '@ulde/types/timing';
@@ -1132,37 +1115,30 @@ import { renderUldeAstToHtml, ULDERenderContextBuilderService } from '@ulde/engi
 @Injectable({ providedIn: 'root' })
 export class ULDELifecycleService {
 
-constructor(
-  private overlay: ULDEOverlayService,
-  private pluginRegistry: ULDEPluginRegistryService,
-  private runtime: ULDERuntimeService,
-  private renderContextBuilder: ULDERenderContextBuilderService,
-) {}
+  constructor(
+    private overlay: ULDEOverlayService,
+    private pluginRegistry: ULDEPluginRegistryService,
+    private runtime: ULDERuntimeService,
+    private renderContextBuilder: ULDERenderContextBuilderService,
+  ) { }
 
-  startLifecyclePhase(lifecyclePhase: ULDELifecyclePhase) {
-    this.overlay.startPhase(lifecyclePhase);
-  }
 
-  endLifecyclePhase(lifecyclePhase: ULDELifecyclePhase) {
-    this.overlay.endPhase(lifecyclePhase);
-  }
-
-  async runPluginByLifecyclePhase(
+  /**
+   * Wrap lifecycle phase start/end with overlay timing.
+   */
+  private async runPluginByLifecyclePhase(
     lifecyclePhase: ULDELifecyclePhase,
-    hookName?: keyof ULDEPluginRegistryService['hookMap'],
-    ctx?: ULDEPageContext | ULDERenderContext | Record<string, any>,
+    ctx: Record<string, any> = {}
   ) {
+    this.overlay.startPhase(lifecyclePhase);
+
     try {
-      this.startLifecyclePhase(lifecyclePhase);
+      await this.pluginRegistry.runPhase(lifecyclePhase, {
+        ...ctx,
+        lifecyclePhase: lifecyclePhase,
+      });
 
-      if (hookName) {
-        await this.pluginRegistry.run(hookName, {
-          ...(ctx || {}),
-          lifecyclePhase,
-        });
-      }
-
-      this.endLifecyclePhase(lifecyclePhase);
+      this.overlay.endPhase(lifecyclePhase);
     } catch (err) {
       this.overlay.addDiagnostic({
         level: 'error',
@@ -1170,36 +1146,39 @@ constructor(
         lifecyclePhase,
       });
     }
+
   }
 
   /**
-   * Full lifecycle execution for a page.
-   */
+  * Full lifecycle execution for a page.
+  */
   async executeLifecycle(pageContext: ULDEPageContext): Promise<ULDERenderContext> {
-    // INIT
-    await this.runPluginByLifecyclePhase('init', 'onInit');
 
-    // LOAD
-    await this.runPluginByLifecyclePhase('load', 'onPageLoad', pageContext);
+    // INIT
+    await this.runPluginByLifecyclePhase('init');
+
+    // LOAD (content + navigation plugins)
+    await this.runPluginByLifecyclePhase('load', pageContext);
 
     // RENDER
-    const renderContext = await this.renderContextBuilder.build(pageContext);
-    await this.runPluginByLifecyclePhase('render', 'onBeforeRender', renderContext);
+    // 1. Build initial AST
+    const initialAst = this.renderContextBuilder.buildInitialAst(pageContext);
 
-    const ast = renderContext.ast;
-    const html = renderUldeAstToHtml(ast);
-    renderContext.html = html;
+    // 2. Run render phase plugins on AST
+    await this.runPluginByLifecyclePhase('render', { ...pageContext, ast: initialAst });
 
-    // HYDRATE
-    await this.runPluginByLifecyclePhase('hydrate', 'onAfterRender', renderContext);
+    // 3. Build final context (sections + diagnostics + HTML)
+    const renderContext = this.renderContextBuilder.buildFinalContext(pageContext, initialAst);
 
-    // AFTER RENDER
-    this.startLifecyclePhase('afterRender');
+    // HYDRATE (interactive plugins)
+    await this.runPluginByLifecyclePhase('hydrate', renderContext);
 
-    this.pluginRegistry.destroyAll();
+    // AFTER RENDER (ULDE system plugins)
+    await this.runPluginByLifecyclePhase('afterRender', renderContext);
 
+    // Cleanup + diagnostics
+    await this.pluginRegistry.destroyAll();
     this.runtime.finalizeFrameAndAnalyze();
-    this.endLifecyclePhase('afterRender');
 
     return renderContext;
   }
@@ -1214,101 +1193,99 @@ constructor(
 import { Injectable } from '@angular/core';
 import { ULDEOverlayService } from '@ulde/core';
 import { ULDELifecyclePhase } from '@ulde/types/lifecycle';
-import { ULDEPlugin, ULDEPluginHooks, ULDEPluginKind } from '@ulde/types/plugin';
-import { ULDEPluginTiming } from '@ulde/types/timing';
+import { ULDEPluginInstance, ULDEPlugin, ULDEPluginFactory } from '@ulde/types/plugin';
 
-import { createUldeStringPluginRegistry } from '@ulde/plugins/registry';
+import { ULDE_PLUGIN_REGISTRY } from '@ulde/plugins/registry'; // updated registry
+import { ULDEPluginHookAdapter } from '@ulde/plugins/adaptors';
 
 @Injectable({ providedIn: 'root' })
 export class ULDEPluginRegistryService {
 
-  private plugins: ULDEPlugin[] = [];
 
   /**
-   * Hook map for lifecycle service convenience.
+   * All instantiated plugins (run‑based instances).
+   * Legacy plugins are wrapped using ULDEPluginHookAdapter.
    */
-  hookMap: { [K in keyof ULDEPluginHooks]: K } = {
-    onInit: 'onInit',
-    onPageLoad: 'onPageLoad',
-    onBeforeRender: 'onBeforeRender',
-    onAfterRender: 'onAfterRender',
-    onDestroy: 'onDestroy',
-  };
+  private instances: ULDEPluginInstance[] = [];
 
   constructor(private overlay: ULDEOverlayService) {
-
-    // plugins registry
-    const plugins = createUldeStringPluginRegistry();
-    plugins.forEach(p => {
-      this.register(p);
-    })
+    this.instantiateAllPlugins();
   }
 
   /**
-   * Register a plugin.
-   */
-  register(plugin: ULDEPlugin) {
-    if (plugin.enabled === false) return;
-
-    this.plugins.push(plugin);
-    // this.plugins.sort((a, b) => a.pluginKind.localeCompare(b.pluginKind)); // deterministic order
+  * Instantiate all plugins from the registry using factories.
+  */
+  private instantiateAllPlugins() {
+    this.instances = Object.values(ULDE_PLUGIN_REGISTRY)
+      .flat()
+      .map(factory => this.instantiateFromFactory(factory))
+      .filter(plugin => plugin.enabled !== false);
   }
 
   /**
-   * Run a specific hook across all plugins.
+   * Instantiate plugin from factory.
+   * Detect legacy plugins (ULDEPlugin) vs new plugins (ULDEPluginInstance).
    */
-  async run(
-    hookName: keyof ULDEPluginHooks,
-    ctx?: { lifecyclePhase?: ULDELifecyclePhase } & Record<string, any>,
-  ): Promise<void> {
-    for (const plugin of this.plugins) {
-      const hook = plugin.hooks[hookName];
-      if (!hook) continue;
+  private instantiateFromFactory(factory: ULDEPluginFactory): ULDEPluginInstance {
+    const raw = factory();
 
-      const start = performance.now();
-
-      try {
-        await hook(ctx as any);
-      } catch (err) {
-        this.overlay.addDiagnostic({
-          level: 'error',
-          message: `Plugin "${plugin.pluginName}" failed in hook "${hookName}": ${String(err)}`,
-          pluginName: plugin.pluginKind,
-          lifecyclePhase: ctx?.lifecyclePhase,
-        });
-      }
-
-      const end = performance.now();
-
-      const timing: ULDEPluginTiming = {
-        pluginName: plugin.pluginName,
-        pluginKind: plugin.pluginKind,
-        hookName,
-        lifecyclePhase: ctx?.lifecyclePhase ?? 'init',
-        duration: end - start,
-      };
-
-      this.overlay.recordPluginTiming(timing);
+    // Legacy plugin: has "hooks"
+    if ((raw as ULDEPlugin).hooks) {
+      return new ULDEPluginHookAdapter(raw as ULDEPlugin);
     }
+
+    // New plugin: already run‑based
+    return raw as ULDEPluginInstance;
   }
 
+  // /**
+  //   * Instantiate plugin class.
+  //   * Detect whether plugin is legacy (ULDEPlugin) or new (ULDEPluginInstance).
+  //   */
+  // private instantiatePlugin(PluginClass: ULDEPluginClass): ULDEPluginInstance {
+  //   const instance = new PluginClass();
+
+  //   // Legacy plugin: has "hooks"
+  //   if ((instance as any).hooks) {
+  //     return new ULDEPluginHookAdapter(instance as unknown as ULDEPlugin);
+  //   }
+
+  //   // New plugin: already run‑based
+  //   return instance;
+  // }
+
+
   /**
-   * Destroy all plugins (called on app teardown).
+   * Run all plugins assigned to a lifecycle phase.
    */
-  async destroyAll() {
-    for (const plugin of this.plugins) {
-      const hook = plugin.hooks.onDestroy;
-      if (!hook) continue;
+  async runPhase(
+    phase: ULDELifecyclePhase,
+    ctx: Record<string, any> = {}
+  ): Promise<void> {
+
+    const factories = ULDE_PLUGIN_REGISTRY[phase] || [];
+
+    for (const factory of factories) {
+      const raw: ULDEPlugin | ULDEPluginInstance = factory();
+      const plugin = ('hooks' in raw) ?
+        new ULDEPluginHookAdapter(raw as ULDEPlugin)
+        : (raw as ULDEPluginInstance);
+
+      if (!plugin) continue;
 
       const start = performance.now();
 
       try {
-        await hook();
+        await plugin.run({
+          ...ctx,
+          lifecyclePhase: phase,
+        });
       } catch (err) {
         this.overlay.addDiagnostic({
           level: 'error',
-          message: `Plugin "${plugin.pluginName}" failed in onDestroy: ${String(err)}`,
-          pluginName: plugin.pluginKind,
+          message: `Plugin "${plugin.pluginName}" failed in phase "${phase}": ${String(err)}`,
+          pluginName: plugin.pluginName,
+          lifecyclePhase: phase,
         });
       }
 
@@ -1317,23 +1294,56 @@ export class ULDEPluginRegistryService {
       this.overlay.recordPluginTiming({
         pluginName: plugin.pluginName,
         pluginKind: plugin.pluginKind,
-        hookName: 'onDestroy',
+        hookName: 'run',
+        lifecyclePhase: phase,
+        duration: end - start,
+      })
+        ;
+    }
+  }
+
+  /**
+   * Destroy all plugins (called at end of lifecycle).
+   */
+  async destroyAll() {
+    for (const plugin of this.instances) {
+      if (!plugin.destroy) continue;
+
+      const start = performance.now();
+
+      try {
+        await plugin.destroy();
+      } catch (err) {
+        this.overlay.addDiagnostic({
+          level: 'error',
+          message: `Plugin "${plugin.pluginName}" failed in destroy(): ${String(err)}`,
+          pluginName: plugin.pluginName,
+          lifecyclePhase: 'afterRender',
+        });
+      }
+
+      const end = performance.now();
+
+      this.overlay.recordPluginTiming({
+        pluginName: plugin.pluginName,
+        pluginKind: plugin.pluginKind,
+        hookName: 'destroy',
         lifecyclePhase: 'afterRender',
         duration: end - start,
       });
     }
 
-    this.plugins = [];
-
+    this.instances = [];
   }
 
   /**
-   * Get all registered plugins.
+   * List all instantiated plugins.
    */
   list() {
-    return [...this.plugins];
+    return [...this.instances];
   }
 }
+
 
 ```
 

@@ -12,7 +12,7 @@ export class ULDEDebugToolsService {
    * Build a timeline of frames with total durations.
    */
   buildTimeline(): ULDETimelinePoint[] {
-    return this.overlay.frames().map(frame => {
+    return this.overlay.$frames().map(frame => {
       const total = frame.lifecyclePhaseTimings.reduce((sum, p) => sum + p.duration, 0);
 
       return {
@@ -31,7 +31,7 @@ export class ULDEDebugToolsService {
    * Normalizes plugin durations across all frames.
    */
   buildHeatmap(): ULDEHeatmapCell[] {
-    const frames = this.overlay.frames();
+    const frames = this.overlay.$frames();
     const timings = frames.flatMap(f => f.pluginTimings);
 
     if (!timings.length) return [];
@@ -50,7 +50,7 @@ export class ULDEDebugToolsService {
    * Generate warnings based on patterns in frame history.
    */
   generateWarnings() {
-    const frames = this.overlay.frames();
+    const frames = this.overlay.$frames();
     if (frames.length < 3) return;
 
     const lastThree = frames.slice(-3);
