@@ -6,13 +6,13 @@ import { ULDEHeatmapCell, ULDETimelinePoint } from '@ulde/types/debug';
 
 @Injectable({ providedIn: 'root' })
 export class ULDEDebugToolsService {
-  constructor(private overlay: ULDEOverlayService) { }
+  constructor(private overlayService: ULDEOverlayService) { }
 
   /**
    * Build a timeline of frames with total durations.
    */
   buildTimeline(): ULDETimelinePoint[] {
-    return this.overlay.$frames().map(frame => {
+    return this.overlayService.$frameHistory().map(frame => {
       const total = frame.lifecyclePhaseTimings.reduce((sum, p) => sum + p.duration, 0);
 
       return {
@@ -31,8 +31,8 @@ export class ULDEDebugToolsService {
    * Normalizes plugin durations across all frames.
    */
   buildHeatmap(): ULDEHeatmapCell[] {
-    const frames = this.overlay.$frames();
-    const timings = frames.flatMap(f => f.pluginTimings);
+    const frameHistory = this.overlayService.$frameHistory();
+    const timings = frameHistory.flatMap(f => f.pluginTimings);
 
     if (!timings.length) return [];
 
@@ -42,6 +42,7 @@ export class ULDEDebugToolsService {
       pluginKind: t.pluginKind,
       pluginName: t.pluginName,
       hookName: t.hookName,
+      lifecyclePhase: t.lifecyclePhase,
       intensity: t.duration / max // normalized 0–1
     }));
   }
@@ -50,10 +51,10 @@ export class ULDEDebugToolsService {
    * Generate warnings based on patterns in frame history.
    */
   generateWarnings() {
-    const frames = this.overlay.$frames();
-    if (frames.length < 3) return;
+    const frameHistory = this.overlayService.$frameHistory();
+    if (frameHistory.length < 3) return;
 
-    const lastThree = frames.slice(-3);
+    const lastThree = frameHistory.slice(-3);
     const durations = lastThree.map(f =>
       f.lifecyclePhaseTimings.reduce((sum, p) => sum + p.duration, 0)
     );
@@ -63,7 +64,7 @@ export class ULDEDebugToolsService {
 
     // Sudden spike detection
     if (last > avg * 1.5) {
-      this.overlay.addDiagnostic({
+      this.overlayService.addDiagnostic({
         level: 'warn',
         message: `Frame duration spike detected: ${last.toFixed(1)}ms (avg ${avg.toFixed(1)}ms)`
       });
@@ -71,10 +72,12 @@ export class ULDEDebugToolsService {
 
     // Consistent slowdown detection
     if (durations.every(d => d > avg)) {
-      this.overlay.addDiagnostic({
+      this.overlayService.addDiagnostic({
         level: 'warn',
         message: `Consistent slowdown across last 3 frames`
       });
     }
   }
+
+
 }

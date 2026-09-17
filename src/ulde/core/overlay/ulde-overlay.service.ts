@@ -1,6 +1,7 @@
 // src/ulde/core/overlay/ulde-overlay.service.ts
 
 import { computed, Injectable, signal } from '@angular/core';
+import { ULDEHeatmapCell, ULDETimelinePoint } from '@ulde/types';
 import { ULDEDiagnostic } from '@ulde/types/diagnostics';
 import { ULDEFrame } from '@ulde/types/frame';
 import { ULDELifecyclePhase, ULDELifecyclePhaseTiming } from '@ulde/types/lifecycle';
@@ -21,11 +22,17 @@ export class ULDEOverlayService {
   $pluginTimings = signal<ULDEPluginTiming[]>([]);
 
   // Frame history
-  $frames = signal<ULDEFrame[]>([]);
+  $frameHistory = signal<ULDEFrame[]>([]);
   $currentFrame = signal<ULDEFrame | null>(null);
 
   // Diagnostics
   $diagnostics = signal<ULDEDiagnostic[]>([]);
+
+  // Heat map
+  $heatMap = signal<ULDEHeatmapCell[]>([]);
+
+  // Timeline of frame history with total durations
+  $timeline = signal<ULDETimelinePoint[]>([]);
 
   // Thresholds (tweakable)
   thresholds = {
@@ -35,7 +42,7 @@ export class ULDEOverlayService {
 
   // Derived: sparkline points
   $sparklinePoints = computed(() => {
-    const history = this.$frames();
+    const history = this.$frameHistory();
     if (!history.length) return '';
 
     const points = history
@@ -119,7 +126,12 @@ export class ULDEOverlayService {
       diagnostics: this.$diagnostics()
     };
 
-    this.$frames.update(list => [...list.slice(-50), frame]); // keep last 50 frames
+    this.$frameHistory.update(list => [...list.slice(-50), frame]); // keep last 50 frames
+
+    this.$heatMap.set(this.buildHeatmap());
+    this.$timeline.set(this.buildTimeline());
+    this.generateWarnings();
+
     this.$currentFrame.set(frame);
 
     // reset for next frame
@@ -130,6 +142,77 @@ export class ULDEOverlayService {
   // Diagnostics
   addDiagnostic(diag: ULDEDiagnostic) {
     this.$diagnostics.update(list => [...list, diag]);
+  }
+
+  /**
+     * Build a timeline of frames with total durations.
+     */
+  buildTimeline(): ULDETimelinePoint[] {
+    return this.$frameHistory().map(frame => {
+      const total = frame.lifecyclePhaseTimings.reduce((sum, p) => sum + p.duration, 0);
+
+      return {
+        frameId: frame.id,
+        totalDuration: total,
+        phases: frame.lifecyclePhaseTimings.map(p => ({
+          lifecyclePhase: p.lifecyclePhase,
+          duration: p.duration
+        }))
+      };
+    });
+  }
+
+  /**
+   * Generate a heatmap of plugin performance.
+   * Normalizes plugin durations across all frames.
+   */
+  buildHeatmap(): ULDEHeatmapCell[] {
+    const frameHistory = this.$frameHistory();
+    const timings = frameHistory.flatMap(f => f.pluginTimings);
+
+    if (!timings.length) return [];
+
+    const max = Math.max(...timings.map(t => t.duration));
+
+    return timings.map(t => ({
+      pluginKind: t.pluginKind,
+      pluginName: t.pluginName,
+      hookName: t.hookName,
+      lifecyclePhase: t.lifecyclePhase,
+      intensity: t.duration / max // normalized 0–1
+    }));
+  }
+
+  /**
+   * Generate warnings based on patterns in frame history.
+   */
+  generateWarnings() {
+    const frameHistory = this.$frameHistory();
+    if (frameHistory.length < 3) return;
+
+    const lastThree = frameHistory.slice(-3);
+    const durations = lastThree.map(f =>
+      f.lifecyclePhaseTimings.reduce((sum, p) => sum + p.duration, 0)
+    );
+
+    const avg = durations.reduce((a, b) => a + b, 0) / durations.length;
+    const last = durations[durations.length - 1];
+
+    // Sudden spike detection
+    if (last > avg * 1.5) {
+      this.addDiagnostic({
+        level: 'warn',
+        message: `Frame duration spike detected: ${last.toFixed(1)}ms (avg ${avg.toFixed(1)}ms)`
+      });
+    }
+
+    // Consistent slowdown detection
+    if (durations.every(d => d > avg)) {
+      this.addDiagnostic({
+        level: 'warn',
+        message: `Consistent slowdown across last 3 frames`
+      });
+    }
   }
 
 

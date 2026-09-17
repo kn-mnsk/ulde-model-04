@@ -6,16 +6,15 @@
   <ulde-diagnostics-panel [$diagnostics]="$diagnostics()" ($highlight)="onHighLight($event)">
   </ulde-diagnostics-panel>
 
-  <ulde-frame-timeline-panel [$frame]="$frame()">
+  <ulde-frame-timeline-panel [$frame]="$currentFrame()">
   </ulde-frame-timeline-panel>
 
   <ulde-plugin-timeline-panel [$pluginTimings]="$pluginTimings()">
   </ulde-plugin-timeline-panel>
 
-
-  <ulde-runtime-inspector-panel [$rendererState]="$rendererState()" [$frame]="$frame()">
+  <ulde-runtime-inspector-panel [$rendererState]="$rendererState()" [$frame]="$currentFrame()">
   </ulde-runtime-inspector-panel>
 
-  <ulde-overlay></ulde-overlay>
+  <ulde-overlay [$diagnostics]="$diagnostics()" [$currentFrame]="$currentFrame()"  [$frameHistory]="$frameHistory()" [$heatMap]="$heatMap()" [$timeline]="$timeline()" ></ulde-overlay>
 
 </div>
