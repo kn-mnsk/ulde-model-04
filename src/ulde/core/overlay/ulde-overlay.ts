@@ -1,10 +1,12 @@
 // src/ulde/core/overlay/ulde-overlay.ts
 
-import { ChangeDetectionStrategy, Component} from '@angular/core';
-import {DecimalPipe, DatePipe, JsonPipe} from '@angular/common'
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { DecimalPipe, DatePipe, JsonPipe } from '@angular/common'
 import { ULDEOverlayService } from '@ulde/core/overlay';
 import { ULDEFrame } from '@ulde/types/frame';
 import { ULDELifecyclePhaseTiming } from '@ulde/types/lifecycle';
+import { ULDEDiagnostic } from '@ulde/types/diagnostics';
+import { ULDEHeatmapCell, ULDETimelinePoint } from '@ulde/types';
 
 @Component({
   selector: 'ulde-overlay',
@@ -14,69 +16,83 @@ import { ULDELifecyclePhaseTiming } from '@ulde/types/lifecycle';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ULDEOverlay {
+
+  $diagnostics = input<ULDEDiagnostic[]>([]);
+  $currentFrame = input<ULDEFrame | null>(null);
+  $frameHistory = input<ULDEFrame[]>([]);
+  $heatMap = input<ULDEHeatmapCell[]>([]);
+  $timeline = input<ULDETimelinePoint[]>([]);
+
   // Declare fields (uninitialized)
-  $lifecyclePhaseTimings!: typeof this.store.$lifecyclePhaseTimings;
-  $pluginTimings!: typeof this.store.$pluginTimings;
-  $frameHistory!: typeof this.store.$frames;
-  $diagnostics!: typeof this.store.$diagnostics;
+  $lifecyclePhaseTimings!: typeof this.overlayService.$lifecyclePhaseTimings;
+  $pluginTimings!: typeof this.overlayService.$pluginTimings;
+  // $frameHistory!: typeof this.overlayService.$frameHistory;
+  // $diagnostics!: typeof this.overlayService.$diagnostics;
+  // $heatMap!: typeof this.overlayService.$heatMap;
+  // $timelinePoint!: typeof this.overlayService.$TimelinePoint;
 
-  $currentLifecyclePhaseTiming!: typeof this.store.$currentLifecyclePhaseTiming;
-  $currentFrame!: typeof this.store.$currentFrame;
+  $currentLifecyclePhaseTiming!: typeof this.overlayService.$currentLifecyclePhaseTiming;
+  // $currentFrame!: typeof this.overlayService.$currentFrame;
 
-  $sparklinePoints!: typeof this.store.$sparklinePoints;
-  $filteredPluginTimings!: typeof this.store.$filteredPluginTimings;
+  $sparklinePoints!: typeof this.overlayService.$sparklinePoints;
+  $filteredPluginTimings!: typeof this.overlayService.$filteredPluginTimings;
 
-  $visible!: typeof this.store.$visible;
-  $pinned!: typeof this.store.$pinned;
-  $opacity!: typeof this.store.$opacity;
+  $visible!: typeof this.overlayService.$visible;
+  $pinned!: typeof this.overlayService.$pinned;
+  $opacity!: typeof this.overlayService.$opacity;
 
-  thresholds!: typeof this.store.thresholds;
 
-  constructor(private store: ULDEOverlayService) {
+  thresholds!: typeof this.overlayService.thresholds;
+
+  constructor(
+    private overlayService: ULDEOverlayService,
+  ) {
     // Assign AFTER DI is ready
-    this.$lifecyclePhaseTimings = store.$lifecyclePhaseTimings;
-    this.$pluginTimings = store.$pluginTimings;
-    this.$frameHistory = store.$frames;
-    this.$diagnostics = store.$diagnostics;
+    this.$lifecyclePhaseTimings = overlayService.$lifecyclePhaseTimings;
+    this.$pluginTimings = overlayService.$pluginTimings;
+    // this.$frameHistory = overlayService.$frameHistory;
+    // this.$diagnostics = overlayService.$diagnostics;
+    // this.$heatMap = overlayService.$heatMap;
+    // this.$timelinePoint = overlayService.$TimelinePoint;
 
-    this.$currentLifecyclePhaseTiming = store.$currentLifecyclePhaseTiming;
-    this.$currentFrame = store.$currentFrame;
+    this.$currentLifecyclePhaseTiming = overlayService.$currentLifecyclePhaseTiming;
+    // this.$currentFrame = overlayService.$currentFrame;
 
-    this.$sparklinePoints = store.$sparklinePoints;
-    this.$filteredPluginTimings = store.$filteredPluginTimings;
+    this.$sparklinePoints = overlayService.$sparklinePoints;
+    this.$filteredPluginTimings = overlayService.$filteredPluginTimings;
 
-    this.$visible = store.$visible;
-    this.$pinned = store.$pinned;
-    this.$opacity = store.$opacity;
+    this.$visible = overlayService.$visible;
+    this.$pinned = overlayService.$pinned;
+    this.$opacity = overlayService.$opacity;
 
-    this.thresholds = store.thresholds;
+    this.thresholds = overlayService.thresholds;
 
   }
 
   // UI actions
   toggleOverlay() {
-    this.store.toggle();
+    this.overlayService.toggle();
   }
 
   pinOverlay() {
-    this.store.pin();
+    this.overlayService.pin();
   }
 
   setOverlayOpacity(value: number) {
-    this.store.setOpacity(value);
+    this.overlayService.setOpacity(value);
   }
 
   // Phase selection (for filtering plugin timings)
   selectPhase(phase: ULDELifecyclePhaseTiming) {
-    this.store.$currentLifecyclePhaseTiming.set(phase);
+    this.overlayService.$currentLifecyclePhaseTiming.set(phase);
   }
 
   clearPhaseSelection() {
-    this.store.$currentLifecyclePhaseTiming.set(null);
+    this.overlayService.$currentLifecyclePhaseTiming.set(null);
   }
 
   // Frame selection (for timeline/sparkline)
   selectFrame(frame: ULDEFrame) {
-    this.store.$currentFrame.set(frame);
+    this.overlayService.$currentFrame.set(frame);
   }
 }

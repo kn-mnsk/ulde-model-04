@@ -2,7 +2,7 @@
 
 import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild, effect, input, output, signal } from '@angular/core';
 import { ULDEOverlay, ULDEOverlayService } from '@ulde/core';
-import { ULDEDiagnostic, ULDEFrame, ULDEPluginTiming } from '@ulde/types';
+import { ULDEDiagnostic, ULDEFrame, ULDEHeatmapCell, ULDEPluginTiming, ULDETimelinePoint } from '@ulde/types';
 import type { ULDERendererState } from '@ulde/types/renderer';
 import { ULDERendererService, UldeDiagnosticsPanel, UldeFrameTimelinePanel, UldeRuntimeInspectorPanel } from '@ulde/viewer';
 import { UldePluginTimelinePanel } from '@ulde/viewer/panels/plugin-timeline/ulde-plugin-timeline-panel';
@@ -24,22 +24,27 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
 
   // Full renderer state comes in as a signal input
   $rendererState = input<ULDERendererState>();
-  $frame = signal<ULDEFrame | null>(null);
+  $currentFrame = signal<ULDEFrame | null>(null);
+  $frameHistory = signal<ULDEFrame[]>([]);
   // $lifecyclePhaseTimings = signal<ULDELifecyclePhaseTiming[]>([])
   $pluginTimings = signal<ULDEPluginTiming[]>([]);
   $diagnostics = signal<ULDEDiagnostic[]>([]);
+
+  $heatMap = signal<ULDEHeatmapCell[]>([]);
+  $timeline = signal<ULDETimelinePoint[]>([]);
 
   $ready = output<void>();
   $error = output<Error>();
   $stateChange = output<ULDERendererState>();
 
+
   constructor(
     public rendererService: ULDERendererService,
-    private overlay: ULDEOverlayService,
+    private overlayService: ULDEOverlayService,
   ) {
     // 🔥 React to ULDE lifecycle phases
     effect(() => {
-      const phase = this.overlay.$currentLifecyclePhaseTiming();
+      const phase = this.overlayService.$currentLifecyclePhaseTiming();
       if (!phase) return;
 
       this.rendererService.setState({
@@ -49,7 +54,7 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
 
     // 🔥 React to diagnostics
     effect(() => {
-      const diagnostics = this.overlay.$diagnostics();
+      const diagnostics = this.overlayService.$diagnostics();
       if (diagnostics.length < 1) return;
 
       console.log(`Log: [UldeViewer] effect() -> diagnostics=\n`, diagnostics);
@@ -59,14 +64,21 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
 
     // 🔥 React to frame finalization
     effect(() => {
-      const frame = this.overlay.$currentFrame();
-      if (!frame) return;
+      const currentFrame = this.overlayService.$currentFrame();
+      const frameHistory = this.overlayService.$frameHistory()
+      const heatmap = this.overlayService.$heatMap();
+      const timeline = this.overlayService.$timeline();
 
-      console.log(`Log: [UldeViewer] effect() -> frame=\n`, frame);
-      this.rendererService.setState({ frame });
-      this.$frame.set(frame);
+      if (!currentFrame) return;
+
+      console.log(`Log: [UldeViewer] effect() -> currentFrame=\n`, currentFrame);
+      this.rendererService.setState({ frame: currentFrame });
+      this.$currentFrame.set(currentFrame);
+      this.$frameHistory.set(frameHistory);
+      this.$heatMap.set(heatmap);
+      this.$timeline.set(timeline);
       // this.$lifecyclePhaseTimings.set(frame.lifecyclePhaseTimings);
-      this.$pluginTimings.set(frame.pluginTimings);
+      this.$pluginTimings.set(currentFrame.pluginTimings);
     });
 
     // 🔥 React to rendererState signal input (without re-init)

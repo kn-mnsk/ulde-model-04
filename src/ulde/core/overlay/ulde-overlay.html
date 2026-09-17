@@ -5,8 +5,7 @@
 
   <!-- Header -->
   <header class="overlay-header">
-    <h3>ULDE Overlay</h3>
-
+    <h3>ULDE Overlay Panel</h3>
     <div class="controls">
       <button (click)="toggleOverlay()">Toggle</button>
       <button (click)="pinOverlay()">
@@ -21,17 +20,55 @@
   <!-- Lifecycle Phases Timeline -->
   <section class="phase-timeline">
     <h4>Phases Timeline</h4>
-    @for (p of $lifecyclePhaseTimings(); track p.lifecyclePhase) {
+    @for (f of $timeline(); track f.frameId) {
+    <div>
+      <span class="frame-id">frame-id: {{ f.frameId }}</span>
+      <span class="total-duration">{{ f.totalDuration | number:'1.0-1' }}ms</span>
+      @for(p of f.phases; track p.lifecyclePhase){
+      <div class="phase" [class.warn]="p.duration > thresholds.phaseWarn"
+        [class.error]="p.duration > thresholds.phaseError">
+        <span class="name">[{{ p.lifecyclePhase }}]:   &nbsp; &nbsp;  </span>
+        <span class="duration">{{ p.duration | number:'1.0-1' }} ms</span>
+      </div>
+      }
+    </div>
+    }
+
+    <!-- @for (p of $lifecyclePhaseTimings(); track p.lifecyclePhase) {
     <div class="phase" [class.warn]="p.duration > thresholds.phaseWarn"
       [class.error]="p.duration > thresholds.phaseError" (click)="selectPhase(p)">
       <span class="label">{{ p.lifecyclePhase }}</span>
       <span class="duration">{{ p.duration | number:'1.0-1' }}ms</span>
     </div>
-    }
+    } -->
   </section>
 
+  <section class="plugin-heatmap">
+    <h4>Plugin Heatmap</h4>
+
+    @for (t of $heatMap(); track ($index)) {
+    <div class="plugin-row">
+      <div class="phase">
+        <span>[{{ t.lifecyclePhase }}] </span>
+      </div>
+      <div class="kind">
+        <span>[{{ t.pluginKind }}] </span>
+      </div>
+      <div class="plugin">
+        <span>[{{ t.pluginName }}] </span>
+      </div>
+      <div class="hook">
+        <span>[{{ t.hookName }}] </span>
+      </div>
+      <div class="intensity-container">
+        <div class="intensity" [style.width.%]="t.intensity * 100" [style.background]="'#edeaea'">
+        </div>
+      </div>
+    </div>
+    }
+  </section>
   <!-- Plugin Timings -->
-  <section class="plugin-timings">
+  <!-- <section class="plugin-timings">
     <h4>Plugin Timings</h4>
 
     @for (t of $filteredPluginTimings(); track t.pluginName) {
@@ -43,7 +80,7 @@
       <span class="duration">{{ t.duration | number:'1.0-1' }}ms</span>
     </div>
     }
-  </section>
+  </section> -->
 
   <!-- Sparkline -->
   <section class="sparkline">

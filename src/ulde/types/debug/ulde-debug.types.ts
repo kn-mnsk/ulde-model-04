@@ -20,5 +20,6 @@ export interface ULDEHeatmapCell {
   pluginName: string;
   pluginKind: ULDEPluginKind;
   hookName: ULDEPluginExecutionHook//keyof ULDEPluginHooks;
+  lifecyclePhase: ULDELifecyclePhase;
   intensity: number; // normalized 0–1
 }
