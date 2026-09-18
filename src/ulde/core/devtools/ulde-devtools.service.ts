@@ -8,7 +8,7 @@ import { ULDELifecyclePhase, ULDELifecyclePhaseTiming } from '@ulde/types/lifecy
 import { ULDEPluginTiming } from '@ulde/types/timing';
 
 @Injectable({ providedIn: 'root' })
-export class ULDEOverlayService {
+export class ULDEDevtoolsService {
   // Overlay visibility + controls
   $visible = signal(true);
   $pinned = signal(false);
@@ -214,7 +214,6 @@ export class ULDEOverlayService {
       });
     }
   }
-
 
 }
 
