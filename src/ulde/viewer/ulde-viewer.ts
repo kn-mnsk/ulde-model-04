@@ -1,7 +1,7 @@
 // src/ulde/viewer/ulde-viewer.ts
 
 import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild, effect, input, output, signal } from '@angular/core';
-import { ULDEOverlay, ULDEOverlayService } from '@ulde/core';
+import { ULDEDevtools, ULDEDevtoolsService } from '@ulde/core';
 import { ULDEDiagnostic, ULDEFrame, ULDEHeatmapCell, ULDEPluginTiming, ULDETimelinePoint } from '@ulde/types';
 import type { ULDERendererState } from '@ulde/types/renderer';
 import { ULDERendererService, UldeDiagnosticsPanel, UldeFrameTimelinePanel, UldeRuntimeInspectorPanel } from '@ulde/viewer';
@@ -13,7 +13,7 @@ import { isBrowser } from '../../app/global.utils/global.utils';
   imports: [
     UldeDiagnosticsPanel, UldeFrameTimelinePanel, UldePluginTimelinePanel,
     UldeRuntimeInspectorPanel,
-    ULDEOverlay
+    ULDEDevtools
   ],
   templateUrl: 'ulde-viewer.html',
   styleUrl: 'ulde-viewer.scss',
@@ -40,11 +40,11 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
 
   constructor(
     public rendererService: ULDERendererService,
-    private overlayService: ULDEOverlayService,
+    private devtoolsService: ULDEDevtoolsService,
   ) {
     // 🔥 React to ULDE lifecycle phases
     effect(() => {
-      const phase = this.overlayService.$currentLifecyclePhaseTiming();
+      const phase = this.devtoolsService.$currentLifecyclePhaseTiming();
       if (!phase) return;
 
       this.rendererService.setState({
@@ -54,7 +54,7 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
 
     // 🔥 React to diagnostics
     effect(() => {
-      const diagnostics = this.overlayService.$diagnostics();
+      const diagnostics = this.devtoolsService.$diagnostics();
       if (diagnostics.length < 1) return;
 
       console.log(`Log: [UldeViewer] effect() -> diagnostics=\n`, diagnostics);
@@ -64,10 +64,10 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
 
     // 🔥 React to frame finalization
     effect(() => {
-      const currentFrame = this.overlayService.$currentFrame();
-      const frameHistory = this.overlayService.$frameHistory()
-      const heatmap = this.overlayService.$heatMap();
-      const timeline = this.overlayService.$timeline();
+      const currentFrame = this.devtoolsService.$currentFrame();
+      const frameHistory = this.devtoolsService.$frameHistory()
+      const heatmap = this.devtoolsService.$heatMap();
+      const timeline = this.devtoolsService.$timeline();
 
       if (!currentFrame) return;
 

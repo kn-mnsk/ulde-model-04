@@ -1,18 +1,18 @@
 // src/ulde/core/debug/ulde-debug.tools.service.ts
 
 import { Injectable } from '@angular/core';
-import { ULDEOverlayService } from '@ulde/core';
+import { ULDEDevtoolsService } from '@ulde/core';
 import { ULDEHeatmapCell, ULDETimelinePoint } from '@ulde/types/debug';
 
 @Injectable({ providedIn: 'root' })
 export class ULDEDebugToolsService {
-  constructor(private overlayService: ULDEOverlayService) { }
+  constructor(private devtoolsService: ULDEDevtoolsService) { }
 
   /**
    * Build a timeline of frames with total durations.
    */
   buildTimeline(): ULDETimelinePoint[] {
-    return this.overlayService.$frameHistory().map(frame => {
+    return this.devtoolsService.$frameHistory().map(frame => {
       const total = frame.lifecyclePhaseTimings.reduce((sum, p) => sum + p.duration, 0);
 
       return {
@@ -31,7 +31,7 @@ export class ULDEDebugToolsService {
    * Normalizes plugin durations across all frames.
    */
   buildHeatmap(): ULDEHeatmapCell[] {
-    const frameHistory = this.overlayService.$frameHistory();
+    const frameHistory = this.devtoolsService.$frameHistory();
     const timings = frameHistory.flatMap(f => f.pluginTimings);
 
     if (!timings.length) return [];
@@ -51,7 +51,7 @@ export class ULDEDebugToolsService {
    * Generate warnings based on patterns in frame history.
    */
   generateWarnings() {
-    const frameHistory = this.overlayService.$frameHistory();
+    const frameHistory = this.devtoolsService.$frameHistory();
     if (frameHistory.length < 3) return;
 
     const lastThree = frameHistory.slice(-3);
@@ -64,7 +64,7 @@ export class ULDEDebugToolsService {
 
     // Sudden spike detection
     if (last > avg * 1.5) {
-      this.overlayService.addDiagnostic({
+      this.devtoolsService.addDiagnostic({
         level: 'warn',
         message: `Frame duration spike detected: ${last.toFixed(1)}ms (avg ${avg.toFixed(1)}ms)`
       });
@@ -72,7 +72,7 @@ export class ULDEDebugToolsService {
 
     // Consistent slowdown detection
     if (durations.every(d => d > avg)) {
-      this.overlayService.addDiagnostic({
+      this.devtoolsService.addDiagnostic({
         level: 'warn',
         message: `Consistent slowdown across last 3 frames`
       });
