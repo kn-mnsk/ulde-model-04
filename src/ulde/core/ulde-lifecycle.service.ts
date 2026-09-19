@@ -2,7 +2,7 @@
 
 import { Injectable } from '@angular/core';
 import { ULDEPluginRegistryService, ULDERuntimeService } from '@ulde/core';
-import { ULDEOverlayService } from '@ulde/core/devtools';
+import { ULDEDevtoolsService } from '@ulde/core/devtools';
 import { ULDEPageContext, ULDERenderContext, } from '@ulde/types/context';
 import { ULDELifecyclePhase } from '@ulde/types/lifecycle';
 
@@ -12,7 +12,7 @@ import { ULDERenderContextBuilderService } from '@ulde/engine';
 export class ULDELifecycleService {
 
   constructor(
-    private overlay: ULDEOverlayService,
+    private devtoolsService: ULDEDevtoolsService,
     private pluginRegistry: ULDEPluginRegistryService,
     private runtime: ULDERuntimeService,
     private renderContextBuilder: ULDERenderContextBuilderService,
@@ -20,13 +20,13 @@ export class ULDELifecycleService {
 
 
   /**
-   * Wrap lifecycle phase start/end with overlay timing.
+   * Wrap lifecycle phase start/end with devtoolsService timing.
    */
   private async runPluginByLifecyclePhase(
     lifecyclePhase: ULDELifecyclePhase,
     ctx: Record<string, any> = {}
   ) {
-    this.overlay.startPhase(lifecyclePhase);
+    this.devtoolsService.startPhase(lifecyclePhase);
 
     try {
       await this.pluginRegistry.runPhase(lifecyclePhase, {
@@ -34,9 +34,9 @@ export class ULDELifecycleService {
         lifecyclePhase: lifecyclePhase,
       });
 
-      this.overlay.endPhase(lifecyclePhase);
+      this.devtoolsService.endPhase(lifecyclePhase);
     } catch (err) {
-      this.overlay.addDiagnostic({
+      this.devtoolsService.addDiagnostic({
         level: 'error',
         message: `Error in phase "${lifecyclePhase}": ${String(err)}`,
         lifecyclePhase,
@@ -72,7 +72,7 @@ export class ULDELifecycleService {
 
     // // HTML generation
     // if (!renderContext.ast) {
-    //   this.overlay.addDiagnostic({ level: 'error', message: 'AST missing after render phase' });
+    //   this.devtoolsService.addDiagnostic({ level: 'error', message: 'AST missing after render phase' });
     // }
 
     // renderContext.html = renderUldeAstToHtml(renderContext.ast);
@@ -94,11 +94,11 @@ export class ULDELifecycleService {
 
 
 // startLifecyclePhase(lifecyclePhase: ULDELifecyclePhase) {
-//   this.overlay.startPhase(lifecyclePhase);
+//   this.devtoolsService.startPhase(lifecyclePhase);
 // }
 
 // endLifecyclePhase(lifecyclePhase: ULDELifecyclePhase) {
-//   this.overlay.endPhase(lifecyclePhase);
+//   this.devtoolsService.endPhase(lifecyclePhase);
 // }
 
 
@@ -119,7 +119,7 @@ export class ULDELifecycleService {
 
 //     this.endLifecyclePhase(lifecyclePhase);
 //   } catch (err) {
-//     this.overlay.addDiagnostic({
+//     this.devtoolsService.addDiagnostic({
 //       level: 'error',
 //       message: `Error in phase "${lifecyclePhase}": ${String(err)}`,
 //       lifecyclePhase,

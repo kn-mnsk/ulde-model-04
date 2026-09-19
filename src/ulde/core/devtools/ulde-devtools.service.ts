@@ -9,6 +9,7 @@ import { ULDEPluginTiming } from '@ulde/types/timing';
 
 @Injectable({ providedIn: 'root' })
 export class ULDEDevtoolsService {
+
   // Overlay visibility + controls
   $visible = signal(true);
   $pinned = signal(false);
@@ -21,18 +22,16 @@ export class ULDEDevtoolsService {
   // Plugin timings
   $pluginTimings = signal<ULDEPluginTiming[]>([]);
 
-  // Frame history
+  // Frames
   $frameHistory = signal<ULDEFrame[]>([]);
   $currentFrame = signal<ULDEFrame | null>(null);
 
   // Diagnostics
   $diagnostics = signal<ULDEDiagnostic[]>([]);
 
-  // Heat map
-  $heatMap = signal<ULDEHeatmapCell[]>([]);
-
-  // Timeline of frame history with total durations
+  // Analytics
   $timeline = signal<ULDETimelinePoint[]>([]);
+  $heatMap = signal<ULDEHeatmapCell[]>([]);
 
   // Thresholds (tweakable)
   thresholds = {
@@ -54,12 +53,6 @@ export class ULDEDevtoolsService {
     console.log(`Log: [ULDEOverlayService] sparklinePoints`, points);
 
     return points;
-    // return history
-    //   .map((f, i) => {
-    //     const total = f.lifecyclePhaseTimings.reduce((a, p) => a + p.duration, 0);
-    //     return `${i * 10},${40 - Math.min(total, 40)}`;
-    //   })
-    //   .join(' ');
   });
 
   // Derived: filtered plugin timings by lifecycle phase
@@ -71,20 +64,7 @@ export class ULDEDevtoolsService {
     return timings.filter(t => t.lifecyclePhase === lifecyclePhaseTiming.lifecyclePhase);
   });
 
-  // Overlay control methods
-  toggle() {
-    this.$visible.update(v => !v);
-  }
-
-  pin() {
-    this.$pinned.update(p => !p);
-  }
-
-  setOpacity(value: number) {
-    this.$opacity.set(value);
-  }
-
-  // Lifecycle event handlers
+  // Frame lifecycle
   startPhase(lifecyclePhase: ULDELifecyclePhase) {
     this.$currentLifecyclePhaseTiming.set({
       lifecyclePhase,
@@ -93,7 +73,6 @@ export class ULDEDevtoolsService {
       duration: 0,
     });
   }
-
   endPhase(lifecyclePhase: ULDELifecyclePhase) {
     const phase = this.$currentLifecyclePhaseTiming();
     if (!phase || phase.lifecyclePhase !== lifecyclePhase) return;
@@ -110,13 +89,6 @@ export class ULDEDevtoolsService {
     this.$lifecyclePhaseTimings.update(list => [...list, updatedPhase]);
     this.$currentLifecyclePhaseTiming.set(null);
   }
-
-  // Plugin timing recording
-  recordPluginTiming(timing: ULDEPluginTiming) {
-    this.$pluginTimings.update(list => [...list, timing]);
-  }
-
-  // Frame finalization
   finalizeFrame() {
     const frame: ULDEFrame = {
       id: crypto.randomUUID(),
@@ -143,46 +115,6 @@ export class ULDEDevtoolsService {
   addDiagnostic(diag: ULDEDiagnostic) {
     this.$diagnostics.update(list => [...list, diag]);
   }
-
-  /**
-     * Build a timeline of frames with total durations.
-     */
-  buildTimeline(): ULDETimelinePoint[] {
-    return this.$frameHistory().map(frame => {
-      const total = frame.lifecyclePhaseTimings.reduce((sum, p) => sum + p.duration, 0);
-
-      return {
-        frameId: frame.id,
-        totalDuration: total,
-        phases: frame.lifecyclePhaseTimings.map(p => ({
-          lifecyclePhase: p.lifecyclePhase,
-          duration: p.duration
-        }))
-      };
-    });
-  }
-
-  /**
-   * Generate a heatmap of plugin performance.
-   * Normalizes plugin durations across all frames.
-   */
-  buildHeatmap(): ULDEHeatmapCell[] {
-    const frameHistory = this.$frameHistory();
-    const timings = frameHistory.flatMap(f => f.pluginTimings);
-
-    if (!timings.length) return [];
-
-    const max = Math.max(...timings.map(t => t.duration));
-
-    return timings.map(t => ({
-      pluginKind: t.pluginKind,
-      pluginName: t.pluginName,
-      hookName: t.hookName,
-      lifecyclePhase: t.lifecyclePhase,
-      intensity: t.duration / max // normalized 0–1
-    }));
-  }
-
   /**
    * Generate warnings based on patterns in frame history.
    */
@@ -213,6 +145,60 @@ export class ULDEDevtoolsService {
         message: `Consistent slowdown across last 3 frames`
       });
     }
+  }
+
+  // Analytics
+  // Plugin timing recording
+  recordPluginTiming(timing: ULDEPluginTiming) {
+    this.$pluginTimings.update(list => [...list, timing]);
+  }
+  /**
+     * Build a timeline of frames with total durations.
+     */
+  buildTimeline(): ULDETimelinePoint[] {
+    return this.$frameHistory().map(frame => {
+      const total = frame.lifecyclePhaseTimings.reduce((sum, p) => sum + p.duration, 0);
+
+      return {
+        frameId: frame.id,
+        totalDuration: total,
+        phases: frame.lifecyclePhaseTimings.map(p => ({
+          lifecyclePhase: p.lifecyclePhase,
+          duration: p.duration
+        }))
+      };
+    });
+  }
+  /**
+   * Generate a heatmap of plugin performance.
+   * Normalizes plugin durations across all frames.
+   */
+  buildHeatmap(): ULDEHeatmapCell[] {
+    const frameHistory = this.$frameHistory();
+    const timings = frameHistory.flatMap(f => f.pluginTimings);
+
+    if (!timings.length) return [];
+
+    const max = Math.max(...timings.map(t => t.duration));
+
+    return timings.map(t => ({
+      pluginKind: t.pluginKind,
+      pluginName: t.pluginName,
+      hookName: t.hookName,
+      lifecyclePhase: t.lifecyclePhase,
+      intensity: t.duration / max // normalized 0–1
+    }));
+  }
+
+  // UI - control methods
+  toggle() {
+    this.$visible.update(v => !v);
+  }
+  pin() {
+    this.$pinned.update(p => !p);
+  }
+  setOpacity(value: number) {
+    this.$opacity.set(value);
   }
 
 }

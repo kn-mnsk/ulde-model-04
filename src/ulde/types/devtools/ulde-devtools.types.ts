@@ -1,10 +1,10 @@
-// src/ulde/types/debug/ulde-debug.types.ts
+// src/ulde/types/devtools/ulde-devtools.types.ts
 
 import { ULDELifecyclePhase } from "../lifecycle/ulde-lifecycle.types";
-import { ULDEPluginKind, ULDEPluginHooks, ULDEPluginExecutionHook } from "../plugin/ulde-plugin.types";
+import { ULDEPluginKind, ULDEPluginExecutionHook } from "../plugin/ulde-plugin.types";
 
 // ---------------------------------------------------------
-// ULDE Debug Tools Types
+// ULDE DevTools Types
 // ---------------------------------------------------------
 
 export interface ULDETimelinePoint {
@@ -23,3 +23,14 @@ export interface ULDEHeatmapCell {
   lifecyclePhase: ULDELifecyclePhase;
   intensity: number; // normalized 0–1
 }
+
+export type ULDEDevToolsTab =
+  | 'diagnostics'
+  | 'timeline'
+  | 'profiler'
+  | 'heatmap'
+  | 'inspector'
+  | 'frames'
+  | 'ast'
+  | 'layout'
+  | 'plugins';
