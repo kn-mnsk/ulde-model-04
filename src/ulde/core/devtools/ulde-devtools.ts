@@ -1,16 +1,22 @@
 // src/ulde/core/overlay/ulde-overlay.ts
 
+import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
 import { DatePipe, DecimalPipe, JsonPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { ULDEDevtoolsService } from '@ulde/core/devtools';
-import { ULDEHeatmapCell, ULDETimelinePoint } from '@ulde/types';
+import { UldeDevToolsDiagnosticsPanel, UldeDevtoolsFrameTimelinePanel, ULDEDevtoolsService } from '@ulde/core/devtools';
+import { ULDEHeatmapCell, ULDETimelinePoint, ULDEDevToolsTab } from '@ulde/types/devtools';
 import { ULDEDiagnostic } from '@ulde/types/diagnostics';
 import { ULDEFrame } from '@ulde/types/frame';
 import { ULDELifecyclePhaseTiming } from '@ulde/types/lifecycle';
 
 @Component({
   selector: 'ulde-devtools',
-  imports: [DecimalPipe, DatePipe, JsonPipe],
+  imports: [
+    DecimalPipe, DatePipe, JsonPipe,
+    UldeDevToolsDiagnosticsPanel,
+    UldeDevtoolsFrameTimelinePanel,
+    
+
+  ],
   templateUrl: './ulde-devtools.html',
   styleUrls: ['./ulde-devtools.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -23,16 +29,14 @@ export class ULDEDevtools {
   $heatMap = input<ULDEHeatmapCell[]>([]);
   $timeline = input<ULDETimelinePoint[]>([]);
 
+
+  $highlight = output<string>();
+
   // Declare fields (uninitialized)
   $lifecyclePhaseTimings!: typeof this.devtoolsService.$lifecyclePhaseTimings;
   $pluginTimings!: typeof this.devtoolsService.$pluginTimings;
-  // $frameHistory!: typeof this.devtoolsService.$frameHistory;
-  // $diagnostics!: typeof this.devtoolsService.$diagnostics;
-  // $heatMap!: typeof this.devtoolsService.$heatMap;
-  // $timelinePoint!: typeof this.devtoolsService.$TimelinePoint;
 
   $currentLifecyclePhaseTiming!: typeof this.devtoolsService.$currentLifecyclePhaseTiming;
-  // $currentFrame!: typeof this.devtoolsService.$currentFrame;
 
   $sparklinePoints!: typeof this.devtoolsService.$sparklinePoints;
   $filteredPluginTimings!: typeof this.devtoolsService.$filteredPluginTimings;
@@ -41,8 +45,12 @@ export class ULDEDevtools {
   $pinned!: typeof this.devtoolsService.$pinned;
   $opacity!: typeof this.devtoolsService.$opacity;
 
-
   thresholds!: typeof this.devtoolsService.thresholds;
+
+  $activeTab = signal<ULDEDevToolsTab>('diagnostics');
+  selectTab(tab: ULDEDevToolsTab) {
+    this.$activeTab.set(tab);
+  }
 
   constructor(
     private devtoolsService: ULDEDevtoolsService,
@@ -70,15 +78,15 @@ export class ULDEDevtools {
   }
 
   // UI actions
-  toggleOverlay() {
+  toggleDevTools() {
     this.devtoolsService.toggle();
   }
 
-  pinOverlay() {
+  pinDevTools() {
     this.devtoolsService.pin();
   }
 
-  setOverlayOpacity(value: number) {
+  setDevToolsOpacity(value: number) {
     this.devtoolsService.setOpacity(value);
   }
 
@@ -94,5 +102,14 @@ export class ULDEDevtools {
   // Frame selection (for timeline/sparkline)
   selectFrame(frame: ULDEFrame) {
     this.devtoolsService.$currentFrame.set(frame);
+  }
+
+
+  trackDiag(i: number, d: ULDEDiagnostic) {
+    return `${d.level}-${d.message}-${i}`;
+  }
+
+  onHighlight(msg: string) {
+    this.$highlight.emit(msg);
   }
 }

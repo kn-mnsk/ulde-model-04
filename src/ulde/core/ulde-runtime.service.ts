@@ -1,7 +1,7 @@
 // src/ulde/core/ulde-runtime.service.ts
 
 import { Injectable } from '@angular/core';
-import {ULDEOverlayService } from '@ulde/core';
+import {ULDEDevtoolsService } from '@ulde/core';
 import { ULDEFrame } from '@ulde/types/frame';
 
 
@@ -14,7 +14,7 @@ export class ULDERuntimeService {
   private pluginErrorThreshold = 16; // ms
 
   constructor(
-    private overlay: ULDEOverlayService,
+    private devtoolsService: ULDEDevtoolsService,
 
   ) { }
 
@@ -23,9 +23,9 @@ export class ULDERuntimeService {
    * Orchestrates frame finalization + anomaly detection.
    */
   finalizeFrameAndAnalyze() {
-    this.overlay.finalizeFrame();
+    this.devtoolsService.finalizeFrame();
 
-    const frame = this.overlay.$currentFrame();
+    const frame = this.devtoolsService.$currentFrame();
     if (!frame) return;
 
     this.detectPhaseAnomalies(frame);
@@ -35,13 +35,13 @@ export class ULDERuntimeService {
   private detectPhaseAnomalies(frame: ULDEFrame) {
     for (const phase of frame.lifecyclePhaseTimings) {
       if (phase.duration > this.phaseErrorThreshold) {
-        this.overlay.addDiagnostic({
+        this.devtoolsService.addDiagnostic({
           level: 'error',
           message: `Lifecycle phase "${phase.lifecyclePhase}" exceeded error threshold (${this.phaseErrorThreshold}ms): ${phase.duration.toFixed(1)}ms`,
           lifecyclePhase: phase.lifecyclePhase,
         });
       } else if (phase.duration > this.phaseWarnThreshold) {
-        this.overlay.addDiagnostic({
+        this.devtoolsService.addDiagnostic({
           level: 'warn',
           message: `Lifecycle phase "${phase.lifecyclePhase}" exceeded warn threshold (${this.phaseWarnThreshold}ms): ${phase.duration.toFixed(1)}ms`,
           lifecyclePhase: phase.lifecyclePhase,
@@ -53,14 +53,14 @@ export class ULDERuntimeService {
   private detectPluginAnomalies(frame: ULDEFrame) {
     for (const t of frame.pluginTimings) {
       if (t.duration > this.pluginErrorThreshold) {
-        this.overlay.addDiagnostic({
+        this.devtoolsService.addDiagnostic({
           level: 'error',
           message: `Plugin "${t.pluginName}" in hook "${t.hookName}" exceeded error threshold (${this.pluginErrorThreshold}ms): ${t.duration.toFixed(1)}ms`,
           pluginName: t.pluginName,
           lifecyclePhase: t.lifecyclePhase,
         });
       } else if (t.duration > this.pluginWarnThreshold) {
-        this.overlay.addDiagnostic({
+        this.devtoolsService.addDiagnostic({
           level: 'warn',
           message: `Plugin "${t.pluginName}" in hook "${t.hookName}" exceeded warn threshold (${this.pluginWarnThreshold}ms): ${t.duration.toFixed(1)}ms`,
           pluginName: t.pluginName,

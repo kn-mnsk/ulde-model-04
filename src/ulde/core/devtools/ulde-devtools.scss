@@ -1,12 +1,12 @@
-// src/ulde/core/overlay/ulde-overlay.scss
+// src/ulde/core/overlay/ulde-devtools.scss
 
-.ulde-overlay-root {
+.ulde-devtools-root {
   position: fixed;
-  bottom: 0;
+  top: 0;
   right: 0;
-  width: 420px;
+  width: 600px;
   height: 80vh;
-  background: rgba(20, 20, 20, 0.85);
+  background: rgba(20, 20, 20, 0.85); // var(--ulde-background
   color: #eee;
   font-family: system-ui, sans-serif;
   border-radius: 8px 8px 0 0;
@@ -23,8 +23,9 @@
   }
 }
 
-.overlay-header {
-  height: 50px;;
+.header {
+  height: 50px;
+  ;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -60,12 +61,55 @@
   }
 }
 
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.tab {
+  border: 1px solid var(--ulde-border);
+  background: var(--ulde-bg);
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.tab.active {
+  background: var(--ulde-accent);
+  color: #fff;
+  border-color: var(--ulde-accent);
+}
+
+.body {
+  max-height: auto;
+  overflow: auto;
+}
+
+
+/* Diagnostics */
+.diagnostics-tab {
+  // max-height: 120px;
+  height: fit-content;
+  overflow-y: auto;
+  margin-bottom: 12px;
+
+}
+
+/* Frame Timeline*/
+.frame-time-line-tab {
+  height: auto;
+  overflow-y: auto;
+}
+
+
 /* Phase Timeline */
 .phase-timeline {
   display: flex;
   height: 200px;
   border-radius: 4px;
-  overflow:auto;
+  overflow: auto;
   margin-bottom: 12px;
 
   .phase {
@@ -174,45 +218,6 @@
   }
 }
 
-/* Diagnostics */
-.diagnostics {
-  // max-height: 120px;
-  height: 150px;
-  overflow-y: auto;
-  margin-bottom: 12px;
-
-  h4 {
-    margin: 0 0 6px 0;
-    font-size: 14px;
-    font-weight: 600;
-  }
-
-  .diag-row {
-    display: flex;
-    gap: 8px;
-    padding: 4px 0;
-    border-bottom: 1px solid #444;
-
-    .level {
-      font-weight: bold;
-      text-transform: uppercase;
-
-      &.warn {
-        color: #ffb300;
-      }
-
-      &.error {
-        color: #ff5252;
-      }
-    }
-
-    .meta {
-      opacity: 0.7;
-      font-size: 11px;
-    }
-  }
-}
-
 /* Frame History */
 
 .frame-history-container {
@@ -263,5 +268,5 @@
     }
 
   }
-  
+
 }

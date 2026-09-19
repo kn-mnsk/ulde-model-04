@@ -1,7 +1,7 @@
 // src/ulde/core/ulde-plugin-registry.service.ts
 
 import { Injectable } from '@angular/core';
-import { ULDEOverlayService } from '@ulde/core';
+import { ULDEDevtoolsService } from '@ulde/core';
 import { ULDELifecyclePhase } from '@ulde/types/lifecycle';
 import { ULDEPluginInstance, ULDEPlugin, ULDEPluginFactory } from '@ulde/types/plugin';
 
@@ -18,7 +18,7 @@ export class ULDEPluginRegistryService {
    */
   private instances: ULDEPluginInstance[] = [];
 
-  constructor(private overlay: ULDEOverlayService) {
+  constructor(private devtoolsService: ULDEDevtoolsService) {
     this.instantiateAllPlugins();
   }
 
@@ -91,7 +91,7 @@ export class ULDEPluginRegistryService {
           lifecyclePhase: phase,
         });
       } catch (err) {
-        this.overlay.addDiagnostic({
+        this.devtoolsService.addDiagnostic({
           level: 'error',
           message: `Plugin "${plugin.pluginName}" failed in phase "${phase}": ${String(err)}`,
           pluginName: plugin.pluginName,
@@ -101,7 +101,7 @@ export class ULDEPluginRegistryService {
 
       const end = performance.now();
 
-      this.overlay.recordPluginTiming({
+      this.devtoolsService.recordPluginTiming({
         pluginName: plugin.pluginName,
         pluginKind: plugin.pluginKind,
         hookName: 'run',
@@ -124,7 +124,7 @@ export class ULDEPluginRegistryService {
       try {
         await plugin.destroy();
       } catch (err) {
-        this.overlay.addDiagnostic({
+        this.devtoolsService.addDiagnostic({
           level: 'error',
           message: `Plugin "${plugin.pluginName}" failed in destroy(): ${String(err)}`,
           pluginName: plugin.pluginName,
@@ -134,7 +134,7 @@ export class ULDEPluginRegistryService {
 
       const end = performance.now();
 
-      this.overlay.recordPluginTiming({
+      this.devtoolsService.recordPluginTiming({
         pluginName: plugin.pluginName,
         pluginKind: plugin.pluginKind,
         hookName: 'destroy',
@@ -185,7 +185,7 @@ export class ULDEPluginRegistryService {
 //     onDestroy: 'onDestroy',
 //   };
 
-//   constructor(private overlay: ULDEOverlayService) {
+//   constructor(private devtoolsService: ULDEOverlayService) {
 
 //     // plugins registry
 //     const plugins = createUldeStringPluginRegistry();
@@ -220,7 +220,7 @@ export class ULDEPluginRegistryService {
 //       try {
 //         await hook(ctx as any);
 //       } catch (err) {
-//         this.overlay.addDiagnostic({
+//         this.devtoolsService.addDiagnostic({
 //           level: 'error',
 //           message: `Plugin "${plugin.pluginName}" failed in hook "${hookName}": ${String(err)}`,
 //           pluginName: plugin.pluginKind,
@@ -238,7 +238,7 @@ export class ULDEPluginRegistryService {
 //         duration: end - start,
 //       };
 
-//       this.overlay.recordPluginTiming(timing);
+//       this.devtoolsService.recordPluginTiming(timing);
 //     }
 //   }
 
@@ -255,7 +255,7 @@ export class ULDEPluginRegistryService {
 //       try {
 //         await hook();
 //       } catch (err) {
-//         this.overlay.addDiagnostic({
+//         this.devtoolsService.addDiagnostic({
 //           level: 'error',
 //           message: `Plugin "${plugin.pluginName}" failed in onDestroy: ${String(err)}`,
 //           pluginName: plugin.pluginKind,
@@ -264,7 +264,7 @@ export class ULDEPluginRegistryService {
 
 //       const end = performance.now();
 
-//       this.overlay.recordPluginTiming({
+//       this.devtoolsService.recordPluginTiming({
 //         pluginName: plugin.pluginName,
 //         pluginKind: plugin.pluginKind,
 //         hookName: 'onDestroy',

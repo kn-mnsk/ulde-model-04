@@ -1,4 +1,4 @@
-<!-- src/ulde/viewer/panels/frame-timeline/ulde-frame-timeline-panel.html -->
+<!-- src/ulde/core/devtools/panels/frame-timeline/ulde-frame-timeline-panel.html -->
 
 <!-- <p>ulde-frame-timeline-panel works!</p> -->
 
@@ -10,16 +10,16 @@
       <span>
         Frame id: {{ $frame()===null? `None` : $frame()?.id}}</span><br />
       <span>
-        Timestamp: {{ ($frame()?.timestamp)}} ms
+        Timestamp: {{ $frame()?.timestamp | date:'full'}}
       </span>
     </p>
   </div>
 
   @if($frame()) {
   <div>
-    <p><span>total duration: {{total.toFixed(3)}} ms</span></p>
+    <p><span>total duration: {{$total().toFixed(3)}} ms</span></p>
     <div class="timeline">
-      @for (p of phases(); track p.name) {
+      @for (p of $phases(); track p.name) {
       <div class="segment" [style.width.%]="p.ratio * 100" [style.background]="p.color"
         [title]="p.name + ': ' + p.ms + ' ms'"></div>
       }
@@ -27,7 +27,7 @@
   </div>
 
   <div class="legend">
-    @for (p of phases(); track p.name) {
+    @for (p of $phases(); track p.name) {
     <div class="legend-item">
       <span class="color" [style.background]="p.color"></span>
       <span class="name">{{ p.name }}</span>

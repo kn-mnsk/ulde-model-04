@@ -4,15 +4,18 @@ import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild, effect, inp
 import { ULDEDevtools, ULDEDevtoolsService } from '@ulde/core';
 import { ULDEDiagnostic, ULDEFrame, ULDEHeatmapCell, ULDEPluginTiming, ULDETimelinePoint } from '@ulde/types';
 import type { ULDERendererState } from '@ulde/types/renderer';
-import { ULDERendererService, UldeDiagnosticsPanel, UldeFrameTimelinePanel, UldeRuntimeInspectorPanel } from '@ulde/viewer';
-import { UldePluginTimelinePanel } from '@ulde/viewer/panels/plugin-timeline/ulde-plugin-timeline-panel';
+import { ULDERendererService } from '@ulde/viewer';
+// UldeDiagnosticsPanel, UldeFrameTimelinePanel, UldeRuntimeInspectorPanel } from '@ulde/viewer';
+// import { UldePluginTimelinePanel } from '@ulde/viewer/panels/plugin-timeline/ulde-plugin-timeline-panel';
 import { isBrowser } from '../../app/global.utils/global.utils';
 
 @Component({
   selector: 'ulde-viewer',
   imports: [
-    UldeDiagnosticsPanel, UldeFrameTimelinePanel, UldePluginTimelinePanel,
-    UldeRuntimeInspectorPanel,
+    // UldeDiagnosticsPanel,
+    // UldeFrameTimelinePanel,
+    //  UldePluginTimelinePanel,
+    // UldeRuntimeInspectorPanel,
     ULDEDevtools
   ],
   templateUrl: 'ulde-viewer.html',

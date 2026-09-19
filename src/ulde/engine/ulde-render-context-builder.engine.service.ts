@@ -6,7 +6,7 @@ import { buildUldeAst } from './ulde-ast-builder.engine';
 import { renderUldeAstToHtml } from './ulde-ast-renderer.engine';
 import { ULDELayoutEngineService } from './ulde-layout.engine.service';
 
-import { ULDEOverlayService } from '@ulde/core/devtools';
+import { ULDEDevtoolsService } from '@ulde/core/devtools';
 import { ULDEDiagnostic } from '@ulde/types';
 import { ULDEDiagnosticNode } from '@ulde/types/context';
 
@@ -17,7 +17,7 @@ export class ULDERenderContextBuilderService {
 
   constructor(
     private layoutEngine: ULDELayoutEngineService,
-    private overlay: ULDEOverlayService,
+    private devtoolsService: ULDEDevtoolsService,
   ) { }
 
   /**
@@ -41,7 +41,7 @@ export class ULDERenderContextBuilderService {
     const sectionAst = this.layoutEngine.buildSections(ast);
 
     // 2. Inject diagnostics into AST
-    const diagnostics = this.overlay.$diagnostics();
+    const diagnostics = this.devtoolsService.$diagnostics();
     const diagnosticNodes: ULDEDiagnosticNode[] = diagnostics.map((d: ULDEDiagnostic) => ({
       type: 'diagnostic',
       meta: {
@@ -58,7 +58,7 @@ export class ULDERenderContextBuilderService {
     const html = renderUldeAstToHtml(finalAst);
 
     // 4. Assemble render context
-    const currentFrame = this.overlay.$currentFrame();
+    const currentFrame = this.devtoolsService.$currentFrame();
 
     return {
       pageId: page.pageId,
@@ -82,7 +82,7 @@ export class ULDERenderContextBuilderService {
   //   const sectionAst = this.layoutEngine.buildSections(ast);
 
   //   // 🔥 Inject diagnostics into AST
-  //   const diagnostics = this.overlay.diagnostics();
+  //   const diagnostics = this.devtoolsService.diagnostics();
   //   const diagnosticNodes: ULDEDiagnosticNode[] = diagnostics.map((d: ULDEDiagnostic) => ({
   //     type: 'diagnostic',
   //     meta: {
@@ -104,7 +104,7 @@ export class ULDERenderContextBuilderService {
   //   // console.log(`Log: [ULDERenderContextBuilderServic] 3. Render HTML FINISHED! \nhtml=`, html);
 
   //   // 4. Assemble render context
-  //   const currentFrame = this.overlay.currentFrame();
+  //   const currentFrame = this.devtoolsService.currentFrame();
   //   return {
   //     pageId: page.pageId,
   //     ast: finalAst, //sectionAst,
