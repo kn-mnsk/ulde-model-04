@@ -1,7 +1,8 @@
 /* src/ulde/viewer/panels/runtime-inspector/ulde-runtime-inspector-panel.scss */
 
-.runtime-inspector-root {
-  background: var(--ulde-bg);
+.devtools-runtime-inspector-panel-root {
+  // background: var(--ulde-bg);
+  height: 300px;// auto;
   border: 1px solid var(--ulde-border);
   border-radius: 6px;
   padding: 1rem;

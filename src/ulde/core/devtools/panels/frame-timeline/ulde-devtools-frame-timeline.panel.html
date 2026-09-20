@@ -1,6 +1,6 @@
-<!-- src/ulde/core/devtools/panels/frame-timeline/ulde-frame-timeline-panel.html -->
+<!-- src/ulde/core/devtools/panels/frame-timeline/ulde-devtools-frame-timeline-panel.html -->
 
-<!-- <p>ulde-frame-timeline-panel works!</p> -->
+<!-- <p>ulde-devtools-frame-timeline-panel works!</p> -->
 
 <div class="ulde-frame-timeline-panel-root">
 
@@ -16,26 +16,28 @@
   </div>
 
   @if($frame()) {
-  <div>
-    <p><span>total duration: {{$total().toFixed(3)}} ms</span></p>
-    <div class="timeline">
-      @for (p of $phases(); track p.name) {
-      <div class="segment" [style.width.%]="p.ratio * 100" [style.background]="p.color"
-        [title]="p.name + ': ' + p.ms + ' ms'"></div>
-      }
+  <div class="timeline">
+    <div>
+      <span>total duration: {{$total().toFixed(3)}} ms</span>
     </div>
+    @for (p of $phases(); track p.name) {
+    <div class="segment" [style.width.%]="p.ratio * 100" [style.background]="p.color"
+      [title]="p.name + ': ' + p.duration + ' ms'"></div>
+    }
+
   </div>
 
   <div class="legend">
     @for (p of $phases(); track p.name) {
-    <div class="legend-item">
+    <div class="legend-item" [class.warn]="p.duration > $thresholds().phaseWarn"
+      [class.error]="p.duration > $thresholds().phaseError">
       <span class="color" [style.background]="p.color"></span>
       <span class="name">{{ p.name }}</span>
-      <span class="ms">{{ p.ms.toFixed(3) }} ms</span>
+      <span class="duration">{{ p.duration.toFixed(3) }} ms</span>
     </div>
     }
-    <span></span>
   </div>
+
   }
 
 </div>

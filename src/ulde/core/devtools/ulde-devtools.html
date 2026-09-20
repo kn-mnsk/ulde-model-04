@@ -26,25 +26,26 @@
     <button class="tab" [class.active]="$activeTab() === 'inspector'"
       (click)="selectTab('inspector')">Inspector</button>
     <button class="tab" [class.active]="$activeTab() === 'frames'" (click)="selectTab('frames')">Frames</button>
-    <button class="tab" [class.active]="$activeTab() === 'ast'" (click)="selectTab('ast')">Ast</button>
-    <button class="tab" [class.active]="$activeTab() === 'layout'" (click)="selectTab('layout')">Layout</button>
+    <!-- <button class="tab" [class.active]="$activeTab() === 'ast'" (click)="selectTab('ast')">Ast</button>
+    <button class="tab" [class.active]="$activeTab() === 'layout'" (click)="selectTab('layout')">Layout</button> -->
     <button class="tab" [class.active]="$activeTab() === 'plugins'" (click)="selectTab('plugins')">Plugins</button>
   </div>
 
   <div class="body">
 
     @if($activeTab() === 'diagnostics'){
-    <section class="diagnostics-tab">
+    <div class="diagnostics-tab">
       <ulde-devtools-diagnostics-panel [$diagnostics]="$diagnostics()"></ulde-devtools-diagnostics-panel>
-    </section>
+    </div>
 
     }
 
     @if($activeTab() === 'timeline'){
 
-    <section class="frame-timeline-tab">
-      <ulde-devtools-frame-timeline-panel [$frame]="$currentFrame()"></ulde-devtools-frame-timeline-panel>
-    </section>
+    <div class="timeline-tab">
+      <ulde-devtools-frame-timeline-panel [$frame]="$currentFrame()"
+        [$thresholds]="thresholds"></ulde-devtools-frame-timeline-panel>
+    </div>
     }
 
     @if($activeTab() === 'profiler'){
@@ -54,15 +55,70 @@
 
     @if($activeTab() === 'heatmap'){
 
+    <div class="heatmap-tab">
+      <div class="header">
+        <span>Plugin Heatmap</span>
+      </div>
+
+      @for (t of $heatMap(); track ($index)) {
+      <div class="row">
+        <!-- <div class="phase">
+          <span>[{{ t.lifecyclePhase }}] </span>
+        </div>
+        <div class="kind">
+          <span>[{{ t.pluginKind }}] </span>
+        </div> -->
+        <div class="plugin">
+          <span>[{{ t.pluginName }}] </span>
+        </div>
+        <div class="hook">
+          <span>[{{ t.hookName }}] </span>
+        </div>
+        <div class="intensity-container">
+          <div class="intensity" [style.width.%]="t.intensity * 100" [style.background]="'#d53c3c'"
+            [title]="t.lifecyclePhase + '-' + t.pluginKind + '-' + t.pluginName + '-' + t.hookName ">
+          </div>
+          <div class="ratio"><span>{{t.intensity.toFixed(4)}}</span></div>
+        </div>
+      </div>
+      }
+    </div>
 
     }
 
     @if($activeTab() === 'inspector'){
-
-
+    <ulde-devtools-runtime-inspector-panel [$rendererState]="$rendererState()"
+      [$frame]="$currentFrame()"></ulde-devtools-runtime-inspector-panel>
     }
 
     @if($activeTab() === 'frames'){
+
+    <!-- Frame History -->
+    <div class="frame-history-container">
+      <section class="frame-history">
+        <h4>Frame History</h4>
+
+        @for (f of $frameHistory(); track f.id) {
+        <div class="frame-row" (click)="selectFrame(f)">
+          <span class="frame-id">Frame Id: {{ f.id }}</span>
+          <span class="timestamp">Timestamp: {{ f.timestamp | date:'full' }}</span>
+          <span class="total">Total Duration:
+            {{
+            f.lifecyclePhaseTimings.reduce((a, p) => a + p.duration, 0)
+            | number:'1.0-1'
+            }}ms
+          </span>
+          <span class="json-view">
+            @for(t of f.lifecyclePhaseTimings; track t.lifecyclePhase; let no = $index){
+            <span>#{{no}}: </span>
+            <span>{{t| json }}</span><br>
+            }
+          </span>
+        </div>
+        }
+
+      </section>
+    </div>
 
     }
 
@@ -81,7 +137,7 @@
 
 <p> TO BE CLOSED</p>
 <!-- Lifecycle Phases Timeline -->
-<section class="phase-timeline">
+<!-- <section class="phase-timeline">
   <h4>Phases Timeline</h4>
   @for (f of $timeline(); track f.frameId) {
   <div>
@@ -96,40 +152,8 @@
     }
   </div>
   }
+</section> -->
 
-  <!-- @for (p of $lifecyclePhaseTimings(); track p.lifecyclePhase) {
-    <div class="phase" [class.warn]="p.duration > thresholds.phaseWarn"
-      [class.error]="p.duration > thresholds.phaseError" (click)="selectPhase(p)">
-      <span class="label">{{ p.lifecyclePhase }}</span>
-      <span class="duration">{{ p.duration | number:'1.0-1' }}ms</span>
-    </div>
-    } -->
-</section>
-
-<section class="plugin-heatmap">
-  <h4>Plugin Heatmap</h4>
-
-  @for (t of $heatMap(); track ($index)) {
-  <div class="plugin-row">
-    <div class="phase">
-      <span>[{{ t.lifecyclePhase }}] </span>
-    </div>
-    <div class="kind">
-      <span>[{{ t.pluginKind }}] </span>
-    </div>
-    <div class="plugin">
-      <span>[{{ t.pluginName }}] </span>
-    </div>
-    <div class="hook">
-      <span>[{{ t.hookName }}] </span>
-    </div>
-    <div class="intensity-container">
-      <div class="intensity" [style.width.%]="t.intensity * 100" [style.background]="'#edeaea'">
-      </div>
-    </div>
-  </div>
-  }
-</section>
 <!-- Plugin Timings -->
 <!-- <section class="plugin-timings">
     <h4>Plugin Timings</h4>
@@ -154,30 +178,3 @@
 </section>
 
 <!-- Diagnostics -->
-
-<!-- Frame History -->
-<div class="frame-history-container">
-  <section class="frame-history">
-    <h4>Frame History</h4>
-
-    @for (f of $frameHistory(); track f.id) {
-    <div class="frame-row" (click)="selectFrame(f)">
-      <span class="frame-id">Frame Id: {{ f.id }}</span>
-      <span class="timestamp">Timestamp: {{ f.timestamp | date:'full' }}</span>
-      <span class="total">Total Duration:
-        {{
-        f.lifecyclePhaseTimings.reduce((a, p) => a + p.duration, 0)
-        | number:'1.0-1'
-        }}ms
-      </span>
-      <span class="json-view">
-        @for(t of f.lifecyclePhaseTimings; track t.lifecyclePhase; let no = $index){
-        <span>#{{no}}: </span>
-        <span>{{t| json }}</span><br>
-        }
-      </span>
-    </div>
-    }
-
-  </section>
-</div>

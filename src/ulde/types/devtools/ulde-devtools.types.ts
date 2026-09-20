@@ -31,6 +31,13 @@ export type ULDEDevToolsTab =
   | 'heatmap'
   | 'inspector'
   | 'frames'
+  | 'plugins';
+
+  export type ULDEDevtoolsInspectorTab =
   | 'ast'
   | 'layout'
-  | 'plugins';
+  | 'sections'
+  | 'toc'
+  | 'anchors'
+  // | 'frame'
+

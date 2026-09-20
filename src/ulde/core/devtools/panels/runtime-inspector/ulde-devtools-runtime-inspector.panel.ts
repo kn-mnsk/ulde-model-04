@@ -1,24 +1,25 @@
-// src/ulde/viewer/panels/runtime-inspector/ulde-runtime-inspector-panel.ts
+// src/ulde/core/devtools/panels/runtime-inspector/ulde-devtools-runtime-inspector.panel.ts
 
 import { JsonPipe } from '@angular/common';
 import { Component, computed, input, signal } from '@angular/core';
 import { ULDERendererState } from '@ulde/types/renderer';
 import { ULDEAstNode } from '@ulde/types/context';
 import { ULDEFrame } from '@ulde/types/frame';
+import { ULDEDevtoolsInspectorTab } from '@ulde/types/devtools';
 
 @Component({
-  selector: 'ulde-runtime-inspector-panel',
+  selector: 'ulde-devtools-runtime-inspector-panel',
   imports: [JsonPipe],
-  templateUrl: './ulde-runtime-inspector-panel.html',
-  styleUrl: './ulde-runtime-inspector-panel.scss',
+  templateUrl: './ulde-devtools-runtime-inspector.panel.html',
+  styleUrl: './/ulde-devtools-runtime-inspector.panel.scss',
 })
-export class UldeRuntimeInspectorPanel {
+export class UldeDevtoolsRuntimeInspectorPanel {
 
   $rendererState = input<ULDERendererState | undefined>(undefined);
 
   $frame = input<ULDEFrame | null>(null);
 
-  $activeTab = signal<'ast' | 'layout' | 'sections' | 'toc' | 'anchors' | 'frame'>('ast');
+  $activeTab = signal<ULDEDevtoolsInspectorTab>('ast');
 
   $astNodes = computed(() => this.$rendererState()?.renderContext?.ast ?? []);
   $layout = computed(() => this.$rendererState()?.renderContext?.layout ?? null);
@@ -42,6 +43,8 @@ export class UldeRuntimeInspectorPanel {
     }
 
     ast.forEach(n => walk(n));
+
+    
     return result;
   }
 
@@ -113,7 +116,7 @@ export class UldeRuntimeInspectorPanel {
     return anchors;
   }
 
-  setTab(tab: 'ast' | 'layout' | 'sections' | 'toc' | 'anchors' | 'frame') {
+  setTab(tab: ULDEDevtoolsInspectorTab) {
     this.$activeTab.set(tab);
   }
 
