@@ -14,6 +14,7 @@ import { ULDEFrame } from '@ulde/types/frame';
 export class UldeDevtoolsFrameTimelinePanel {
 
   $frame = input<ULDEFrame | null>(null);
+  $thresholds = input<any>();
 
   $total = computed(() => {
     const frame = this.$frame();
@@ -27,7 +28,7 @@ export class UldeDevtoolsFrameTimelinePanel {
 
     return timings.map(t => ({
       name: t.lifecyclePhase as string,
-      ms: t.duration,
+      duration: t.duration,
       ratio: t.duration / this.$total(),
       // ratio: t.duration / this.total,
       color: phaseColor(t.lifecyclePhase),

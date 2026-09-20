@@ -2,11 +2,12 @@
 
 import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
 import { DatePipe, DecimalPipe, JsonPipe } from '@angular/common';
-import { UldeDevToolsDiagnosticsPanel, UldeDevtoolsFrameTimelinePanel, ULDEDevtoolsService } from '@ulde/core/devtools';
+import { UldeDevToolsDiagnosticsPanel, UldeDevtoolsFrameTimelinePanel, UldeDevtoolsRuntimeInspectorPanel, ULDEDevtoolsService } from '@ulde/core/devtools';
 import { ULDEHeatmapCell, ULDETimelinePoint, ULDEDevToolsTab } from '@ulde/types/devtools';
 import { ULDEDiagnostic } from '@ulde/types/diagnostics';
 import { ULDEFrame } from '@ulde/types/frame';
 import { ULDELifecyclePhaseTiming } from '@ulde/types/lifecycle';
+import { ULDERendererState } from '@ulde/types';
 
 @Component({
   selector: 'ulde-devtools',
@@ -14,7 +15,7 @@ import { ULDELifecyclePhaseTiming } from '@ulde/types/lifecycle';
     DecimalPipe, DatePipe, JsonPipe,
     UldeDevToolsDiagnosticsPanel,
     UldeDevtoolsFrameTimelinePanel,
-    
+    UldeDevtoolsRuntimeInspectorPanel,
 
   ],
   templateUrl: './ulde-devtools.html',
@@ -22,6 +23,8 @@ import { ULDELifecyclePhaseTiming } from '@ulde/types/lifecycle';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ULDEDevtools {
+
+  $rendererState = input<ULDERendererState>()
 
   $diagnostics = input<ULDEDiagnostic[]>([]);
   $currentFrame = input<ULDEFrame | null>(null);

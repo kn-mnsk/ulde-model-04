@@ -2,13 +2,12 @@
 
 <p>ulde-runtime-inspector-panel works!</p>
 
-<div class="runtime-inspector-root">
+<div class="devtools-runtime-inspector-panel-root">
 
   <div class="header">
     <span><strong>Runtime Inspector Panel</strong></span>
-    <span class="meta">
-      model: {{ $rendererState()?.modelId }} · variant: {{ $rendererState()?.variantId }}
-    </span>
+    <span class="meta">model: {{ $rendererState()?.modelId }}</span>
+    <span class="meta">variant: {{ $rendererState()?.variantId }}</span>
   </div>
 
   @if($rendererState()){
@@ -19,7 +18,7 @@
     <button class="tab" [class.active]="$activeTab() === 'sections'" (click)="setTab('sections')">Sections</button>
     <button class="tab" [class.active]="$activeTab() === 'toc'" (click)="setTab('toc')">TOC</button>
     <button class="tab" [class.active]="$activeTab() === 'anchors'" (click)="setTab('anchors')">Anchors</button>
-    <button class="tab" [class.active]="$activeTab() === 'frame'" (click)="setTab('frame')">Frame</button>
+    <!-- <button class="tab" [class.active]="$activeTab() === 'frame'" (click)="setTab('frame')">Frame</button> -->
   </div>
 
   <div class="body">
@@ -67,9 +66,9 @@
     </ul>
     }
 
-    @if ($activeTab() === 'frame') {
+    <!-- @if ($activeTab() === 'frame') {
     <pre class="json-view">{{ $frame() | json }}</pre>
-    }
+    } -->
 
   </div>
   }

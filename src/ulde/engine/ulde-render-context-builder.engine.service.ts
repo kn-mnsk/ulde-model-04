@@ -64,8 +64,8 @@ export class ULDERenderContextBuilderService {
       pageId: page.pageId,
       ast: finalAst,
       html,
-      layout: sectionAst,
-      // layout: 'sections',
+      // layout: sectionAst, // for test
+      layout: 'sections', // original
       frame: currentFrame ?? undefined,
     };
   }
