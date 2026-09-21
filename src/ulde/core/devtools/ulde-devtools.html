@@ -1,4 +1,4 @@
-<!-- src/ulde/core/overlay/ulde-overlay.html -->
+<!-- src/ulde/core/devtools/ulde-devtools.html -->
 
 <p>UldeDevtools Works!</p>
 <div class="ulde-devtools-root" [class.hidden]="!$visible()" [style.opacity]="$opacity()">
@@ -26,14 +26,15 @@
     <button class="tab" [class.active]="$activeTab() === 'inspector'"
       (click)="selectTab('inspector')">Inspector</button>
     <button class="tab" [class.active]="$activeTab() === 'frames'" (click)="selectTab('frames')">Frames</button>
-    <!-- <button class="tab" [class.active]="$activeTab() === 'ast'" (click)="selectTab('ast')">Ast</button>
-    <button class="tab" [class.active]="$activeTab() === 'layout'" (click)="selectTab('layout')">Layout</button> -->
     <button class="tab" [class.active]="$activeTab() === 'plugins'" (click)="selectTab('plugins')">Plugins</button>
+    <button class="tab" [class.active]="$activeTab() === 'sparkline'"
+      (click)="selectTab('sparkline')">Sparkline</button>
   </div>
 
   <div class="body">
 
     @if($activeTab() === 'diagnostics'){
+    <!-- Disgnostics -->
     <div class="diagnostics-tab">
       <ulde-devtools-diagnostics-panel [$diagnostics]="$diagnostics()"></ulde-devtools-diagnostics-panel>
     </div>
@@ -41,7 +42,7 @@
     }
 
     @if($activeTab() === 'timeline'){
-
+    <!-- Timeline -->
     <div class="timeline-tab">
       <ulde-devtools-frame-timeline-panel [$frame]="$currentFrame()"
         [$thresholds]="thresholds"></ulde-devtools-frame-timeline-panel>
@@ -49,7 +50,8 @@
     }
 
     @if($activeTab() === 'profiler'){
-
+    <div class="profiler-tab">
+    </div>
 
     }
 
@@ -62,12 +64,12 @@
 
       @for (t of $heatMap(); track ($index)) {
       <div class="row">
-        <!-- <div class="phase">
+        <div class="phase">
           <span>[{{ t.lifecyclePhase }}] </span>
         </div>
         <div class="kind">
           <span>[{{ t.pluginKind }}] </span>
-        </div> -->
+        </div>
         <div class="plugin">
           <span>[{{ t.pluginName }}] </span>
         </div>
@@ -87,14 +89,16 @@
     }
 
     @if($activeTab() === 'inspector'){
-    <ulde-devtools-runtime-inspector-panel [$rendererState]="$rendererState()"
-      [$frame]="$currentFrame()"></ulde-devtools-runtime-inspector-panel>
+    <!-- Inspector -->
+    <div class="inspector-tab">
+      <ulde-devtools-runtime-inspector-panel [$rendererState]="$rendererState()"
+        [$frame]="$currentFrame()"></ulde-devtools-runtime-inspector-panel>
+    </div>
     }
 
     @if($activeTab() === 'frames'){
-
-    <!-- Frame History -->
-    <div class="frame-history-container">
+    <!-- Frames -->
+    <div class="frame-history-tab">
       <section class="frame-history">
         <h4>Frame History</h4>
 
@@ -123,9 +127,41 @@
     }
 
     @if($activeTab() === 'plugins'){
+    <!-- Plugin Timings -->
+    <div class="plugins-tab">
 
+      <ulde-plugin-timeline-panel [$pluginTimings]="$pluginTimings()"></ulde-plugin-timeline-panel>
 
+      <!-- <section class="plugin-timings">
+        <h4>Plugin Timings</h4>
+
+        @for (t of $filteredPluginTimings(); track t.pluginName) {
+        <div class="plugin-row">
+          <span class="plugin">{{ t.pluginName }}</span>
+          <span class="kind">{{ t.pluginKind }}</span>
+          <span class="hook">{{ t.hookName }}</span>
+          <span class="phase">{{ t.lifecyclePhase }}</span>
+          <span class="duration">{{ t.duration | number:'1.0-1' }}ms</span>
+        </div>
+        }
+      </section>
+       -->
+    </div>
     }
+
+    @if($activeTab() === 'sparkline'){
+    <!-- Sparkline -->
+    <div class="sparkline-tab">
+      <section class="sparkline">
+        <h4>Sparline</h4>
+        <svg width="100%" height="100%">
+          <polyline class="sparkline-line" [attr.points]="$sparklinePoints()"></polyline>
+        </svg>
+      </section>
+
+    </div>
+    }
+
   </div>
 
 </div>
@@ -169,12 +205,5 @@
     }
   </section> -->
 
-<!-- Sparkline -->
-<section class="sparkline">
-  <h4>Sparline</h4>
-  <svg width="100%" height="40">
-    <polyline class="sparkline-line" [attr.points]="$sparklinePoints()"></polyline>
-  </svg>
-</section>
 
 <!-- Diagnostics -->

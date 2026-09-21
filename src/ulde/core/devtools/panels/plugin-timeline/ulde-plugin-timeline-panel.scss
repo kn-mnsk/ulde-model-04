@@ -1,12 +1,14 @@
 // src/ulde/viewer/panels/plugin-timeline/ulde-plugin-timeline-panel.scss
 
 .ulde-plugin-timeline-panel-root {
-  background: var(--ulde-bg);
+  // background: var(--ulde-bg);
   border: 1px solid var(--ulde-border);
   border-radius: 6px;
   padding: 1rem;
   margin-top: 1rem;
   font-size: 0.9rem;
+  overflow: auto;
+
 }
 
 .header {
@@ -14,22 +16,29 @@
   justify-content: space-between;
   margin-bottom: 0.75rem;
   font-weight: 600;
+  // overflow: hidden;
 }
 
 .rows {
-  display: flex;
+  display: grid;
+  height: 300px;
   flex-direction: column;
-  align-items: start;
+  // align-items: start;
   gap: 0.5rem;
+  overflow: auto;
 }
 
 .row {
-  display: flex;
+  // color: var(--ulde-bg);
+  display: inline-flex;
+  border: 1px solid var(--ulde-border);
   grid-template-columns: 1fr 3fr auto;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.1rem;
+  font-size: 0.8rem;
+  // font-family: monospace;
+  // overflow: auto;
 }
-
 
 .color {
   width: 12px;
@@ -37,31 +46,47 @@
   border-radius: 3px;
 }
 
-.phase {
-  font-size: 1rem;
-  text-align: left;
-  width: 160px;
-  height: fit-content; //12px;
+.kind {
+  // font-size: 1rem;
+  // text-align: left;
+  width: 80px;
+  height: 12px;
 
-  color: var(--ulde-text);
-  border-radius: 3px;
+  // color: var(--ulde-text);
+  // border-radius: 3px;
+}
+
+.phase {
+  // font-size: 1rem;
+  // text-align: left;
+  width: 100px;
+  height: 12px;
+
+  // color: var(--ulde-text);
+  // border-radius: 3px;
 }
 
 .label {
-  font-family: monospace;
-  font-size: 0.85rem;
-  text-align: left;
+
+  // font-size: 0.85rem;
+  // text-align: left;
   text-wrap: wrap;
   width: 250px;
   height: 100%;
-  color: var(--ulde-text);
+  // color: var(--ulde-text);
+}
+
+.duration {
+  // font-size: 0.6rem;
+  // color: var(--ulde-text);
+  opacity: 1.0;
 }
 
 .bar-container {
   background: var(--ulde-border);
-  width: 200px;
+  width: 100px;
   height: 8px;
-  border-radius: 4px;
+  // border-radius: 4px;
   // overflow: hidden;
   // gap: 5px;
 }
@@ -71,10 +96,3 @@
   height: 100%;
   transition: width 0.15s ease-out;
 }
-
-.ms {
-  font-size: 0.85rem;
-  color: var(--ulde-text);
-  opacity: 0.8;
-}
-

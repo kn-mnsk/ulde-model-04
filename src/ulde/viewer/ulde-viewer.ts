@@ -26,15 +26,23 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
   hostRef!: ElementRef<HTMLElement>;
 
   // Full renderer state comes in as a signal input
-  $rendererState = input<ULDERendererState>();
-  $currentFrame = signal<ULDEFrame | null>(null);
-  $frameHistory = signal<ULDEFrame[]>([]);
-  // $lifecyclePhaseTimings = signal<ULDELifecyclePhaseTiming[]>([])
-  $pluginTimings = signal<ULDEPluginTiming[]>([]);
-  $diagnostics = signal<ULDEDiagnostic[]>([]);
+  $rendererState = input<ULDERendererState>(); // inspector
 
-  $heatMap = signal<ULDEHeatmapCell[]>([]);
+  $diagnostics = signal<ULDEDiagnostic[]>([]); // disgnostics
+  $currentFrame = signal<ULDEFrame | null>(null); // timeline, inspector
+  /* profiler */
+  $heatMap = signal<ULDEHeatmapCell[]>([]); // heatmap
+  $frameHistory = signal<ULDEFrame[]>([]); // frames
+  $filteredPluginTimings = signal<ULDEPluginTiming[]>([]); // plugins
+  $sparklinePoints = signal<string | null>(null); // sparkline
+
+
+  $pluginTimings = signal<ULDEPluginTiming[]>([]);
+
   $timeline = signal<ULDETimelinePoint[]>([]);
+
+
+
 
   $ready = output<void>();
   $error = output<Error>();
@@ -71,10 +79,11 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
       const frameHistory = this.devtoolsService.$frameHistory()
       const heatmap = this.devtoolsService.$heatMap();
       const timeline = this.devtoolsService.$timeline();
+      const filteredPluginTimings = this.devtoolsService.$filteredPluginTimings().filtered;
+      const sparklinePoints = this.devtoolsService.$sparklinePoints().points;
 
       if (!currentFrame) return;
 
-      console.log(`Log: [UldeViewer] effect() -> currentFrame=\n`, currentFrame);
       this.rendererService.setState({ frame: currentFrame });
       this.$currentFrame.set(currentFrame);
       this.$frameHistory.set(frameHistory);
@@ -82,6 +91,12 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
       this.$timeline.set(timeline);
       // this.$lifecyclePhaseTimings.set(frame.lifecyclePhaseTimings);
       this.$pluginTimings.set(currentFrame.pluginTimings);
+      this.$filteredPluginTimings.set(filteredPluginTimings);
+      this.$sparklinePoints.set(sparklinePoints);
+
+      console.log(`Log: [UldeViewer] effect() ->currentFrame.pluginTimings=\n`, currentFrame.pluginTimings);
+      console.log(`Log: [UldeViewer] effect() ->sparklinePoints=\n`, sparklinePoints);
+      // console.log(`Log: [UldeViewer] effect() -> currentFrame=\n`, currentFrame);
     });
 
     // 🔥 React to rendererState signal input (without re-init)

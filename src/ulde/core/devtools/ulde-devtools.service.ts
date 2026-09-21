@@ -1,4 +1,4 @@
-// src/ulde/core/overlay/ulde-overlay.service.ts
+// src/ulde/core/devtools/ulde-devtools.service.ts
 
 import { computed, Injectable, signal } from '@angular/core';
 import { ULDEHeatmapCell, ULDETimelinePoint } from '@ulde/types';
@@ -10,7 +10,7 @@ import { ULDEPluginTiming } from '@ulde/types/timing';
 @Injectable({ providedIn: 'root' })
 export class ULDEDevtoolsService {
 
-  // Overlay visibility + controls
+  // devtools visibility + controls
   $visible = signal(true);
   $pinned = signal(false);
   $opacity = signal(1);
@@ -25,7 +25,6 @@ export class ULDEDevtoolsService {
   // Frames
   $frameHistory = signal<ULDEFrame[]>([]);
   $currentFrame = signal<ULDEFrame | null>(null);
-
   // Diagnostics
   $diagnostics = signal<ULDEDiagnostic[]>([]);
 
@@ -39,29 +38,36 @@ export class ULDEDevtoolsService {
     phaseError: 16,
   };
 
+  // signal to update computed signal
+  $reloadToComputedSugnals = signal<number>(0);
   // Derived: sparkline points
   $sparklinePoints = computed(() => {
     const history = this.$frameHistory();
-    if (!history.length) return '';
+    let points: string;
 
-    const points = history
-      .map((f, i) => {
-        const total = f.lifecyclePhaseTimings.reduce((a, p) => a + p.duration, 0);
-        return `${i * 10},${40 - Math.min(total, 40)}`;
-      })
-      .join(' ');
+    if (!history.length) {
+      points = ''
+    } else {
+      points = history
+        .map((f, i) => {
+          const total = f.lifecyclePhaseTimings.reduce((a, p) => a + p.duration, 0);
+          return `${i * 10},${40 - Math.min(total, 40)}`;
+        })
+        .join(' ');
+    }
+
     console.log(`Log: [ULDEOverlayService] sparklinePoints`, points);
 
-    return points;
+    return { reload: this.$reloadToComputedSugnals(), points: points };
   });
-
   // Derived: filtered plugin timings by lifecycle phase
   $filteredPluginTimings = computed(() => {
     const lifecyclePhaseTiming = this.$currentLifecyclePhaseTiming();
     const timings = this.$pluginTimings();
 
-    if (!lifecyclePhaseTiming) return timings;
-    return timings.filter(t => t.lifecyclePhase === lifecyclePhaseTiming.lifecyclePhase);
+    return { reload: this.$reloadToComputedSugnals(), filtered: (!lifecyclePhaseTiming) ? timings : timings.filter(t => t.lifecyclePhase === lifecyclePhaseTiming.lifecyclePhase) };
+    //   if (!lifecyclePhaseTiming) return timings;
+    //   return timings.filter(t => t.lifecyclePhase === lifecyclePhaseTiming.lifecyclePhase);
   });
 
   // Frame lifecycle
@@ -103,8 +109,9 @@ export class ULDEDevtoolsService {
     this.$heatMap.set(this.buildHeatmap());
     this.$timeline.set(this.buildTimeline());
     this.generateWarnings();
-
     this.$currentFrame.set(frame);
+    this.$reloadToComputedSugnals.update(n => n + 1);
+
 
     // reset for next frame
     this.$lifecyclePhaseTimings.set([]);

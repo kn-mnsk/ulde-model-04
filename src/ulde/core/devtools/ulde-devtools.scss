@@ -1,10 +1,10 @@
-// src/ulde/core/overlay/ulde-devtools.scss
+// src/ulde/core/devtools/ulde-devtools.scss
 
 .ulde-devtools-root {
   position: fixed;
   top: 0;
   right: 0;
-  width: 600px;
+  width: 650px;
   height: 80vh;
   background: rgba(20, 20, 20, 0.85); // var(--ulde-background
   color: #eee;
@@ -23,9 +23,8 @@
   }
 }
 
-.header {
+header.header {
   height: 50px;
-  ;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -65,26 +64,29 @@
   display: flex;
   gap: 0.5rem;
   margin-bottom: 0.75rem;
+
+  .tab {
+    border: 1px solid var(--ulde-border);
+    background: var(--ulde-bg);
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+
+  .tab.active {
+    background: var(--ulde-accent);
+    color: #fff;
+    border-color: var(--ulde-accent);
+  }
+
 }
 
-.tab {
-  border: 1px solid var(--ulde-border);
-  background: var(--ulde-bg);
-  padding: 0.25rem 0.75rem;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  cursor: pointer;
-}
-
-.tab.active {
-  background: var(--ulde-accent);
-  color: #fff;
-  border-color: var(--ulde-accent);
-}
 
 .body {
-  max-height: auto;
-  overflow: auto;
+  height: 65vh;// max-height: auto;
+  // overflow: auto;
+
 }
 
 
@@ -97,18 +99,183 @@
 
 }
 
-/* Frame Timeline*/
+/* Timeline*/
 .time-line-tab {
   height: auto;
   overflow-y: auto;
 }
 
-// .heatmap-tab{
+/* Profiler*/
+.profiler-tab {
+  height: auto;
+  overflow-y: auto;
+}
 
-//   height: auto;
+/* Heatmap */
+.heatmap-tab {
+  // .plugin-timings {
+  display: inline-block;
+  // flex: 1;
+  // max-height: 140px;
+  overflow-y: auto;
+  height: auto;
+  // margin-bottom: 12px;
+
+  .header {
+    margin: 0 0 6px 0;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .row {
+    width: 100%;
+    // width: fit-content;
+    display: grid; //inline-flex;
+    flex-direction: row;
+    grid-template-columns: 1fr 0.7fr 0.7fr 0.7fr 0.5fr;
+    padding: 4px 0;
+    border-bottom: 1px solid #f3ebeb;
+    cursor: pointer;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .phase,
+    .kind,
+    .plugin,
+    .hook {
+      font-weight: bold;
+    }
+
+    .intensity-container {
+      display: grid;
+
+      flex-direction: row;
+      grid-template-columns: 1fr 0.7fr 0.7fr 0.7fr 0.5fr;
+      // left: 100px;
+      height: 10px;
+      width: 100px;
+      overflow: hidden;
+      // border-radius: 5px;
+      // left: 0;
+      // width: 10px;
+      // height: 8px;
+      // border-radius: 4px;
+      background: #edeaea;
+      ;
+      bottom: 0px;
+
+      .intensity {
+
+        // display: flex;
+        // width: 100%;
+        height: 100%;
+        ;
+        transition: width 0.15s linear;
+      }
+
+      .ratio {
+        // display: flex;
+        color: blue;
+        height: 100%;
+        font-weight: bold;
+      }
+    }
+  }
+}
+
+/* Inspector */
+.inspector-tab {
+  height: auto;
+  overflow: hidden;
+}
+
+/* Frames */
+.frame-history-tab {
+  display: flex;
+  width: fit-content;
+  height: auto;
+  overflow-y: auto;
+
+  .frame-history {
+    // max-height: auto;
+    // display: flex;
+    overflow-y: auto
+
+    h4 {
+      margin: 0 0 6px 0;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .frame-row {
+      display: flex;
+      flex-direction: column;
+      // display: grid;
+      // grid-template-columns: 1fr 1fr 0.7fr;
+      padding: 4px 0;
+      border-bottom: 1px solid #444;
+      cursor: pointer;
+      // overflow-y: auto;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .frame-id {
+        font-weight: bold;
+      }
+
+      .total {
+        text-align: left;
+      }
+
+      .json-view {
+        height: 200px;
+        font-family: monospace;
+        font-size: 0.8rem;
+        background: #1113;
+        padding: 0.5rem;
+        border-radius: 4px;
+        overflow: auto;
+      }
+
+    }
+
+  }
+
+}
 
 
-// }
+/* Plugins */
+.plugins-tab {
+  height: auto;
+  overflow: auto;
+}
+
+
+/* Sparkline */
+.sparkline-tab {
+  height: auto;
+  overflow-y: auto;
+
+  .sparkline {
+    width: 100px;
+    height: 40px;
+    background-color: #d2a2a2;
+    margin-bottom: 12px;
+
+    .sparkline-line {
+      fill: red;
+      stroke: #4fc3f7;
+      stroke-width: 2;
+    }
+  }
+
+}
+
+
 
 
 /* Phase Timeline */
@@ -159,144 +326,3 @@
 //   height: 100%;
 //   transition: width 0.15s ease-out;
 // }
-
-
-/* Plugin Timings */
-.heatmap-tab {
-  // .plugin-timings {
-  display: inline-block;
-  // flex: 1;
-  // max-height: 140px;
-  overflow-y: auto;
-  // margin-bottom: 12px;
-
-  .header {
-    margin: 0 0 6px 0;
-    font-size: 14px;
-    font-weight: 600;
-  }
-
-  .row {
-    width: 100%;
-    // width: fit-content;
-    display: grid;//inline-flex;
-    flex-direction: row;
-    grid-template-columns: 1fr 0.7fr 0.7fr 0.7fr 0.5fr;
-    padding: 4px 0;
-    border-bottom: 1px solid #f3ebeb;
-    cursor: pointer;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.05);
-    }
-
-    .phase,
-    .kind,
-    .plugin,
-    .hook {
-      font-weight: bold;
-    }
-
-    .intensity-container {
-      display: grid;
-
-    flex-direction: row;
-    grid-template-columns: 1fr 0.7fr 0.7fr 0.7fr 0.5fr;
-      // left: 100px;
-      height: 10px;
-      width: 100px;
-      overflow: hidden;
-      // border-radius: 5px;
-      // left: 0;
-      // width: 10px;
-      // height: 8px;
-      // border-radius: 4px;
-      background: #edeaea;
-      ;
-      bottom: 0px;
-
-      .intensity {
-
-        // display: flex;
-        // width: 100%;
-        height: 100%;
-        ;
-        transition: width 0.15s linear;
-      }
-
-      .ratio {
-        // display: flex;
-        color: blue;
-        height: 100%;
-        font-weight: bold;
-      }
-    }
-  }
-}
-
-/* Sparkline */
-.sparkline {
-  width: 100px;
-  height: 40px;
-  background-color: #d2a2a2;
-  margin-bottom: 12px;
-
-  .sparkline-line {
-    fill: red;
-    stroke: #4fc3f7;
-    stroke-width: 2;
-  }
-}
-
-/* Frame History */
-
-.frame-history-container {
-  display: flex;
-}
-
-.frame-history {
-  max-height: 200px;
-  display: flex;
-  // overflow-y: auto
-
-  h4 {
-    margin: 0 0 6px 0;
-    font-size: 14px;
-    font-weight: 600;
-  }
-
-  .frame-row {
-    display: flex;
-    flex-direction: column;
-    // display: grid;
-    // grid-template-columns: 1fr 1fr 0.7fr;
-    padding: 4px 0;
-    border-bottom: 1px solid #444;
-    cursor: pointer;
-    // overflow-y: auto;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.05);
-    }
-
-    .frame-id {
-      font-weight: bold;
-    }
-
-    .total {
-      text-align: left;
-    }
-
-    .json-view {
-      max-height: 50px;
-      font-family: monospace;
-      font-size: 0.8rem;
-      background: #1113;
-      padding: 0.5rem;
-      border-radius: 4px;
-      overflow: auto;
-    }
-
-  }
-
-}
