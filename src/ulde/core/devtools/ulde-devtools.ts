@@ -1,13 +1,13 @@
-// src/ulde/core/overlay/ulde-overlay.ts
+// src/ulde/core/devtools/ulde-devtools.ts
 
 import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
 import { DatePipe, DecimalPipe, JsonPipe } from '@angular/common';
-import { UldeDevToolsDiagnosticsPanel, UldeDevtoolsFrameTimelinePanel, UldeDevtoolsRuntimeInspectorPanel, ULDEDevtoolsService } from '@ulde/core/devtools';
+import { UldeDevToolsDiagnosticsPanel, UldeDevtoolsFrameTimelinePanel, UldeDevtoolsRuntimeInspectorPanel, ULDEDevtoolsService, UldePluginTimelinePanel } from '@ulde/core/devtools';
 import { ULDEHeatmapCell, ULDETimelinePoint, ULDEDevToolsTab } from '@ulde/types/devtools';
 import { ULDEDiagnostic } from '@ulde/types/diagnostics';
 import { ULDEFrame } from '@ulde/types/frame';
 import { ULDELifecyclePhaseTiming } from '@ulde/types/lifecycle';
-import { ULDERendererState } from '@ulde/types';
+import { ULDEPluginTiming, ULDERendererState } from '@ulde/types';
 
 @Component({
   selector: 'ulde-devtools',
@@ -16,6 +16,7 @@ import { ULDERendererState } from '@ulde/types';
     UldeDevToolsDiagnosticsPanel,
     UldeDevtoolsFrameTimelinePanel,
     UldeDevtoolsRuntimeInspectorPanel,
+    UldePluginTimelinePanel,
 
   ],
   templateUrl: './ulde-devtools.html',
@@ -31,18 +32,20 @@ export class ULDEDevtools {
   $frameHistory = input<ULDEFrame[]>([]);
   $heatMap = input<ULDEHeatmapCell[]>([]);
   $timeline = input<ULDETimelinePoint[]>([]);
-
+  $filteredPluginTimings = input<ULDEPluginTiming[]>([]);
+  $sparklinePoints = input<string | null>(null);
+  $pluginTimings = input<ULDEPluginTiming[]>([]);
 
   $highlight = output<string>();
 
   // Declare fields (uninitialized)
   $lifecyclePhaseTimings!: typeof this.devtoolsService.$lifecyclePhaseTimings;
-  $pluginTimings!: typeof this.devtoolsService.$pluginTimings;
+
 
   $currentLifecyclePhaseTiming!: typeof this.devtoolsService.$currentLifecyclePhaseTiming;
 
-  $sparklinePoints!: typeof this.devtoolsService.$sparklinePoints;
-  $filteredPluginTimings!: typeof this.devtoolsService.$filteredPluginTimings;
+  // $sparklinePoints!: typeof this.devtoolsService.$sparklinePoints;
+  // $filteredPluginTimings!: typeof this.devtoolsService.$filteredPluginTimings;
 
   $visible!: typeof this.devtoolsService.$visible;
   $pinned!: typeof this.devtoolsService.$pinned;
@@ -60,7 +63,7 @@ export class ULDEDevtools {
   ) {
     // Assign AFTER DI is ready
     this.$lifecyclePhaseTimings = devtoolsService.$lifecyclePhaseTimings;
-    this.$pluginTimings = devtoolsService.$pluginTimings;
+    // this.$pluginTimings = devtoolsService.$pluginTimings;
     // this.$frameHistory = devtoolsService.$frameHistory;
     // this.$diagnostics = devtoolsService.$diagnostics;
     // this.$heatMap = devtoolsService.$heatMap;
@@ -69,8 +72,8 @@ export class ULDEDevtools {
     this.$currentLifecyclePhaseTiming = devtoolsService.$currentLifecyclePhaseTiming;
     // this.$currentFrame = devtoolsService.$currentFrame;
 
-    this.$sparklinePoints = devtoolsService.$sparklinePoints;
-    this.$filteredPluginTimings = devtoolsService.$filteredPluginTimings;
+    // this.$sparklinePoints = devtoolsService.$sparklinePoints;
+    // this.$filteredPluginTimings = devtoolsService.$filteredPluginTimings;
 
     this.$visible = devtoolsService.$visible;
     this.$pinned = devtoolsService.$pinned;

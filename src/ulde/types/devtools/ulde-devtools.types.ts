@@ -31,7 +31,8 @@ export type ULDEDevToolsTab =
   | 'heatmap'
   | 'inspector'
   | 'frames'
-  | 'plugins';
+  | 'plugins'
+  | 'sparkline';
 
   export type ULDEDevtoolsInspectorTab =
   | 'ast'
