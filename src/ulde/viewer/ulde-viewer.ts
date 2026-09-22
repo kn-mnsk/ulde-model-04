@@ -2,20 +2,14 @@
 
 import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild, effect, input, output, signal } from '@angular/core';
 import { ULDEDevtools, ULDEDevtoolsService } from '@ulde/core';
-import { ULDEDiagnostic, ULDEFrame, ULDEHeatmapCell, ULDEPluginTiming, ULDETimelinePoint } from '@ulde/types';
+import { ULDEFrame } from '@ulde/types/frame';
 import type { ULDERendererState } from '@ulde/types/renderer';
 import { ULDERendererService } from '@ulde/viewer';
-// UldeDiagnosticsPanel, UldeFrameTimelinePanel, UldeRuntimeInspectorPanel } from '@ulde/viewer';
-// import { UldePluginTimelinePanel } from '@ulde/viewer/panels/plugin-timeline/ulde-plugin-timeline-panel';
 import { isBrowser } from '../../app/global.utils/global.utils';
 
 @Component({
   selector: 'ulde-viewer',
   imports: [
-    // UldeDiagnosticsPanel,
-    // UldeFrameTimelinePanel,
-    //  UldePluginTimelinePanel,
-    // UldeRuntimeInspectorPanel,
     ULDEDevtools
   ],
   templateUrl: 'ulde-viewer.html',
@@ -27,22 +21,6 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
 
   // Full renderer state comes in as a signal input
   $rendererState = input<ULDERendererState>(); // inspector
-
-  $diagnostics = signal<ULDEDiagnostic[]>([]); // disgnostics
-  $currentFrame = signal<ULDEFrame | null>(null); // timeline, inspector
-  /* profiler */
-  $heatMap = signal<ULDEHeatmapCell[]>([]); // heatmap
-  $frameHistory = signal<ULDEFrame[]>([]); // frames
-  $filteredPluginTimings = signal<ULDEPluginTiming[]>([]); // plugins
-  $sparklinePoints = signal<string | null>(null); // sparkline
-
-
-  $pluginTimings = signal<ULDEPluginTiming[]>([]);
-
-  $timeline = signal<ULDETimelinePoint[]>([]);
-
-
-
 
   $ready = output<void>();
   $error = output<Error>();
@@ -70,33 +48,17 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
 
       console.log(`Log: [UldeViewer] effect() -> diagnostics=\n`, diagnostics);
       this.rendererService.setState({ diagnostics });
-      this.$diagnostics.set(diagnostics);
+
     });
 
     // 🔥 React to frame finalization
     effect(() => {
       const currentFrame = this.devtoolsService.$currentFrame();
-      const frameHistory = this.devtoolsService.$frameHistory()
-      const heatmap = this.devtoolsService.$heatMap();
-      const timeline = this.devtoolsService.$timeline();
-      const filteredPluginTimings = this.devtoolsService.$filteredPluginTimings().filtered;
-      const sparklinePoints = this.devtoolsService.$sparklinePoints().points;
 
       if (!currentFrame) return;
 
       this.rendererService.setState({ frame: currentFrame });
-      this.$currentFrame.set(currentFrame);
-      this.$frameHistory.set(frameHistory);
-      this.$heatMap.set(heatmap);
-      this.$timeline.set(timeline);
-      // this.$lifecyclePhaseTimings.set(frame.lifecyclePhaseTimings);
-      this.$pluginTimings.set(currentFrame.pluginTimings);
-      this.$filteredPluginTimings.set(filteredPluginTimings);
-      this.$sparklinePoints.set(sparklinePoints);
-
-      console.log(`Log: [UldeViewer] effect() ->currentFrame.pluginTimings=\n`, currentFrame.pluginTimings);
-      console.log(`Log: [UldeViewer] effect() ->sparklinePoints=\n`, sparklinePoints);
-      // console.log(`Log: [UldeViewer] effect() -> currentFrame=\n`, currentFrame);
+      
     });
 
     // 🔥 React to rendererState signal input (without re-init)

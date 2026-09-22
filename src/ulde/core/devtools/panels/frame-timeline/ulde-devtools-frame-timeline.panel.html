@@ -3,41 +3,47 @@
 <!-- <p>ulde-devtools-frame-timeline-panel works!</p> -->
 
 <div class="ulde-frame-timeline-panel-root">
-
   <div class="header">
-    <p>
-      <span><strong>Frame Execution Timeline Panel</strong></span><br />
-      <span>
-        Frame id: {{ $frame()===null? `None` : $frame()?.id}}</span><br />
-      <span>
-        Timestamp: {{ $frame()?.timestamp | date:'full'}}
-      </span>
-    </p>
+    <span>Frame Execution Timeline Panel</span>
   </div>
+  @if($timelines().length > 0 ){
+  <div class="timelines">
+    @for(t of $timelines(); track t.frameId){
+    <div class="timeline">
+      <div class="timeline-header">
+        <div class="item">
+          <span>Frame id: </span><span>{{ t.frameId}}</span>
+        </div>
+        <div class="item">
+          <span>Timestamp: </span><span>{{ t.timeStamp | date:'full'}}</span>
+        </div>
+        <div class="item">
+          <span>Total duration: </span><span>{{t.totalDuration.toFixed(3)}} ms</span>
+        </div>
 
-  @if($frame()) {
-  <div class="timeline">
-    <div>
-      <span>total duration: {{$total().toFixed(3)}} ms</span>
+      </div>
+
+      <div class="timeline-bar">
+        @for (p of t.phases; track p.lifecyclePhase) {
+        <div class="segment" [style.width.%]="(p.duration/t.totalDuration) * 100"
+          [style.background]="phaseColor(p.lifecyclePhase)" [title]="p.lifecyclePhase + ': ' + p.duration + ' ms'">
+        </div>
+        }
+
+      </div>
+
+      <div class="legend">
+        @for (p of t.phases; track p.lifecyclePhase) {
+        <div class="legend-item" [class.warn]="p.duration > $thresholds().phaseWarn"
+          [class.error]="p.duration > $thresholds().phaseError">
+          <span class="color" [style.background]="phaseColor(p.lifecyclePhase)"></span>
+          <span class="name">{{ p.lifecyclePhase }}</span>
+          <span class="duration">{{ p.duration.toFixed(3) }} ms</span>
+        </div>
+        }
+      </div>
     </div>
-    @for (p of $phases(); track p.name) {
-    <div class="segment" [style.width.%]="p.ratio * 100" [style.background]="p.color"
-      [title]="p.name + ': ' + p.duration + ' ms'"></div>
-    }
-
-  </div>
-
-  <div class="legend">
-    @for (p of $phases(); track p.name) {
-    <div class="legend-item" [class.warn]="p.duration > $thresholds().phaseWarn"
-      [class.error]="p.duration > $thresholds().phaseError">
-      <span class="color" [style.background]="p.color"></span>
-      <span class="name">{{ p.name }}</span>
-      <span class="duration">{{ p.duration.toFixed(3) }} ms</span>
-    </div>
     }
   </div>
-
   }
-
 </div>

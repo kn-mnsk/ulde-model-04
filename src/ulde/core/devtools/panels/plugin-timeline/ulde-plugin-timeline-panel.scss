@@ -1,7 +1,6 @@
 // src/ulde/viewer/panels/plugin-timeline/ulde-plugin-timeline-panel.scss
 
 .ulde-plugin-timeline-panel-root {
-  // background: var(--ulde-bg);
   border: 1px solid var(--ulde-border);
   border-radius: 6px;
   padding: 1rem;
@@ -16,83 +15,60 @@
   justify-content: space-between;
   margin-bottom: 0.75rem;
   font-weight: 600;
-  // overflow: hidden;
 }
 
 .rows {
-  display: grid;
-  height: 300px;
+  display: flex;
+  height: 350px;
   flex-direction: column;
-  // align-items: start;
   gap: 0.5rem;
   overflow: auto;
 }
 
 .row {
-  // color: var(--ulde-bg);
-  display: inline-flex;
-  border: 1px solid var(--ulde-border);
-  grid-template-columns: 1fr 3fr auto;
+  padding-left:5px;
+  padding-right:5px;
+  width: 95%;
+  display: grid;
+  flex-direction: row;
   align-items: center;
-  gap: 0.1rem;
+  border: 1px solid var(--ulde-border);
+  grid-template-columns: 0.05fr 0.3fr 0.6fr 0.3fr 0.3fr 0.3fr;
+
   font-size: 0.8rem;
-  // font-family: monospace;
-  // overflow: auto;
+}
+
+.kind,
+.phase,
+.label,
+.duraion {
+  height: 20px;
+  padding-left: 3px;
+  text-wrap: wrap;
+  text-align: left;
+
 }
 
 .color {
-  width: 12px;
   height: 12px;
   border-radius: 3px;
 }
 
-.kind {
-  // font-size: 1rem;
-  // text-align: left;
-  width: 80px;
-  height: 12px;
-
-  // color: var(--ulde-text);
-  // border-radius: 3px;
-}
-
-.phase {
-  // font-size: 1rem;
-  // text-align: left;
-  width: 100px;
-  height: 12px;
-
-  // color: var(--ulde-text);
-  // border-radius: 3px;
-}
-
-.label {
-
-  // font-size: 0.85rem;
-  // text-align: left;
-  text-wrap: wrap;
-  width: 250px;
-  height: 100%;
-  // color: var(--ulde-text);
-}
 
 .duration {
-  // font-size: 0.6rem;
-  // color: var(--ulde-text);
-  opacity: 1.0;
+  font-weight: bold;
 }
 
 .bar-container {
   background: var(--ulde-border);
   width: 100px;
-  height: 8px;
-  // border-radius: 4px;
-  // overflow: hidden;
-  // gap: 5px;
-}
+  height: 12px;
+  border-radius: 3px;
 
-.bar {
-  // width: fit-content;
-  height: 100%;
-  transition: width 0.15s ease-out;
+  .bar {
+    border-radius: 3px;
+    height: 100%;
+    transition: width 0.15s ease-out;
+  }
+
 }

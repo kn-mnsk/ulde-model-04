@@ -39,7 +39,7 @@ export class ULDEDevtoolsService {
   };
 
   // signal to update computed signal
-  $reloadToComputedSugnals = signal<number>(0);
+  private $reloadToComputedSugnals = signal<number>(0);
   // Derived: sparkline points
   $sparklinePoints = computed(() => {
     const history = this.$frameHistory();
@@ -68,6 +68,21 @@ export class ULDEDevtoolsService {
     return { reload: this.$reloadToComputedSugnals(), filtered: (!lifecyclePhaseTiming) ? timings : timings.filter(t => t.lifecyclePhase === lifecyclePhaseTiming.lifecyclePhase) };
     //   if (!lifecyclePhaseTiming) return timings;
     //   return timings.filter(t => t.lifecyclePhase === lifecyclePhaseTiming.lifecyclePhase);
+  });
+
+  // signal stores
+  $store = computed(() => {
+    return {
+      reload: this.$reloadToComputedSugnals(),
+      diagnostics: this.$diagnostics(),
+      currentFrame: this.$currentFrame(),
+      frameHistory: this.$frameHistory(),
+      heatMap: this.$heatMap(),
+      timeline: this.$timeline(),
+      filteredPluginTimings: this.$filteredPluginTimings().filtered,
+      pluginTimings: this.$pluginTimings(),
+      sparklinePoints: this.$sparklinePoints().points
+    };
   });
 
   // Frame lifecycle
@@ -115,7 +130,7 @@ export class ULDEDevtoolsService {
 
     // reset for next frame
     this.$lifecyclePhaseTimings.set([]);
-    this.$pluginTimings.set([]);
+    // this.$pluginTimings.set([]);
   }
 
   // Diagnostics
@@ -155,7 +170,10 @@ export class ULDEDevtoolsService {
   }
 
   // Analytics
-  // Plugin timing recording
+  /**
+   * Plugin timing recording
+   * @param timing
+   */
   recordPluginTiming(timing: ULDEPluginTiming) {
     this.$pluginTimings.update(list => [...list, timing]);
   }
@@ -168,6 +186,7 @@ export class ULDEDevtoolsService {
 
       return {
         frameId: frame.id,
+        timeStamp: frame.timestamp,
         totalDuration: total,
         phases: frame.lifecyclePhaseTimings.map(p => ({
           lifecyclePhase: p.lifecyclePhase,

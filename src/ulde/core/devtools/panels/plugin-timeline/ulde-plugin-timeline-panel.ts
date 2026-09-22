@@ -27,7 +27,7 @@ export class UldePluginTimelinePanel {
       .slice()
       .sort((a, b) => b.duration - a.duration)
       .map(p => ({
-        label: `${p.pluginName} [${p.hookName}]`,
+        label: `${p.pluginName} (${p.hookName})`,
         duration: p.duration,
         ratio: p.duration / this.total,
         color: pluginColor(p.pluginKind),
