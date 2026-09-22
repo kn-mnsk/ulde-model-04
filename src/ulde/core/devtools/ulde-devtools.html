@@ -36,7 +36,7 @@
     @if($activeTab() === 'diagnostics'){
     <!-- Disgnostics -->
     <div class="diagnostics-tab">
-      <ulde-devtools-diagnostics-panel [$diagnostics]="$diagnostics()"></ulde-devtools-diagnostics-panel>
+      <ulde-devtools-diagnostics-panel [$diagnostics]="$store().diagnostics"></ulde-devtools-diagnostics-panel>
     </div>
 
     }
@@ -44,7 +44,7 @@
     @if($activeTab() === 'timeline'){
     <!-- Timeline -->
     <div class="timeline-tab">
-      <ulde-devtools-frame-timeline-panel [$frame]="$currentFrame()"
+      <ulde-devtools-frame-timeline-panel [$timelines]="$store().timeline"
         [$thresholds]="thresholds"></ulde-devtools-frame-timeline-panel>
     </div>
     }
@@ -62,28 +62,32 @@
         <span>Plugin Heatmap</span>
       </div>
 
-      @for (t of $heatMap(); track ($index)) {
-      <div class="row">
-        <div class="phase">
-          <span>[{{ t.lifecyclePhase }}] </span>
-        </div>
-        <div class="kind">
-          <span>[{{ t.pluginKind }}] </span>
-        </div>
-        <div class="plugin">
-          <span>[{{ t.pluginName }}] </span>
-        </div>
-        <div class="hook">
-          <span>[{{ t.hookName }}] </span>
-        </div>
-        <div class="intensity-container">
-          <div class="intensity" [style.width.%]="t.intensity * 100" [style.background]="'#d53c3c'"
-            [title]="t.lifecyclePhase + '-' + t.pluginKind + '-' + t.pluginName + '-' + t.hookName ">
+      <div class="rows">
+        @for (t of $store().heatMap; track ($index)) {
+        <div class="row">
+          <div class="phase">
+            <span>{{ t.lifecyclePhase }} </span>
           </div>
-          <div class="ratio"><span>{{t.intensity.toFixed(4)}}</span></div>
+          <div class="kind">
+            <span>{{ t.pluginKind }} </span>
+          </div>
+          <div class="plugin hook">
+            <span>{{ t.pluginName }} ({{ t.hookName }}) </span>
+          </div>
+          <!-- <div class="hook">
+            <span>{{ t.hookName }} </span>
+          </div> -->
+          <div class="intensity-container">
+            <div class="intensity" [style.width.%]="t.intensity * 100" [style.background]="'#d53c3c'"
+              [title]="t.lifecyclePhase + '-' + t.pluginKind + '-' + t.pluginName + '-' + t.hookName ">
+            </div>
+          </div>
+          <div class="ratio">
+            <span>{{t.intensity.toFixed(3)}}</span>
+          </div>
         </div>
+        }
       </div>
-      }
     </div>
 
     }
@@ -92,7 +96,7 @@
     <!-- Inspector -->
     <div class="inspector-tab">
       <ulde-devtools-runtime-inspector-panel [$rendererState]="$rendererState()"
-        [$frame]="$currentFrame()"></ulde-devtools-runtime-inspector-panel>
+        [$frame]="$store().currentFrame"></ulde-devtools-runtime-inspector-panel>
     </div>
     }
 
@@ -102,7 +106,8 @@
       <section class="frame-history">
         <h4>Frame History</h4>
 
-        @for (f of $frameHistory(); track f.id) {
+        @for (f of $store().frameHistory; track f.id) {
+        <!-- @for (f of $frameHistory(); track f.id) { -->
         <div class="frame-row" (click)="selectFrame(f)">
           <span class="frame-id">Frame Id: {{ f.id }}</span>
           <span class="timestamp">Timestamp: {{ f.timestamp | date:'full' }}</span>
@@ -129,23 +134,7 @@
     @if($activeTab() === 'plugins'){
     <!-- Plugin Timings -->
     <div class="plugins-tab">
-
-      <ulde-plugin-timeline-panel [$pluginTimings]="$pluginTimings()"></ulde-plugin-timeline-panel>
-
-      <!-- <section class="plugin-timings">
-        <h4>Plugin Timings</h4>
-
-        @for (t of $filteredPluginTimings(); track t.pluginName) {
-        <div class="plugin-row">
-          <span class="plugin">{{ t.pluginName }}</span>
-          <span class="kind">{{ t.pluginKind }}</span>
-          <span class="hook">{{ t.hookName }}</span>
-          <span class="phase">{{ t.lifecyclePhase }}</span>
-          <span class="duration">{{ t.duration | number:'1.0-1' }}ms</span>
-        </div>
-        }
-      </section>
-       -->
+      <ulde-plugin-timeline-panel [$pluginTimings]="$store().pluginTimings"></ulde-plugin-timeline-panel>
     </div>
     }
 
@@ -155,7 +144,7 @@
       <section class="sparkline">
         <h4>Sparline</h4>
         <svg width="100%" height="100%">
-          <polyline class="sparkline-line" [attr.points]="$sparklinePoints()"></polyline>
+          <polyline class="sparkline-line" [attr.points]="$store().sparklinePoints"></polyline>
         </svg>
       </section>
 
@@ -165,45 +154,3 @@
   </div>
 
 </div>
-
-
-
-
-
-
-<p> TO BE CLOSED</p>
-<!-- Lifecycle Phases Timeline -->
-<!-- <section class="phase-timeline">
-  <h4>Phases Timeline</h4>
-  @for (f of $timeline(); track f.frameId) {
-  <div>
-    <span class="frame-id">frame-id: {{ f.frameId }}</span>
-    <span class="total-duration">{{ f.totalDuration | number:'1.0-1' }}ms</span>
-    @for(p of f.phases; track p.lifecyclePhase){
-    <div class="phase" [class.warn]="p.duration > thresholds.phaseWarn"
-      [class.error]="p.duration > thresholds.phaseError">
-      <span class="name">[{{ p.lifecyclePhase }}]: &nbsp; &nbsp; </span>
-      <span class="duration">{{ p.duration | number:'1.0-1' }} ms</span>
-    </div>
-    }
-  </div>
-  }
-</section> -->
-
-<!-- Plugin Timings -->
-<!-- <section class="plugin-timings">
-    <h4>Plugin Timings</h4>
-
-    @for (t of $filteredPluginTimings(); track t.pluginName) {
-    <div class="plugin-row">
-      <span class="plugin">{{ t.pluginName }}</span>
-      <span class="kind">{{ t.pluginKind }}</span>
-      <span class="hook">{{ t.hookName }}</span>
-      <span class="phase">{{ t.lifecyclePhase }}</span>
-      <span class="duration">{{ t.duration | number:'1.0-1' }}ms</span>
-    </div>
-    }
-  </section> -->
-
-
-<!-- Diagnostics -->
