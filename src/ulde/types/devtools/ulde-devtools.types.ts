@@ -9,6 +9,7 @@ import { ULDEPluginKind, ULDEPluginExecutionHook } from "../plugin/ulde-plugin.t
 
 export interface ULDETimelinePoint {
   frameId: string;
+  timeStamp: number;
   totalDuration: number;
   phases: {
     lifecyclePhase: ULDELifecyclePhase;
