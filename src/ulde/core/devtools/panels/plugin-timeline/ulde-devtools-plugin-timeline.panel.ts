@@ -1,16 +1,16 @@
-// src/ulde/viewer/panels/plugin-timeline/ulde-plugin-timeline-panel.ts
+// src/ulde/core/devtools/panels/plugin-timeline/ulde-devtools-plugin-timeline.panel.ts
 
-import { Component, input, computed } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 import { ULDEPluginKind } from '@ulde/types/plugin';
 import { ULDEPluginTiming } from '@ulde/types/timing';
 
 @Component({
-  selector: 'ulde-plugin-timeline-panel',
+  selector: 'ulde-devtools-plugin-timeline-panel',
   imports: [],
-  templateUrl: './ulde-plugin-timeline-panel.html',
-  styleUrl: './ulde-plugin-timeline-panel.scss',
+  templateUrl: './ulde-devtools-plugin-timeline.panel.html',
+  styleUrl: './ulde-devtools-plugin-timeline.panel.scss',
 })
-export class UldePluginTimelinePanel {
+export class UldeDevtoolsPluginTimelinePanel {
 
   total: number = 0;
 
@@ -39,7 +39,7 @@ export class UldePluginTimelinePanel {
 
 function pluginColor(kind: ULDEPluginKind) {
   switch (kind) {
-  // switch (kind) {
+    // switch (kind) {
     case 'content': return '#4caf50';
     case 'layout': return '#2196f3';
     case 'interactive': return '#ff9800';

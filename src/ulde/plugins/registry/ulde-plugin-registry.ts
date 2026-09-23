@@ -6,7 +6,6 @@ import {
 import {
   ULDEFrontmatterNormalizerPlugin,
 } from '@ulde/plugins/system/content/ulde-frontmatter-normalizer.plugin';
-import { ULDELifecyclePhase } from '@ulde/types/lifecycle';
 
 import {
   ULDEDemoPlugin,

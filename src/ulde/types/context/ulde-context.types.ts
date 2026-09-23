@@ -5,7 +5,7 @@ import { ULDEFrame } from "@ulde/types/frame";
 import { ULDELifecyclePhase } from '@ulde/types/lifecycle';
 import { ULDEPluginKind } from '@ulde/types/plugin';
 import type Token from 'markdown-it/lib/token.mjs';
-// import { UldeArtifacts } from "@ulde/types/ulde-artifacts";
+
 // ---------------------------------------------------------
 // ULDE Context Objects
 // ---------------------------------------------------------
@@ -31,9 +31,8 @@ export interface ULDERenderContext {
   pageId: string;
   ast: ULDEAstNode[];
   html: string;
-  layout?: string;  //original
-  // layout?: string | ULDEAstNode[];  // ULDEAstNode[]  added 2026-09-16
-  frame?: ULDEFrame; // optional, attached after lifecycle, as “observability attachment”
+  layout?: string;
+  frame?: ULDEFrame;
 }
 
 // Block Nodes

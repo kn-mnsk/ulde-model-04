@@ -1,13 +1,13 @@
 // src/ulde/core/devtools/ulde-devtools.ts
 
-import { ChangeDetectionStrategy, Component, input, output, signal, effect } from '@angular/core';
 import { DatePipe, DecimalPipe, JsonPipe } from '@angular/common';
-import { UldeDevToolsDiagnosticsPanel, UldeDevtoolsFrameTimelinePanel, UldeDevtoolsRuntimeInspectorPanel, ULDEDevtoolsService, UldePluginTimelinePanel } from '@ulde/core/devtools';
-import { ULDEHeatmapCell, ULDETimelinePoint, ULDEDevToolsTab } from '@ulde/types/devtools';
+import { ChangeDetectionStrategy, Component, effect, input, output, signal } from '@angular/core';
+import { UldeDevToolsDiagnosticsPanel, UldeDevtoolsFrameTimelinePanel, UldeDevtoolsPluginTimelinePanel, UldeDevtoolsRuntimeInspectorPanel, ULDEDevtoolsService } from '@ulde/core/devtools';
+import { ULDERendererState } from '@ulde/types';
+import { ULDEDevToolsTab } from '@ulde/types/devtools';
 import { ULDEDiagnostic } from '@ulde/types/diagnostics';
 import { ULDEFrame } from '@ulde/types/frame';
 import { ULDELifecyclePhaseTiming } from '@ulde/types/lifecycle';
-import { ULDEPluginTiming, ULDERendererState } from '@ulde/types';
 
 @Component({
   selector: 'ulde-devtools',
@@ -16,7 +16,7 @@ import { ULDEPluginTiming, ULDERendererState } from '@ulde/types';
     UldeDevToolsDiagnosticsPanel,
     UldeDevtoolsFrameTimelinePanel,
     UldeDevtoolsRuntimeInspectorPanel,
-    UldePluginTimelinePanel,
+    UldeDevtoolsPluginTimelinePanel,
 
   ],
   templateUrl: './ulde-devtools.html',
@@ -27,27 +27,10 @@ export class ULDEDevtools {
 
   $rendererState = input<ULDERendererState>()
 
-  // $diagnostics = input<ULDEDiagnostic[]>([]);
-  // $currentFrame = input<ULDEFrame | null>(null);
-  // $frameHistory = input<ULDEFrame[]>([]);
-  // $heatMap = input<ULDEHeatmapCell[]>([]);
-  // $timeline = input<ULDETimelinePoint[]>([]);
-  // $filteredPluginTimings = input<ULDEPluginTiming[]>([]);
-  // $sparklinePoints = input<string | null>(null);
-  // $pluginTimings = input<ULDEPluginTiming[]>([]);
-
   $highlight = output<string>();
 
   // Declare signals (uninitialized)
   $store = signal<any | null>(null);
-
-  // $lifecyclePhaseTimings!: typeof this.devtoolsService.$lifecyclePhaseTimings;
-
-
-  // $currentLifecyclePhaseTiming!: typeof this.devtoolsService.$currentLifecyclePhaseTiming;
-
-  // $sparklinePoints!: typeof this.devtoolsService.$sparklinePoints;
-  // $filteredPluginTimings!: typeof this.devtoolsService.$filteredPluginTimings;
 
   $visible!: typeof this.devtoolsService.$visible;
   $pinned!: typeof this.devtoolsService.$pinned;
@@ -63,9 +46,6 @@ export class ULDEDevtools {
   constructor(
     private devtoolsService: ULDEDevtoolsService,
   ) {
-    // Assign AFTER DI is ready
-    // this.$lifecyclePhaseTimings = devtoolsService.$lifecyclePhaseTimings;
-    // this.$currentLifecyclePhaseTiming = devtoolsService.$currentLifecyclePhaseTiming;
 
     this.$visible = devtoolsService.$visible;
     this.$pinned = devtoolsService.$pinned;

@@ -1,4 +1,4 @@
-// src/ulde/viewer/panels/diagnostics/ulde-diagnostics-panel.scss
+// src/ulde/core/devtools/panels/diagnostics/ulde-devtools-diagnostics.panel.scss
 
 .ulde-diagnostics-panel-root {
   // position: fixed;
@@ -70,4 +70,31 @@
 .highlight {
   background: rgba(255, 255, 0, 0.3);
   transition: background 0.5s ease;
+}
+
+/* Define diagnostics injected into AST */
+.ulde-diagnostic {
+  padding: 0.75rem;
+  margin: 1rem 0;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.ulde-diagnostic-info {
+  background: rgba(0, 120, 212, 0.1);
+  border-left: 4px solid var(--ulde-diagnostic-info);
+}
+
+.ulde-diagnostic-warn {
+  background: rgba(230, 161, 0, 0.1);
+  border-left: 4px solid var(--ulde-diagnostic-warn);
+}
+
+.ulde-diagnostic-error {
+  background: rgba(216, 59, 1, 0.1);
+  border-left: 4px solid var(--ulde-diagnostic-error);
+}
+
+.ulde-diagnostic strong {
+  font-weight: 600;
 }

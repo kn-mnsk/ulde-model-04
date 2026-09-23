@@ -1,5 +1,7 @@
-// ulde/core/artifacts/ulde-artifacts.ts
+// src/ulde/types/ulde-artifacts.ts
 
+import { ULDEAnchorNode, ULDECodeNode, ULDEFrontmatterNode, ULDELinkNode, ULDETocNode } from "@ulde/types/context";
+import { ULDEDiagnostic } from "@ulde/types/diagnostics";
 import { ULDEPluginTiming } from "@ulde/types/timing";
 
 // ---------------------------------------------------------
@@ -160,7 +162,7 @@ export interface ArtifactsPanelGroup {
 // MASTER ARTIFACTS INTERFACE
 // ---------------------------------------------------------
 
-export interface UldeArtifacts {
+export interface ULDEArtifacts {
   // Content
   /**
    * Raw or transformed content.
@@ -173,15 +175,15 @@ export interface UldeArtifacts {
    * Written by: TOC Plugin
    * Read by: Anchors Plugin, Debug Overlay Plugin
    */
-  toc?: TocEntry[];
+  toc?: ULDETocNode[];
   /**
    * Link metadata extracted from content.
    * Written by: Links Plugin
    * Read by: Debug Overlay Plugin
    */
-  links?: LinkEntry[];
-  frontmatter?: FrontmatterData;
-  codeblocks?: CodeblockEntry[];
+  links?: ULDELinkNode[];
+  frontmatter?: ULDEFrontmatterNode;
+  codeblocks?: ULDECodeNode[];
   /**
    * Highlight requests for the renderer.
    * Written by: Syntax Highlight Plugin
@@ -192,8 +194,8 @@ export interface UldeArtifacts {
 
   // Diagnostics
   diagnostics: {
-    add(entry: DiagnosticEntry): void;
-    all(): DiagnosticEntry[];
+    add(entry: ULDEDiagnostic): void;
+    all(): ULDEDiagnostic[];
   };
 
   // DOM
@@ -202,7 +204,7 @@ export interface UldeArtifacts {
    * Written by: Anchors Plugin
    * Read by: ScrollSpy Plugin
    */
-  anchors?: AnchorEntry[];
+  anchors?: ULDEAnchorNode[];
   scrollspy?: ScrollSpyEntry[];
 
   // Render

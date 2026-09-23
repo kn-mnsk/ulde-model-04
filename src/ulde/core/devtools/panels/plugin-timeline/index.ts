@@ -1,3 +1,3 @@
-// src/ulde/viewer/panels/plugin-panel/index.ts
+// src/ulde/core/devtools/panels/plugin-timeline/index.ts
 
-export * from './ulde-plugin-timeline-panel';
+export * from './ulde-devtools-plugin-timeline.panel';

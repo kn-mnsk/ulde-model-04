@@ -25,15 +25,34 @@ src/
       ulde-configurator.routes.ts
       ulde-configurator.ts
     core/
-      debug/
+      devtools/
+        panels/
+          /diagnostics
+            index.ts
+            ulde-devtools-diagnostics.panel.html
+            ulde-devtools-diagnostics.panel.scss
+            ulde-devtools-diagnostics.panel.ts
+          /frame-timeline
+            index.ts
+            ulde-devtools-frame-timeline.panel.html
+            ulde-devtools-frame-timeline.panel.scss
+            ulde-devtools-frame-timeline.panel.ts
+          /plugin-timeline
+            index.ts
+            ulde-devtools-plugin-timeline.panel.html
+            ulde-devtools-plugin-timeline.panel.scss
+            ulde-devtools-plugin-timeline.panel.ts
+          /runtime-inspector
+            index.ts
+            ulde-devtools-runtime-inspector.panel.html
+            ulde-devtools-runtime-inspector.panel.scss
+            ulde-devtools-runtime-inspector.panel.ts
+          index.ts
         index.ts
-        ulde-debug-tools.service.ts
-      overlay/
-        index.ts
-        ulde-overlay.html
-        ulde-overlay.scss
+        ulde-devtools.html
+        ulde-devtools.scss
         ulde-overlay.service.ts
-        ulde-overlay.ts
+        ulde-devtools.ts
       index.ts
       ulde-lifecycle.service.ts
       ulde-plugin-registry.service.ts
@@ -86,9 +105,9 @@ src/
       context/
         index.ts
         ulde-context.types.ts
-      debug/
+      devtools/
         index.ts
-        ulde-debug.types.ts
+        ulde-devtools.types.ts
       diagnostics/
         index.ts
         ulde-diagnostics.types.ts
@@ -109,36 +128,9 @@ src/
         ulde-timing.types.ts
       index.ts
     viewer/
-      panels/
-        /diagnostics
-          index.ts
-          ulde-diagnostics-panel.html
-          ulde-diagnostics-panel.scss
-          ulde-diagnostics-panel.spec.ts
-          ulde-diagnostics-panel.ts
-        /frame-timeline
-          index.ts
-          ulde-frame-timeline-panel.html
-          ulde-frame-timeline-panel.scss
-          ulde-frame-timeline-panel.spec.ts
-          ulde-frame-timeline-panel.ts
-        /plugin-timeline
-          index.ts
-          ulde-plugin-timeline-panel.html
-          ulde-plugin-timeline-panel.scss
-          ulde-plugin-timeline-panel.spec.ts
-          ulde-plugin-timeline-panel.ts
-        /runtime-inspector
-          index.ts
-          ulde-runtime-inspector-panel.html
-          ulde-runtime-inspector-panel.scss
-          ulde-runtime-inspector-panel.spec.ts
-          ulde-runtime-inspector-panel.ts
-        index.ts
       styles/
         ulde-viewer-base.scss
         ulde-viewer-components.scss
-        ulde-viewer-diagnostics.scss
         ulde-viewer-theme-dark.scss
         ulde-viewer-theme-light.scss
       index.ts
@@ -443,223 +435,1101 @@ export class ProductConfigurator {
 
 ### 3. src/ulde/core/
 
-#### 3-1. debug/
+#### 3-1. devtools/
 
-##### 3-1-1. index.ts
+##### 3-1-1. panels/diagnostics/
+
+###### 3-1-1-1. index.ts
 ```ts
-// src/ulde/core/debug/index.ts
+// src/ulde/core/devtools/panels/diagnostics/index.ts
 
-export * from "./ulde-debug-tools.service";
+export * from "./ulde-devtools-diagnostics.panel";
 
 ```
 
-##### 3-1-2. ulde-debug.tools.service.ts
+###### 3-1-1-2. ulde-devtools-diagnostics.panel.html
+```html
+<!-- src/ulde/core/devtools/panels/diagnostics/ulde-devtools-diagnostics.panel.html -->
+
+<!-- <p>ulde-diagnostics-panel works!</p> -->
+
+<div #diagnosticHost class="ulde-diagnostics-panel-root" [class.collapsed]="!$expanded()">
+
+  <div class="header" (click)="toggle()">
+    <span>Diagnostics ({{ $diagnostics().length }})</span>
+    <span class="chevron">{{ $expanded() ? '▼' : '▲' }}</span>
+  </div>
+
+  @if ($expanded()) {
+    <div class="body">
+      @for (d of $diagnostics(); track trackDiag($index, d)) {
+        <div class="diag-item diag-{{ d.level }}" (click)="onHighlight(d.message)">
+          <strong>{{ d.level.toUpperCase() }}</strong>
+          <span class="msg">{{ d.message }}</span>
+
+          @if (d.pluginName) {
+            <span class="meta">plugin: {{ d.pluginName }}</span>
+          }
+
+          @if (d.lifecyclePhase) {
+            <span class="meta">phase: {{ d.lifecyclePhase }}</span>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>
+
+```
+
+###### 3-1-1-3. ulde-devtools-diagnostics.panel.scss
+```scss
+// src/ulde/core/devtools/panels/diagnostics/ulde-devtools-diagnostics.panel.scss
+
+.ulde-diagnostics-panel-root {
+  // position: fixed;
+  display:flex;
+  bottom: 1rem;
+  right: 1rem;
+  width: 320px;
+  background: var(--ulde-bg);
+  color: var(--ulde-text);
+  border: 1px solid var(--ulde-border);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  font-size: 0.9rem;
+  z-index: 9999;
+}
+
+.ulde-diagnostics-panel.collapsed {
+  height: auto;
+}
+
+.header {
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 1px solid var(--ulde-border);
+  display: flex;
+  justify-content: space-between;
+}
+
+.body {
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 0.5rem 1rem;
+}
+
+.diag-item {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--ulde-border);
+}
+
+.diag-item:last-child {
+  border-bottom: none;
+}
+
+.diag-info {
+  color: var(--ulde-diagnostic-info);
+}
+
+.diag-warn {
+  color: var(--ulde-diagnostic-warn);
+}
+
+.diag-error {
+  color: var(--ulde-diagnostic-error);
+}
+
+.msg {
+  display: block;
+  margin: 0.25rem 0;
+}
+
+.meta {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin-right: 0.5rem;
+}
+
+
+.highlight {
+  background: rgba(255, 255, 0, 0.3);
+  transition: background 0.5s ease;
+}
+
+/* Define diagnostics injected into AST */
+.ulde-diagnostic {
+  padding: 0.75rem;
+  margin: 1rem 0;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.ulde-diagnostic-info {
+  background: rgba(0, 120, 212, 0.1);
+  border-left: 4px solid var(--ulde-diagnostic-info);
+}
+
+.ulde-diagnostic-warn {
+  background: rgba(230, 161, 0, 0.1);
+  border-left: 4px solid var(--ulde-diagnostic-warn);
+}
+
+.ulde-diagnostic-error {
+  background: rgba(216, 59, 1, 0.1);
+  border-left: 4px solid var(--ulde-diagnostic-error);
+}
+
+.ulde-diagnostic strong {
+  font-weight: 600;
+}
+
+```
+
+###### 3-1-1-3. ulde-devtools-diagnostics.panel.ts
 ```ts
-// src/ulde/core/debug/ulde-debug.tools.service.ts
+// src/ulde/core/devtools/panels/diagnostics/ulde-devtools-diagnostics.panel.ts
 
-import { Injectable } from '@angular/core';
-import { ULDEOverlayService } from '@ulde/core';
-import { ULDEHeatmapCell, ULDETimelinePoint } from '@ulde/types/debug';
+import { Component, input, signal, ViewChild, ElementRef } from '@angular/core';
+import { ULDEDiagnostic } from '@ulde/types/diagnostics';
 
-@Injectable({ providedIn: 'root' })
-export class ULDEDebugToolsService {
-  constructor(private overlay: ULDEOverlayService) { }
+@Component({
+  selector: 'ulde-devtools-diagnostics-panel',
+  standalone: true,
+  templateUrl: './ulde-devtools-diagnostics.panel.html',
+  styleUrl: './ulde-devtools-diagnostics.panel.scss',
+})
+export class UldeDevToolsDiagnosticsPanel {
 
-  /**
-   * Build a timeline of frames with total durations.
-   */
-  buildTimeline(): ULDETimelinePoint[] {
-    return this.overlay.frames().map(frame => {
-      const total = frame.lifecyclePhaseTimings.reduce((sum, p) => sum + p.duration, 0);
+  @ViewChild('diagnosticsHost', { static: true })
+  hostRef!: ElementRef<HTMLElement>;
 
-      return {
-        frameId: frame.id,
-        totalDuration: total,
-        phases: frame.lifecyclePhaseTimings.map(p => ({
-          lifecyclePhase: p.lifecyclePhase,
-          duration: p.duration
-        }))
-      };
+  $diagnostics = input<ULDEDiagnostic[]>([]);
+  // $highlight = output<string>();
+
+  $expanded = signal(true);
+
+  toggle() {
+    this.$expanded.update(v => !v);
+  }
+
+  trackDiag(i: number, d: ULDEDiagnostic) {
+    return `${d.level}-${d.message}-${i}`;
+  }
+
+  onHighlight(msg: string) {
+    const nodes = this.hostRef.nativeElement.querySelectorAll('.body .ulde-item .msg');
+
+    nodes.forEach(n => {
+      if (n.textContent?.includes(msg)) {
+        n.classList.add('ulde-diagnostic-highlight');
+
+        setTimeout(() => {
+          n.classList.remove('ulde-diagnostic-highlight');
+        }, 1500);
+      }
     });
   }
 
-  /**
-   * Generate a heatmap of plugin performance.
-   * Normalizes plugin durations across all frames.
-   */
-  buildHeatmap(): ULDEHeatmapCell[] {
-    const frames = this.overlay.frames();
-    const timings = frames.flatMap(f => f.pluginTimings);
 
-    if (!timings.length) return [];
+}
 
-    const max = Math.max(...timings.map(t => t.duration));
+```
 
-    return timings.map(t => ({
-      pluginKind: t.pluginKind,
-      pluginName: t.pluginName,
-      hookName: t.hookName,
-      intensity: t.duration / max // normalized 0–1
-    }));
+##### 3-1-2. panels/frame-timeline/
+
+###### 3-1-2-1. index.ts
+```ts
+// src/ulde/code/devtools/panels/frame-timeline/index.ts
+
+export * from './ulde-devtools-frame-timeline.panel';
+
+```
+
+###### 3-1-2-2. ulde-devtools-frame-timeline.panel.html
+```html
+<<!-- src/ulde/core/devtools/panels/frame-timeline/ulde-devtools-frame-timeline.panel.html -->
+
+<!-- <p>ulde-devtools-frame-timeline-panel works!</p> -->
+
+<div class="ulde-frame-timeline-panel-root">
+  <div class="header">
+    <span>Frame Execution Timeline Panel</span>
+  </div>
+  @if($timelines().length > 0 ){
+  <div class="timelines">
+    @for(t of $timelines(); track t.frameId){
+    <div class="timeline">
+      <div class="timeline-header">
+        <div class="item">
+          <span>Frame id: </span><span>{{ t.frameId}}</span>
+        </div>
+        <div class="item">
+          <span>Timestamp: </span><span>{{ t.timeStamp | date:'full'}}</span>
+        </div>
+        <div class="item">
+          <span>Total duration: </span><span>{{t.totalDuration.toFixed(3)}} ms</span>
+        </div>
+
+      </div>
+
+      <div class="timeline-bar">
+        @for (p of t.phases; track p.lifecyclePhase) {
+        <div class="segment" [style.width.%]="(p.duration/t.totalDuration) * 100"
+          [style.background]="phaseColor(p.lifecyclePhase)" [title]="p.lifecyclePhase + ': ' + p.duration + ' ms'">
+        </div>
+        }
+
+      </div>
+
+      <div class="legend">
+        @for (p of t.phases; track p.lifecyclePhase) {
+        <div class="legend-item" [class.warn]="p.duration > $thresholds().phaseWarn"
+          [class.error]="p.duration > $thresholds().phaseError">
+          <span class="color" [style.background]="phaseColor(p.lifecyclePhase)"></span>
+          <span class="name">{{ p.lifecyclePhase }}</span>
+          <span class="duration">{{ p.duration.toFixed(3) }} ms</span>
+        </div>
+        }
+      </div>
+    </div>
+    }
+  </div>
+  }
+</div>
+
+```
+
+###### 3-1-2-3. ulde-devtools-frame-timeline.panel.scss
+```scss
+//src/ulde/core/devtools/panels/frame-timeline/ulde-devtools-frame-timeline.panel.scss
+
+.ulde-frame-timeline-panel-root {
+  // display: flex;
+  // background: var(--ulde-bg);
+  border: 1px solid var(--ulde-border);
+  border-radius: 6px;
+  padding: 1rem;
+  // height: fit-content;
+  // width: fit-content;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.header {
+  margin-bottom: 1rem;
+  font-weight: 800;
+}
+
+.timelines {
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+
+.timeline {
+  border: 1px solid var(--ulde-border);
+}
+
+.timeline-header {
+  display: grid;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+
+  .item {
+    display: grid;
+    flex-direction: row;
+    grid-template-columns: 1fr 3fr ;
+  }
+}
+
+.timeline-bar {
+  width: 90%;
+  // border: 20px;
+  align-items: center;
+  // overflow: fobidden;
+  // border-radius: 3px;
+  margin-bottom: 0.75rem;
+
+  .segment {
+    // width: 100%;
+    display: inline-flex;
+    height: 5px; // 100%;
+    transition: width 0.1s linear;
   }
 
-  /**
-   * Generate warnings based on patterns in frame history.
-   */
-  generateWarnings() {
-    const frames = this.overlay.frames();
-    if (frames.length < 3) return;
+}
 
-    const lastThree = frames.slice(-3);
-    const durations = lastThree.map(f =>
-      f.lifecyclePhaseTimings.reduce((sum, p) => sum + p.duration, 0)
-    );
+.legend {
+  height: 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 4px;
+  background: #333;
+  border-right: 1px solid #444;
+  cursor: pointer;
+  transition: background 0.2s;
+  // overflow: auto;
 
-    const avg = durations.reduce((a, b) => a + b, 0) / durations.length;
-    const last = durations[durations.length - 1];
+  .legend-item {
+    display: flex;
+    align-items: end;
+    // width: 30px;
+    gap: 0.5rem;
 
-    // Sudden spike detection
-    if (last > avg * 1.5) {
-      this.overlay.addDiagnostic({
-        level: 'warn',
-        message: `Frame duration spike detected: ${last.toFixed(1)}ms (avg ${avg.toFixed(1)}ms)`
-      });
+    &.warn {
+      background: #7a5f00;
     }
 
-    // Consistent slowdown detection
-    if (durations.every(d => d > avg)) {
-      this.overlay.addDiagnostic({
-        level: 'warn',
-        message: `Consistent slowdown across last 3 frames`
-      });
+    &.error {
+      background: #7a0000;
+    }
+
+    .color {
+      width: 12px;
+      height: 15px;
+      border-radius: 3px;
+    }
+
+    .name,
+    .duration {
+      width: 100px;
+      height: 20px;
+      text-align: left;
+    }
+
+  }
+
+}
+
+```
+
+###### 3-1-2-4. ulde-devtools-frame-timeline.panel.ts
+```ts
+// src/ulde/core/devtools/panels/frame-timeline/ulde-devtools-frame-timeline.panel.ts
+
+import { Component, input } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { ULDELifecyclePhase, ULDETimelinePoint } from '@ulde/types';
+
+@Component({
+  selector: 'ulde-devtools-frame-timeline-panel',
+  imports: [DatePipe],
+  templateUrl: './ulde-devtools-frame-timeline.panel.html',
+  styleUrl: './ulde-devtools-frame-timeline.panel.scss',
+})
+export class UldeDevtoolsFrameTimelinePanel {
+
+  $thresholds = input<any>();
+
+  $timelines = input<ULDETimelinePoint[]>([]);
+
+
+  phaseColor(phase: ULDELifecyclePhase) {
+    switch (phase) {
+      case 'init': return '#607d8b';
+      case 'load': return '#03a9f4';
+      case 'render': return '#4caf50';
+      case 'hydrate': return '#9c27b0';
+      case 'afterRender': return '#9e9e9e';
+      default: return '#cccccc';
     }
   }
 }
 
 ```
 
-#### 3-2. overay/
+##### 3-1-3. panels/plugin-timeline/
 
-##### 3-2-1. index.ts
+###### 3-1-3-1. index.ts
 ```ts
-// src/ulde/core/overlay/index.ts
+// src/ulde/core/devtools/panels/plugin-timeline/index.ts
 
-export * from "./ulde-overlay.service";
-export * from "./ulde-overlay";
+export * from './ulde-devtools-plugin-timeline.panel';
 
 ```
 
-##### 3-2-2. ulde-overlay.html
-```html
-<!-- src/ulde/core/overlay/ulde-overlay.html -->
- 
-<p>UldeOverlay Works!</p>
-<div class="ulde-overlay" [class.hidden]="!visible()" [style.opacity]="opacity()">
+###### 3-1-3-2. ulde-devtools-plugin-timeline.panel.html
+```ts
+<!-- src/ulde/core/devtools/panels/plugin-timeline/ulde-devtools-plugin-timeline.panel.html -->
 
-  <!-- Header -->
-  <header class="overlay-header">
-    <h3>ULDE Overlay</h3>
+<!-- <p>ulde-plugin-timeline-panel works!</p> -->
 
-    <div class="controls">
-      <button (click)="toggleOverlay()">Toggle</button>
-      <button (click)="pinOverlay()">
-        {{ pinned() ? 'Unpin' : 'Pin' }}
-      </button>
+<div class="ulde-plugin-timeline-panel-root">
 
-      <input type="range" min="0.2" max="1" step="0.1" [value]="opacity()"
-        (input)="setOverlayOpacity($any($event.target).value)" />
-    </div>
-  </header>
+  <div class="header">
+    <span><strong>Plugin Execution Timeline Panel</strong></span>
+    <span>{{ $pluginTimings().length }} plugins</span>
+    <span>total duration: {{total.toFixed(3)}} ms</span>
+  </div>
 
-  <!-- Lifecycle Phases Timeline -->
-  <section class="phase-timeline">
-    @for (p of lifecyclePhaseTimings(); track p.lifecyclePhase) {
-    <div class="phase" [class.warn]="p.duration > thresholds.phaseWarn"
-      [class.error]="p.duration > thresholds.phaseError" (click)="selectPhase(p)">
-      <span class="label">{{ p.lifecyclePhase }}</span>
-      <span class="duration">{{ p.duration | number:'1.0-1' }}ms</span>
-    </div>
-    }
-  </section>
+  <div class="rows">
+    @if($pluginTimings().length > 0){
 
-  <!-- Plugin Timings -->
-  <section class="plugin-timings">
-    <h4>Plugin Timings</h4>
+    @for (p of plugins(); track p.label) {
+    <div class="row">
+      <div class="color" [style.background]="p.color"></div>
+      <div class="kind">{{p.kind}} </div>
+      <div class="label">{{ p.label }}</div>
+      <div class="phase">{{p.phase}}</div>
+      <div class="duration" [style.color]="p.color">
+        {{ p.duration.toFixed(3) }} ms
+      </div>
+      <div class="bar-container">
+        <div class="bar" [style.width.%]="p.ratio * 100" [style.background]="p.color">
+        </div>
+      </div>
 
-    @for (t of filteredPluginTimings(); track t.pluginName) {
-    <div class="plugin-row">
-      <span class="plugin">{{ t.pluginName }}</span>
-      <span class="kind">{{ t.pluginKind }}</span>
-      <span class="hook">{{ t.hookName }}</span>
-      <span class="phase">{{ t.lifecyclePhase }}</span>
-      <span class="duration">{{ t.duration | number:'1.0-1' }}ms</span>
     </div>
     }
-  </section>
-
-  <!-- Sparkline -->
-  <section class="sparkline">
-    <svg width="100%" height="40">
-      <polyline class="sparkline-line" [attr.points]="sparklinePoints()"></polyline>
-    </svg>
-  </section>
-
-  <!-- Diagnostics -->
-  <section class="diagnostics">
-    <h4>Diagnostics</h4>
-
-    @for (d of diagnostics(); track d.message) {
-    <div class="diag-row">
-      <span class="level" [class.warn]="d.level === 'warn'" [class.error]="d.level === 'error'">
-        {{ d.level }}
-      </span>
-
-      <span class="message">{{ d.message }}</span>
-
-      @if (d.lifecyclePhase) {
-      <span class="meta">(phase: {{ d.lifecyclePhase }})</span>
-      }
-
-      @if (d.pluginName) {
-      <span class="meta">(plugin: {{ d.pluginName }})</span>
-      }
-    </div>
     }
-  </section>
-
-  <!-- Frame History -->
-  <section class="frame-history">
-    <h4>Frames</h4>
-
-    @for (f of frameHistory(); track f.id) {
-    <div class="frame-row" (click)="selectFrame(f)">
-      <span class="frame-id">{{ f.id }}</span>
-      <span class="timestamp">{{ f.timestamp | date:'mediumTime' }}</span>
-      <span class="total">
-        {{
-        f.lifecyclePhaseTimings.reduce((a, p) => a + p.duration, 0)
-        | number:'1.0-1'
-        }}ms
-      </span>
-    </div>
-    }
-  </section>
+  </div>
 
 </div>
 
 ```
 
-##### 3-2-3. ulde-overaly.scss
+###### 3-1-3-3. ulde-devtools-plugin-timeline.panel.scss
 ```scss
-// src/ulde/core/overlay/ulde-overlay.scss
+// src/ulde/core/devtools/panels/plugin-timeline/ulde-devtools-plugin-timeline.panel.scss
 
-.ulde-overlay {
+.ulde-plugin-timeline-panel-root {
+  border: 1px solid var(--ulde-border);
+  border-radius: 6px;
+  padding: 1rem;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  overflow: auto;
+
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+.rows {
+  display: flex;
+  height: 350px;
+  flex-direction: column;
+  gap: 0.5rem;
+  overflow: auto;
+}
+
+.row {
+  padding-left:5px;
+  padding-right:5px;
+  width: 95%;
+  display: grid;
+  flex-direction: row;
+  align-items: center;
+  border: 1px solid var(--ulde-border);
+  grid-template-columns: 0.05fr 0.3fr 0.6fr 0.3fr 0.3fr 0.3fr;
+
+  font-size: 0.8rem;
+}
+
+.kind,
+.phase,
+.label,
+.duraion {
+  height: 20px;
+  padding-left: 3px;
+  text-wrap: wrap;
+  text-align: left;
+
+}
+
+.color {
+  height: 12px;
+  border-radius: 3px;
+}
+
+
+.duration {
+  font-weight: bold;
+}
+
+.bar-container {
+  background: var(--ulde-border);
+  width: 100px;
+  height: 12px;
+  border-radius: 3px;
+
+  .bar {
+    border-radius: 3px;
+    height: 100%;
+    transition: width 0.15s ease-out;
+  }
+
+}
+
+```
+
+###### 3-1-3-4. ulde-devtools-plugin-timeline.panel.ts
+```ts
+// src/ulde/core/devtools/panels/plugin-timeline/ulde-devtools-plugin-timeline.panel.ts
+
+import { Component, computed, input } from '@angular/core';
+import { ULDEPluginKind } from '@ulde/types/plugin';
+import { ULDEPluginTiming } from '@ulde/types/timing';
+
+@Component({
+  selector: 'ulde-devtools-plugin-timeline-panel',
+  imports: [],
+  templateUrl: './ulde-devtools-plugin-timeline.panel.html',
+  styleUrl: './ulde-devtools-plugin-timeline.panel.scss',
+})
+export class UldeDevtoolsPluginTimelinePanel {
+
+  total: number = 0;
+
+  $pluginTimings = input<ULDEPluginTiming[]>([]);
+
+
+  plugins = computed(() => {
+    const list = this.$pluginTimings() ?? [];
+    if (list.length === 0) return [];
+
+    this.total = list.reduce((sum, p) => sum + p.duration, 0) || 1;
+
+    return list
+      .slice()
+      .sort((a, b) => b.duration - a.duration)
+      .map(p => ({
+        label: `${p.pluginName} (${p.hookName})`,
+        duration: p.duration,
+        ratio: p.duration / this.total,
+        color: pluginColor(p.pluginKind),
+        phase: p.lifecyclePhase,
+        kind: p.pluginKind,
+      }));
+  });
+}
+
+function pluginColor(kind: ULDEPluginKind) {
+  switch (kind) {
+    // switch (kind) {
+    case 'content': return '#4caf50';
+    case 'layout': return '#2196f3';
+    case 'interactive': return '#ff9800';
+    case 'navigation': return '#9c27b0';
+    case 'demo': return '#e91e63';
+    case 'ulde': return '#9e9e9e';
+    default: return '#cccccc';
+  }
+}
+
+```
+
+
+##### 3-1-4. panels/runtime-inspector/
+
+###### 3-1-4-1. index.ts
+```ts
+// src/ulde/core/devtools/panels/runtime-inspector/index.ts
+
+export * from './ulde-devtools-runtime-inspector.panel';
+
+```
+
+###### 3-1-4-2. ulde-devtools-runtime-inspector.panel.html
+```html
+<!-- src/ulde/core/devtools/panels/runtime-inspector/ulde-devtools-runtime-inspector.panel.html -->
+
+<p>ulde-runtime-inspector-panel works!</p>
+
+<div class="devtools-runtime-inspector-panel-root">
+
+  <div class="header">
+    <span><strong>Runtime Inspector Panel</strong></span>
+    <span class="meta">model: {{ $rendererState()?.modelId }}</span>
+    <span class="meta">variant: {{ $rendererState()?.variantId }}</span>
+  </div>
+
+  @if($rendererState()){
+
+  <div class="tabs">
+    <button class="tab" [class.active]="$activeTab() === 'ast'" (click)="setTab('ast')">AST</button>
+    <button class="tab" [class.active]="$activeTab() === 'layout'" (click)="setTab('layout')">Layout</button>
+    <button class="tab" [class.active]="$activeTab() === 'sections'" (click)="setTab('sections')">Sections</button>
+    <button class="tab" [class.active]="$activeTab() === 'toc'" (click)="setTab('toc')">TOC</button>
+    <button class="tab" [class.active]="$activeTab() === 'anchors'" (click)="setTab('anchors')">Anchors</button>
+    <!-- <button class="tab" [class.active]="$activeTab() === 'frame'" (click)="setTab('frame')">Frame</button> -->
+  </div>
+
+  <div class="body">
+
+    @if ($activeTab() === 'ast') {
+    <pre class="json-view">{{ $astNodes() | json }}</pre>
+    }
+
+    @if ($activeTab() === 'layout') {
+    <pre class="json-view">{{ $layout() | json }}</pre>
+    }
+
+    @if ($activeTab() === 'sections') {
+    <ul class="list-view">
+      @for (s of $sections(); track track($index)) {
+      <li>
+        <code>{{ s.id }}</code>
+        <!-- <span class="title">{{ s.title }}</span> -->
+        <span class="depth">depth: {{ s.depth }}</span>
+      </li>
+      }
+    </ul>
+    }
+
+    @if ($activeTab() === 'toc') {
+    <ul class="list-view">
+      @for (t of $toc(); track track($index)) {
+      <li>
+        <code>{{ t.href }}</code>
+        <span class="title">{{ t.label }}</span>
+      </li>
+      }
+    </ul>
+    }
+
+    @if ($activeTab() === 'anchors') {
+    <ul class="list-view">
+      @for (a of $anchors(); track track($index)) {
+      <li>
+        <code>{{ a.id }}</code>
+        <span class="depth">{{ a.depth }}</span>
+        <span class="title">{{ a.text }}</span>
+      </li>
+      }
+    </ul>
+    }
+
+    <!-- @if ($activeTab() === 'frame') {
+    <pre class="json-view">{{ $frame() | json }}</pre>
+    } -->
+
+  </div>
+  }
+</div>
+
+```
+
+###### 3-1-4-3. ulde-devtools-runtime-inspector.panel.scss
+```scss
+/* src/ulde/core/devtools/panels/runtime-inspector/ulde-devtools-runtime-inspector.panel.scss */
+
+.devtools-runtime-inspector-panel-root {
+  // background: var(--ulde-bg);
+  height: 300px;// auto;
+  border: 1px solid var(--ulde-border);
+  border-radius: 6px;
+  padding: 1rem;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.meta {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.tab {
+  border: 1px solid var(--ulde-border);
+  background: var(--ulde-bg);
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.tab.active {
+  background: var(--ulde-accent);
+  color: #fff;
+  border-color: var(--ulde-accent);
+}
+
+.body {
+  max-height: 260px;
+  overflow: auto;
+}
+
+.json-view {
+  font-family: monospace;
+  font-size: 0.8rem;
+  background: #1113;
+  padding: 0.5rem;
+  border-radius: 4px;
+}
+
+.list-view {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.list-view li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid var(--ulde-border);
+}
+
+.list-view li:last-child {
+  border-bottom: none;
+}
+
+code {
+  font-family: monospace;
+  font-size: 0.8rem;
+  background: #0001;
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+}
+
+```
+
+###### 3-1-4-4. ulde-devtools-runtime-inspector.panel.ts
+```ts
+// src/ulde/core/devtools/panels/runtime-inspector/ulde-devtools-runtime-inspector.panel.ts
+
+import { JsonPipe } from '@angular/common';
+import { Component, computed, input, signal } from '@angular/core';
+import { ULDERendererState } from '@ulde/types/renderer';
+import { ULDEAstNode } from '@ulde/types/context';
+import { ULDEFrame } from '@ulde/types/frame';
+import { ULDEDevtoolsInspectorTab } from '@ulde/types/devtools';
+
+@Component({
+  selector: 'ulde-devtools-runtime-inspector-panel',
+  imports: [JsonPipe],
+  templateUrl: './ulde-devtools-runtime-inspector.panel.html',
+  styleUrl: './/ulde-devtools-runtime-inspector.panel.scss',
+})
+export class UldeDevtoolsRuntimeInspectorPanel {
+
+  $rendererState = input<ULDERendererState | undefined>(undefined);
+
+  $frame = input<ULDEFrame | null>(null);
+
+  $activeTab = signal<ULDEDevtoolsInspectorTab>('ast');
+
+  $astNodes = computed(() => this.$rendererState()?.renderContext?.ast ?? []);
+  $layout = computed(() => this.$rendererState()?.renderContext?.layout ?? null);
+  // $frame = computed(() => this.$rendererState()?.frame ?? null);
+  $sections = computed(() => this.extractSections(this.$astNodes()));
+  $toc = computed(() => this.extractToc(this.$astNodes()));
+  $anchors = computed(() => this.extractAnchors(this.$astNodes()));
+
+  private extractSections(ast: ULDEAstNode[]) {
+    const result: { id: string; depth: number }[] = [];
+
+    function walk(node: ULDEAstNode) {
+      if (node.type === 'section') {
+        result.push({
+          id: node.meta?.['id'] ?? '',
+          depth: node.meta?.['depth'],
+        });
+      }
+
+      node.children?.forEach(child => walk(child));
+    }
+
+    ast.forEach(n => walk(n));
+
+    
+    return result;
+  }
+
+  private extractToc(ast: ULDEAstNode[]) {
+    const tocs: { href: string; label: string }[] = [];
+
+    function walk(node: ULDEAstNode) {
+      if (node.type === 'link') {
+        tocs.push({
+          href: node.meta?.['href'],
+          label: node.children?.filter(n => n.type === 'text').map(n => n.value).join('') ?? ''
+        });
+      }
+
+      node.children?.forEach(child => walk(child));
+    }
+
+    ast.filter(n => n.type === 'toc').forEach(n => walk(n));
+
+    return tocs;
+  }
+
+  private extractAnchors(ast: ULDEAstNode[]) {
+
+    console.log(`Log: [UldeRuntimeInspectorPanel] extractAnchors`);
+
+    const anchors: { id: string; depth: number, text: string }[] = [];
+    let depth: number = 0;
+
+    function walk(children: ULDEAstNode[] | undefined) {
+
+      if (children === undefined) return;
+
+      let id: string ='';
+      let text: string ='';
+
+      children.forEach((child) => {
+
+        switch (child.type) {
+          case 'anchor': {
+            id = child.meta?.['id'] ?? '';
+            break;
+          }
+          case 'text': {
+            text = child.value ?? '';
+            break;
+          }
+        };
+
+        if (id !== '' && text !== '') {
+          anchors.push({
+            id: id,
+            depth: depth,
+            text: text
+          });
+
+          walk(child.children);
+        }
+
+      });
+
+    }
+
+    ast.filter(n => n.type === 'section').forEach(n => n.children?.filter(n => n.type === 'heading').forEach(n => {
+      depth = n.depth ?? -1;
+      walk(n.children);
+    }));
+
+    return anchors;
+  }
+
+  setTab(tab: ULDEDevtoolsInspectorTab) {
+    this.$activeTab.set(tab);
+  }
+
+  track(i: number) { return i; }
+
+
+}
+
+```
+
+##### 3-1-5. panels/index.ts
+```ts
+// src/ulde/core/devtools/panels/index.ts
+
+export * from "./diagnostics";
+export * from "./frame-timeline";
+export * from "./plugin-timeline";
+export * from "./runtime-inspector";
+
+```
+
+#### 3-1-6. index.ts
+```ts
+// src/ulde/core/devtools/index.ts
+
+export * from './panels';
+export * from "./ulde-devtools.service";
+export * from "./ulde-devtools";
+
+```
+
+#### 3-1-7. udel-devtools.html
+```html
+<!-- src/ulde/core/devtools/ulde-devtools.html -->
+
+<p>UldeDevtools Works!</p>
+<div class="ulde-devtools-root" [class.hidden]="!$visible()" [style.opacity]="$opacity()">
+
+  <!-- Header -->
+  <header class="header">
+    <h3>ULDE DevTools Panel</h3>
+    <div class="controls">
+      <button (click)="toggleDevTools()">Toggle</button>
+      <button (click)="pinDevTools()">
+        {{ $pinned() ? 'Unpin' : 'Pin' }}
+      </button>
+      <input type="range" min="0.2" max="1" step="0.1" [value]="$opacity()"
+        (input)="setDevToolsOpacity($any($event.target).value)" />
+    </div>
+  </header>
+
+
+  <div class="tabs">
+    <button class="tab" [class.active]="$activeTab() === 'diagnostics'"
+      (click)="selectTab('diagnostics')">Diagnostics</button>
+    <button class="tab" [class.active]="$activeTab() === 'timeline'" (click)="selectTab('timeline')">Timeline</button>
+    <button class="tab" [class.active]="$activeTab() === 'profiler'" (click)="selectTab('profiler')">Profiler</button>
+    <button class="tab" [class.active]="$activeTab() === 'heatmap'" (click)="selectTab('heatmap')">Heatmap</button>
+    <button class="tab" [class.active]="$activeTab() === 'inspector'"
+      (click)="selectTab('inspector')">Inspector</button>
+    <button class="tab" [class.active]="$activeTab() === 'frames'" (click)="selectTab('frames')">Frames</button>
+    <button class="tab" [class.active]="$activeTab() === 'plugins'" (click)="selectTab('plugins')">Plugins</button>
+    <button class="tab" [class.active]="$activeTab() === 'sparkline'"
+      (click)="selectTab('sparkline')">Sparkline</button>
+  </div>
+
+  <div class="body">
+
+    @if($activeTab() === 'diagnostics'){
+    <!-- Disgnostics -->
+    <div class="diagnostics-tab">
+      <ulde-devtools-diagnostics-panel [$diagnostics]="$store().diagnostics"></ulde-devtools-diagnostics-panel>
+    </div>
+
+    }
+
+    @if($activeTab() === 'timeline'){
+    <!-- Timeline -->
+    <div class="timeline-tab">
+      <ulde-devtools-frame-timeline-panel [$timelines]="$store().timeline"
+        [$thresholds]="thresholds"></ulde-devtools-frame-timeline-panel>
+    </div>
+    }
+
+    @if($activeTab() === 'profiler'){
+    <div class="profiler-tab">
+    </div>
+
+    }
+
+    @if($activeTab() === 'heatmap'){
+
+    <div class="heatmap-tab">
+      <div class="header">
+        <span>Plugin Heatmap</span>
+      </div>
+
+      <div class="rows">
+        @for (t of $store().heatMap; track ($index)) {
+        <div class="row">
+          <div class="phase">
+            <span>{{ t.lifecyclePhase }} </span>
+          </div>
+          <div class="kind">
+            <span>{{ t.pluginKind }} </span>
+          </div>
+          <div class="plugin hook">
+            <span>{{ t.pluginName }} ({{ t.hookName }}) </span>
+          </div>
+          <!-- <div class="hook">
+            <span>{{ t.hookName }} </span>
+          </div> -->
+          <div class="intensity-container">
+            <div class="intensity" [style.width.%]="t.intensity * 100" [style.background]="'#d53c3c'"
+              [title]="t.lifecyclePhase + '-' + t.pluginKind + '-' + t.pluginName + '-' + t.hookName ">
+            </div>
+          </div>
+          <div class="ratio">
+            <span>{{t.intensity.toFixed(3)}}</span>
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+
+    }
+
+    @if($activeTab() === 'inspector'){
+    <!-- Inspector -->
+    <div class="inspector-tab">
+      <ulde-devtools-runtime-inspector-panel [$rendererState]="$rendererState()"
+        [$frame]="$store().currentFrame"></ulde-devtools-runtime-inspector-panel>
+    </div>
+    }
+
+    @if($activeTab() === 'frames'){
+    <!-- Frames -->
+    <div class="frame-history-tab">
+      <section class="frame-history">
+        <h4>Frame History</h4>
+
+        @for (f of $store().frameHistory; track f.id) {
+        <!-- @for (f of $frameHistory(); track f.id) { -->
+        <div class="frame-row" (click)="selectFrame(f)">
+          <span class="frame-id">Frame Id: {{ f.id }}</span>
+          <span class="timestamp">Timestamp: {{ f.timestamp | date:'full' }}</span>
+          <span class="total">Total Duration:
+            {{
+            f.lifecyclePhaseTimings.reduce((a, p) => a + p.duration, 0)
+            | number:'1.0-1'
+            }}ms
+          </span>
+          <span class="json-view">
+            @for(t of f.lifecyclePhaseTimings; track t.lifecyclePhase; let no = $index){
+            <span>#{{no}}: </span>
+            <span>{{t| json }}</span><br>
+            }
+          </span>
+        </div>
+        }
+
+      </section>
+    </div>
+
+    }
+
+    @if($activeTab() === 'plugins'){
+    <!-- Plugin Timings -->
+    <div class="plugins-tab">
+      <ulde-devtools-plugin-timeline-panel [$pluginTimings]="$store().pluginTimings"></ulde-devtools-plugin-timeline-panel>
+    </div>
+    }
+
+    @if($activeTab() === 'sparkline'){
+    <!-- Sparkline -->
+    <div class="sparkline-tab">
+      <section class="sparkline">
+        <h4>Sparline</h4>
+        <svg width="100%" height="100%">
+          <polyline class="sparkline-line" [attr.points]="$store().sparklinePoints"></polyline>
+        </svg>
+      </section>
+
+    </div>
+    }
+
+  </div>
+
+</div>
+
+```
+
+#### 3-1-8. udel-devtools.scss
+```scss
+// src/ulde/core/devtools/ulde-devtools.scss
+
+.ulde-devtools-root {
   position: fixed;
-  bottom: 0;
+  top: 0;
   right: 0;
-  width: 420px;
-  height: 65vh;
-  background: rgba(20, 20, 20, 0.85);
+  width: 650px;
+  height: 80vh;
+  background: rgba(20, 20, 20, 0.85); // var(--ulde-background
   color: #eee;
   font-family: system-ui, sans-serif;
   border-radius: 8px 8px 0 0;
@@ -674,183 +1544,204 @@ export * from "./ulde-overlay";
     opacity: 0;
     pointer-events: none;
   }
+}
 
-  header.overlay-header {
+header.header {
+  height: 50px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+
+  h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .controls {
     display: flex;
-    justify-content: space-between;
+    gap: 8px;
     align-items: center;
-    margin-bottom: 12px;
 
-    h3 {
-      margin: 0;
-      font-size: 16px;
-      font-weight: 600;
-    }
-
-    .controls {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-
-      button {
-        background: #555;
-        border: none;
-        padding: 6px 10px;
-        border-radius: 4px;
-        color: #eee;
-        cursor: pointer;
-
-        &:hover {
-          background: #666;
-        }
-      }
-
-      input[type='range'] {
-        width: 80px;
-      }
-    }
-  }
-
-  /* Phase Timeline */
-  .phase-timeline {
-    display: flex;
-    height: 40px;
-    border-radius: 4px;
-    overflow: hidden;
-    margin-bottom: 12px;
-
-    .phase {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 4px;
-      background: #333;
-      border-right: 1px solid #444;
-      cursor: pointer;
-      transition: background 0.2s;
-
-      &.warn {
-        background: #7a5f00;
-      }
-
-      &.error {
-        background: #7a0000;
-      }
-
-      .label {
-        font-size: 10px;
-        text-transform: uppercase;
-        opacity: 0.8;
-      }
-
-      .duration {
-        font-size: 11px;
-        font-weight: bold;
-      }
-    }
-  }
-
-  /* Plugin Timings */
-  .plugin-timings {
-    max-height: 140px;
-    overflow-y: auto;
-    margin-bottom: 12px;
-
-    h4 {
-      margin: 0 0 6px 0;
-      font-size: 14px;
-      font-weight: 600;
-    }
-
-    .plugin-row {
-      display: grid;
-      grid-template-columns: 1fr 0.7fr 0.7fr 0.7fr 0.5fr;
-      padding: 4px 0;
-      border-bottom: 1px solid #444;
+    button {
+      background: #555;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 4px;
+      color: #eee;
       cursor: pointer;
 
       &:hover {
-        background: rgba(255, 255, 255, 0.05);
+        background: #666;
       }
+    }
 
-      .plugin {
-        font-weight: bold;
-      }
-
-      .duration {
-        text-align: right;
-      }
+    input[type='range'] {
+      width: 80px;
     }
   }
+}
 
-  /* Sparkline */
-  .sparkline {
-    height: 40px;
-    margin-bottom: 12px;
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
 
-    .sparkline-line {
-      fill: none;
-      stroke: #4fc3f7;
-      stroke-width: 2;
-    }
+  .tab {
+    border: 1px solid var(--ulde-border);
+    background: var(--ulde-bg);
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
   }
 
-  /* Diagnostics */
-  .diagnostics {
-    max-height: 120px;
-    overflow-y: auto;
-    margin-bottom: 12px;
+  .tab.active {
+    background: var(--ulde-accent);
+    color: #fff;
+    border-color: var(--ulde-accent);
+  }
 
-    h4 {
-      margin: 0 0 6px 0;
-      font-size: 14px;
-      font-weight: 600;
-    }
+}
 
-    .diag-row {
-      display: flex;
-      gap: 8px;
-      padding: 4px 0;
-      border-bottom: 1px solid #444;
 
-      .level {
-        font-weight: bold;
-        text-transform: uppercase;
+.body {
+  height: 65vh; // max-height: auto;
+  // overflow: auto;
 
-        &.warn {
-          color: #ffb300;
+}
+
+
+/* Diagnostics */
+.diagnostics-tab {
+  // max-height: 120px;
+  height: auto;
+  overflow-y: auto;
+  // margin-bottom: 12px;
+
+}
+
+/* Timeline*/
+.timeline-tab {
+  height: auto;
+  overflow-y: auto;
+}
+
+/* Profiler*/
+.profiler-tab {
+  height: auto;
+  overflow-y: auto;
+}
+
+/* Heatmap */
+.heatmap-tab {
+  width: 100%;
+  // .plugin-timings {
+  display: inline-block;
+  // flex: 1;
+  // max-height: 140px;
+  // overflow-y: auto;
+  height: auto;
+  // margin-bottom: 12px;
+
+  .header {
+    margin: 0 0 6px 0;
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  .rows {
+    display: flex;
+    flex-direction: column;
+    height: 350px;
+    gap: 0.5rem;
+    overflow: auto;
+
+    .row {
+      padding-left: 5px;
+      padding-right: 5px;
+      width: 95%;
+      // width: fit-content;
+      display: grid; //inline-flex;
+      flex-direction: row;
+      align-items: center;
+      border: 1px solid var(--ulde-border);
+      grid-template-columns: 0.3fr 0.3fr 0.9fr  0.3fr 0.3fr;
+      // padding: 4px 0;
+      // border-bottom: 1px solid #f3ebeb;
+      cursor: pointer;
+
+      &:hover {
+        background: rgba(82, 229, 19, 0.582);
+      }
+
+      .phase,
+      .kind,
+      .plugin,
+      .hook,
+      .ratio {
+        padding-right: 2px;
+        text-align: left;
+        // font-weight: bold;
+      }
+
+      .intensity-container {
+        height: 10px;
+        width: 60px;
+
+        background: #edeaea;
+        ;
+        // bottom: 0px;
+
+        .intensity {
+          display: flex;
+          height: 100%;
+          transition: width 0.15s linear;
         }
 
-        &.error {
-          color: #ff5252;
-        }
       }
 
-      .meta {
-        opacity: 0.7;
-        font-size: 11px;
+      .ratio {
+        color: rgb(241, 11, 11);
+        font-weight: bold;
       }
     }
   }
+}
 
-  /* Frame History */
+/* Inspector */
+.inspector-tab {
+  height: auto;
+  overflow: hidden;
+}
+
+/* Frames */
+.frame-history-tab {
+  display: flex;
+  width: fit-content;
+  height: auto;
+  overflow-y: auto;
+
   .frame-history {
-    max-height: 120px;
-    overflow-y: auto;
 
-    h4 {
+    // max-height: auto;
+    // display: flex;
+    overflow-y: auto h4 {
       margin: 0 0 6px 0;
       font-size: 14px;
       font-weight: 600;
     }
 
     .frame-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr 0.7fr;
+      display: flex;
+      flex-direction: column;
+      // display: grid;
+      // grid-template-columns: 1fr 1fr 0.7fr;
       padding: 4px 0;
       border-bottom: 1px solid #444;
       cursor: pointer;
+      // overflow-y: auto;
 
       &:hover {
         background: rgba(255, 255, 255, 0.05);
@@ -861,262 +1752,191 @@ export * from "./ulde-overlay";
       }
 
       .total {
-        text-align: right;
+        text-align: left;
       }
+
+      .json-view {
+        height: 200px;
+        font-family: monospace;
+        font-size: 0.8rem;
+        background: #1113;
+        padding: 0.5rem;
+        border-radius: 4px;
+        overflow: auto;
+      }
+
+    }
+
+  }
+
+}
+
+
+/* Plugins */
+.plugins-tab {
+  height: auto;
+  overflow: auto;
+}
+
+
+/* Sparkline */
+.sparkline-tab {
+  height: auto;
+  overflow-y: auto;
+
+  .sparkline {
+    width: 100px;
+    height: 40px;
+    background-color: #d2a2a2;
+    margin-bottom: 12px;
+
+    .sparkline-line {
+      fill: red;
+      stroke: #4fc3f7;
+      stroke-width: 2;
     }
   }
+
 }
 
 ```
 
-##### 3-2-4. ulde-overlay.service.ts
+#### 3-1-9. udel-devtools.ts
 ```ts
-// src/ulde/core/overlay/ulde-overlay.service.ts
+// src/ulde/core/devtools/ulde-devtools.ts
 
-import { computed, Injectable, signal } from '@angular/core';
+import { DatePipe, DecimalPipe, JsonPipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, effect, input, output, signal } from '@angular/core';
+import { UldeDevToolsDiagnosticsPanel, UldeDevtoolsFrameTimelinePanel, UldeDevtoolsPluginTimelinePanel, UldeDevtoolsRuntimeInspectorPanel, ULDEDevtoolsService } from '@ulde/core/devtools';
+import { ULDERendererState } from '@ulde/types';
+import { ULDEDevToolsTab } from '@ulde/types/devtools';
 import { ULDEDiagnostic } from '@ulde/types/diagnostics';
-import { ULDEFrame } from '@ulde/types/frame';
-import { ULDELifecyclePhase, ULDELifecyclePhaseTiming } from '@ulde/types/lifecycle';
-import { ULDEPluginTiming } from '@ulde/types/timing';
-
-@Injectable({ providedIn: 'root' })
-export class ULDEOverlayService {
-  // Overlay visibility + controls
-  visible = signal(true);
-  pinned = signal(false);
-  opacity = signal(1);
-
-  // Lifecycle state
-  lifecyclePhaseTimings = signal<ULDELifecyclePhaseTiming[]>([]);
-  currentLifecyclePhaseTiming = signal<ULDELifecyclePhaseTiming | null>(null);
-
-  // Plugin timings
-  pluginTimings = signal<ULDEPluginTiming[]>([]);
-
-  // Frame history
-  frames = signal<ULDEFrame[]>([]);
-  currentFrame = signal<ULDEFrame | null>(null);
-
-  // Diagnostics
-  diagnostics = signal<ULDEDiagnostic[]>([]);
-
-  // Thresholds (tweakable)
-  thresholds = {
-    phaseWarn: 8,
-    phaseError: 16,
-  };
-
-  // Derived: sparkline points
-  sparklinePoints = computed(() => {
-    const history = this.frames();
-    if (!history.length) return '';
-
-    return history
-      .map((f, i) => {
-        const total = f.lifecyclePhaseTimings.reduce((a, p) => a + p.duration, 0);
-        return `${i * 10},${40 - Math.min(total, 40)}`;
-      })
-      .join(' ');
-  });
-
-  // Derived: filtered plugin timings by lifecycle phase
-  filteredPluginTimings = computed(() => {
-    const lifecyclePhaseTiming = this.currentLifecyclePhaseTiming();
-    const timings = this.pluginTimings();
-
-    if (!lifecyclePhaseTiming) return timings;
-    return timings.filter(t => t.lifecyclePhase === lifecyclePhaseTiming.lifecyclePhase);
-  });
-
-  // Overlay control methods
-  toggle() {
-    this.visible.update(v => !v);
-  }
-
-  pin() {
-    this.pinned.update(p => !p);
-  }
-
-  setOpacity(value: number) {
-    this.opacity.set(value);
-  }
-
-  // Lifecycle event handlers
-  startPhase(lifecyclePhase: ULDELifecyclePhase) {
-    this.currentLifecyclePhaseTiming.set({
-      lifecyclePhase,
-      startTime: performance.now(),
-      endTime: 0,
-      duration: 0,
-    });
-  }
-
-  endPhase(lifecyclePhase: ULDELifecyclePhase) {
-    const phase = this.currentLifecyclePhaseTiming();
-    if (!phase || phase.lifecyclePhase !== lifecyclePhase) return;
-
-    const end = performance.now();
-    const duration = end - phase.startTime;
-
-    const updatedPhase: ULDELifecyclePhaseTiming = {
-      ...phase,
-      endTime: end,
-      duration,
-    };
-
-    this.lifecyclePhaseTimings.update(list => [...list, updatedPhase]);
-    this.currentLifecyclePhaseTiming.set(null);
-  }
-
-  // Plugin timing recording
-  recordPluginTiming(timing: ULDEPluginTiming) {
-    this.pluginTimings.update(list => [...list, timing]);
-  }
-
-  // Frame finalization
-  finalizeFrame() {
-    const frame: ULDEFrame = {
-      id: crypto.randomUUID(),
-      timestamp: Date.now(),
-      lifecyclePhaseTimings: this.lifecyclePhaseTimings(),
-      pluginTimings: this.pluginTimings(),
-      diagnostics: this.diagnostics()
-    };
-
-    this.frames.update(list => [...list.slice(-50), frame]); // keep last 50 frames
-    this.currentFrame.set(frame);
-
-    // reset for next frame
-    this.lifecyclePhaseTimings.set([]);
-    this.pluginTimings.set([]);
-  }
-
-  // Diagnostics
-  addDiagnostic(diag: ULDEDiagnostic) {
-    this.diagnostics.update(list => [...list, diag]);
-  }
-
-
-}
-
-```
-
-##### 3-2-5. ulde-overlay.ts
-```ts
-// src/ulde/core/overlay/ulde-overlay.ts
-
-import { ChangeDetectionStrategy, Component} from '@angular/core';
-import {DecimalPipe, DatePipe} from '@angular/common'
-import { ULDEOverlayService } from '@ulde/core/overlay';
 import { ULDEFrame } from '@ulde/types/frame';
 import { ULDELifecyclePhaseTiming } from '@ulde/types/lifecycle';
 
 @Component({
-  selector: 'ulde-overlay',
-  imports: [DecimalPipe, DatePipe],
-  templateUrl: './ulde-overlay.html',
-  styleUrls: ['./ulde-overlay.scss'],
+  selector: 'ulde-devtools',
+  imports: [
+    DecimalPipe, DatePipe, JsonPipe,
+    UldeDevToolsDiagnosticsPanel,
+    UldeDevtoolsFrameTimelinePanel,
+    UldeDevtoolsRuntimeInspectorPanel,
+    UldeDevtoolsPluginTimelinePanel,
+
+  ],
+  templateUrl: './ulde-devtools.html',
+  styleUrls: ['./ulde-devtools.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ULDEOverlay {
-  // Declare fields (uninitialized)
-  lifecyclePhaseTimings!: typeof this.store.lifecyclePhaseTimings;
-  pluginTimings!: typeof this.store.pluginTimings;
-  frameHistory!: typeof this.store.frames;
-  diagnostics!: typeof this.store.diagnostics;
+export class ULDEDevtools {
 
-  currentLifecyclePhaseTiming!: typeof this.store.currentLifecyclePhaseTiming;
-  currentFrame!: typeof this.store.currentFrame;
+  $rendererState = input<ULDERendererState>()
 
-  sparklinePoints!: typeof this.store.sparklinePoints;
-  filteredPluginTimings!: typeof this.store.filteredPluginTimings;
+  $highlight = output<string>();
 
-  visible!: typeof this.store.visible;
-  pinned!: typeof this.store.pinned;
-  opacity!: typeof this.store.opacity;
+  // Declare signals (uninitialized)
+  $store = signal<any | null>(null);
 
-  thresholds!: typeof this.store.thresholds;
+  $visible!: typeof this.devtoolsService.$visible;
+  $pinned!: typeof this.devtoolsService.$pinned;
+  $opacity!: typeof this.devtoolsService.$opacity;
 
-  constructor(private store: ULDEOverlayService) {
-    // Assign AFTER DI is ready
-    this.lifecyclePhaseTimings = store.lifecyclePhaseTimings;
-    this.pluginTimings = store.pluginTimings;
-    this.frameHistory = store.frames;
-    this.diagnostics = store.diagnostics;
+  thresholds!: typeof this.devtoolsService.thresholds;
 
-    this.currentLifecyclePhaseTiming = store.currentLifecyclePhaseTiming;
-    this.currentFrame = store.currentFrame;
+  $activeTab = signal<ULDEDevToolsTab>('diagnostics');
+  selectTab(tab: ULDEDevToolsTab) {
+    this.$activeTab.set(tab);
+  }
 
-    this.sparklinePoints = store.sparklinePoints;
-    this.filteredPluginTimings = store.filteredPluginTimings;
+  constructor(
+    private devtoolsService: ULDEDevtoolsService,
+  ) {
 
-    this.visible = store.visible;
-    this.pinned = store.pinned;
-    this.opacity = store.opacity;
+    this.$visible = devtoolsService.$visible;
+    this.$pinned = devtoolsService.$pinned;
+    this.$opacity = devtoolsService.$opacity;
 
-    this.thresholds = store.thresholds;
+    this.thresholds = devtoolsService.thresholds;
+
+
+    // react to devtools data change
+    effect(() => {
+
+      this.$store.set(this.devtoolsService.$store());
+
+      console.log(`Log: [UldeDevtools] effect() \ntimeline=`, this.$store().timeline);
+    });
 
   }
 
   // UI actions
-  toggleOverlay() {
-    this.store.toggle();
+  toggleDevTools() {
+    this.devtoolsService.toggle();
   }
 
-  pinOverlay() {
-    this.store.pin();
+  pinDevTools() {
+    this.devtoolsService.pin();
   }
 
-  setOverlayOpacity(value: number) {
-    this.store.setOpacity(value);
+  setDevToolsOpacity(value: number) {
+    this.devtoolsService.setOpacity(value);
   }
 
   // Phase selection (for filtering plugin timings)
   selectPhase(phase: ULDELifecyclePhaseTiming) {
-    this.store.currentLifecyclePhaseTiming.set(phase);
+    this.devtoolsService.$currentLifecyclePhaseTiming.set(phase);
   }
 
   clearPhaseSelection() {
-    this.store.currentLifecyclePhaseTiming.set(null);
+    this.devtoolsService.$currentLifecyclePhaseTiming.set(null);
   }
 
   // Frame selection (for timeline/sparkline)
   selectFrame(frame: ULDEFrame) {
-    this.store.currentFrame.set(frame);
+    this.devtoolsService.$currentFrame.set(frame);
+  }
+
+
+  trackDiag(i: number, d: ULDEDiagnostic) {
+    return `${d.level}-${d.message}-${i}`;
+  }
+
+  onHighlight(msg: string) {
+    this.$highlight.emit(msg);
   }
 }
 
 ```
 
-#### 3-3. index.ts
+#### 3-1-10. index.ts
 ```ts
 // src/ulde/core/index.ts
 
-export * from "./debug/index";
-export * from "./overlay/index";
+export * from "./devtools/index";
 export * from "./ulde-lifecycle.service";
 export * from "./ulde-plugin-registry.service";
 export * from "./ulde-runtime.service";
 
+
 ```
 
-#### 3-4. ulde-lifecycle.service.ts
+#### 3-1-11. ulde-lifecycle.service.ts
 ```ts
 // src/ulde/core/ulde-lifecycle.service.ts
 
 import { Injectable } from '@angular/core';
 import { ULDEPluginRegistryService, ULDERuntimeService } from '@ulde/core';
-import { ULDEOverlayService } from '@ulde/core/overlay';
+import { ULDEDevtoolsService } from '@ulde/core/devtools';
 import { ULDEPageContext, ULDERenderContext, } from '@ulde/types/context';
 import { ULDELifecyclePhase } from '@ulde/types/lifecycle';
 
-import { renderUldeAstToHtml, ULDERenderContextBuilderService } from '@ulde/engine';
+import { ULDERenderContextBuilderService } from '@ulde/engine';
 
 @Injectable({ providedIn: 'root' })
 export class ULDELifecycleService {
 
   constructor(
-    private overlay: ULDEOverlayService,
+    private devtoolsService: ULDEDevtoolsService,
     private pluginRegistry: ULDEPluginRegistryService,
     private runtime: ULDERuntimeService,
     private renderContextBuilder: ULDERenderContextBuilderService,
@@ -1124,13 +1944,13 @@ export class ULDELifecycleService {
 
 
   /**
-   * Wrap lifecycle phase start/end with overlay timing.
+   * Wrap lifecycle phase start/end with devtoolsService timing.
    */
   private async runPluginByLifecyclePhase(
     lifecyclePhase: ULDELifecyclePhase,
     ctx: Record<string, any> = {}
   ) {
-    this.overlay.startPhase(lifecyclePhase);
+    this.devtoolsService.startPhase(lifecyclePhase);
 
     try {
       await this.pluginRegistry.runPhase(lifecyclePhase, {
@@ -1138,9 +1958,9 @@ export class ULDELifecycleService {
         lifecyclePhase: lifecyclePhase,
       });
 
-      this.overlay.endPhase(lifecyclePhase);
+      this.devtoolsService.endPhase(lifecyclePhase);
     } catch (err) {
-      this.overlay.addDiagnostic({
+      this.devtoolsService.addDiagnostic({
         level: 'error',
         message: `Error in phase "${lifecyclePhase}": ${String(err)}`,
         lifecyclePhase,
@@ -1170,6 +1990,18 @@ export class ULDELifecycleService {
     // 3. Build final context (sections + diagnostics + HTML)
     const renderContext = this.renderContextBuilder.buildFinalContext(pageContext, initialAst);
 
+    // // RENDER (layout plugins)
+    // const renderContext = await this.renderContextBuilder.build(pageContext);
+    // await this.runPluginByLifecyclePhase('render', renderContext);
+
+    // // HTML generation
+    // if (!renderContext.ast) {
+    //   this.devtoolsService.addDiagnostic({ level: 'error', message: 'AST missing after render phase' });
+    // }
+
+    // renderContext.html = renderUldeAstToHtml(renderContext.ast);
+
+
     // HYDRATE (interactive plugins)
     await this.runPluginByLifecyclePhase('hydrate', renderContext);
 
@@ -1186,12 +2018,12 @@ export class ULDELifecycleService {
 
 ```
 
-#### 3-5. ulde-plugin-registry.service.ts
+#### 3-1-12. ulde-plugin-registry.service.ts
 ```ts
 // src/ulde/core/ulde-plugin-registry.service.ts
 
 import { Injectable } from '@angular/core';
-import { ULDEOverlayService } from '@ulde/core';
+import { ULDEDevtoolsService } from '@ulde/core';
 import { ULDELifecyclePhase } from '@ulde/types/lifecycle';
 import { ULDEPluginInstance, ULDEPlugin, ULDEPluginFactory } from '@ulde/types/plugin';
 
@@ -1208,7 +2040,7 @@ export class ULDEPluginRegistryService {
    */
   private instances: ULDEPluginInstance[] = [];
 
-  constructor(private overlay: ULDEOverlayService) {
+  constructor(private devtoolsService: ULDEDevtoolsService) {
     this.instantiateAllPlugins();
   }
 
@@ -1238,23 +2070,6 @@ export class ULDEPluginRegistryService {
     return raw as ULDEPluginInstance;
   }
 
-  // /**
-  //   * Instantiate plugin class.
-  //   * Detect whether plugin is legacy (ULDEPlugin) or new (ULDEPluginInstance).
-  //   */
-  // private instantiatePlugin(PluginClass: ULDEPluginClass): ULDEPluginInstance {
-  //   const instance = new PluginClass();
-
-  //   // Legacy plugin: has "hooks"
-  //   if ((instance as any).hooks) {
-  //     return new ULDEPluginHookAdapter(instance as unknown as ULDEPlugin);
-  //   }
-
-  //   // New plugin: already run‑based
-  //   return instance;
-  // }
-
-
   /**
    * Run all plugins assigned to a lifecycle phase.
    */
@@ -1281,7 +2096,7 @@ export class ULDEPluginRegistryService {
           lifecyclePhase: phase,
         });
       } catch (err) {
-        this.overlay.addDiagnostic({
+        this.devtoolsService.addDiagnostic({
           level: 'error',
           message: `Plugin "${plugin.pluginName}" failed in phase "${phase}": ${String(err)}`,
           pluginName: plugin.pluginName,
@@ -1291,7 +2106,7 @@ export class ULDEPluginRegistryService {
 
       const end = performance.now();
 
-      this.overlay.recordPluginTiming({
+      this.devtoolsService.recordPluginTiming({
         pluginName: plugin.pluginName,
         pluginKind: plugin.pluginKind,
         hookName: 'run',
@@ -1314,7 +2129,7 @@ export class ULDEPluginRegistryService {
       try {
         await plugin.destroy();
       } catch (err) {
-        this.overlay.addDiagnostic({
+        this.devtoolsService.addDiagnostic({
           level: 'error',
           message: `Plugin "${plugin.pluginName}" failed in destroy(): ${String(err)}`,
           pluginName: plugin.pluginName,
@@ -1324,7 +2139,7 @@ export class ULDEPluginRegistryService {
 
       const end = performance.now();
 
-      this.overlay.recordPluginTiming({
+      this.devtoolsService.recordPluginTiming({
         pluginName: plugin.pluginName,
         pluginKind: plugin.pluginKind,
         hookName: 'destroy',
@@ -1347,12 +2162,12 @@ export class ULDEPluginRegistryService {
 
 ```
 
-#### 3-6. ulde-runtime.service.ts
+#### 3-1-13. ulde-runtime.service.ts
 ```ts
 // src/ulde/core/ulde-runtime.service.ts
 
 import { Injectable } from '@angular/core';
-import {ULDEOverlayService } from '@ulde/core';
+import {ULDEDevtoolsService } from '@ulde/core';
 import { ULDEFrame } from '@ulde/types/frame';
 
 
@@ -1365,7 +2180,7 @@ export class ULDERuntimeService {
   private pluginErrorThreshold = 16; // ms
 
   constructor(
-    private overlay: ULDEOverlayService,
+    private devtoolsService: ULDEDevtoolsService,
 
   ) { }
 
@@ -1374,9 +2189,9 @@ export class ULDERuntimeService {
    * Orchestrates frame finalization + anomaly detection.
    */
   finalizeFrameAndAnalyze() {
-    this.overlay.finalizeFrame();
+    this.devtoolsService.finalizeFrame();
 
-    const frame = this.overlay.currentFrame();
+    const frame = this.devtoolsService.$currentFrame();
     if (!frame) return;
 
     this.detectPhaseAnomalies(frame);
@@ -1386,13 +2201,13 @@ export class ULDERuntimeService {
   private detectPhaseAnomalies(frame: ULDEFrame) {
     for (const phase of frame.lifecyclePhaseTimings) {
       if (phase.duration > this.phaseErrorThreshold) {
-        this.overlay.addDiagnostic({
+        this.devtoolsService.addDiagnostic({
           level: 'error',
           message: `Lifecycle phase "${phase.lifecyclePhase}" exceeded error threshold (${this.phaseErrorThreshold}ms): ${phase.duration.toFixed(1)}ms`,
           lifecyclePhase: phase.lifecyclePhase,
         });
       } else if (phase.duration > this.phaseWarnThreshold) {
-        this.overlay.addDiagnostic({
+        this.devtoolsService.addDiagnostic({
           level: 'warn',
           message: `Lifecycle phase "${phase.lifecyclePhase}" exceeded warn threshold (${this.phaseWarnThreshold}ms): ${phase.duration.toFixed(1)}ms`,
           lifecyclePhase: phase.lifecyclePhase,
@@ -1404,14 +2219,14 @@ export class ULDERuntimeService {
   private detectPluginAnomalies(frame: ULDEFrame) {
     for (const t of frame.pluginTimings) {
       if (t.duration > this.pluginErrorThreshold) {
-        this.overlay.addDiagnostic({
+        this.devtoolsService.addDiagnostic({
           level: 'error',
           message: `Plugin "${t.pluginName}" in hook "${t.hookName}" exceeded error threshold (${this.pluginErrorThreshold}ms): ${t.duration.toFixed(1)}ms`,
           pluginName: t.pluginName,
           lifecyclePhase: t.lifecyclePhase,
         });
       } else if (t.duration > this.pluginWarnThreshold) {
-        this.overlay.addDiagnostic({
+        this.devtoolsService.addDiagnostic({
           level: 'warn',
           message: `Plugin "${t.pluginName}" in hook "${t.hookName}" exceeded warn threshold (${this.pluginWarnThreshold}ms): ${t.duration.toFixed(1)}ms`,
           pluginName: t.pluginName,
@@ -1420,12 +2235,6 @@ export class ULDERuntimeService {
       }
     }
   }
-
-  // in ULDERuntimeService
-  // async runForPage(pageCtx: ULDEPageContext, renderCtx: ULDERenderContext) {
-  //   await this.lifecycle.run(pageCtx, renderCtx);
-  //   this.finalizeFrameAndAnalyze();
-  // }
 
 }
 
@@ -1675,12 +2484,7 @@ export function renderUldeAstToHtml(nodes: ULDEAstNode[]): string {
       // Block nodes
       // ---------------------------------------------------------
       case 'heading': {
-        // buf.push(`<h${node.depth} id=${node.meta?.['id']}>`);
-
-        // const anchor = node.children?.map(c => c?.children?.filter(c => c.type === 'anchor'));
-        // const id = anchor?.map(c=>c?.filter(c=> (c.meta?.['id'] !==null))).join('')??'';
-        // buf.push(`<h${node.depth} id="${id}">`);
-
+      
         buf.push(`<h${node.depth}>`);
         node.children?.forEach(renderNode);
         buf.push(`</h${node.depth}>`);
@@ -1912,6 +2716,7 @@ function escapeHtml(s: string): string {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 }
+
 
 ```
 #### 4-4. ulde-ast-visitor.engine.ts
@@ -2146,12 +2951,11 @@ import { Injectable } from '@angular/core';
 import { ULDEPageContext, ULDERenderContext } from '@ulde/types/context';
 import { buildUldeAst } from './ulde-ast-builder.engine';
 import { renderUldeAstToHtml } from './ulde-ast-renderer.engine';
-import { visitUldeAst } from './ulde-ast-visitor.engine';
 import { ULDELayoutEngineService } from './ulde-layout.engine.service';
 
-import { ULDEDiagnosticNode } from '@ulde/types/context';
-import { ULDEOverlayService } from '@ulde/core/overlay';
+import { ULDEDevtoolsService } from '@ulde/core/devtools';
 import { ULDEDiagnostic } from '@ulde/types';
+import { ULDEDiagnosticNode } from '@ulde/types/context';
 
 
 @Injectable({ providedIn: 'root' })
@@ -2160,63 +2964,130 @@ export class ULDERenderContextBuilderService {
 
   constructor(
     private layoutEngine: ULDELayoutEngineService,
-    private overlay: ULDEOverlayService,
+    private devtoolsService: ULDEDevtoolsService,
   ) { }
 
-  async build(page: ULDEPageContext): Promise<ULDERenderContext> {
-
-    // 1. Build AST
+  /**
+    * Build the initial AST from page tokens.
+    * This is called before the render phase plugins.
+    */
+  buildInitialAst(page: ULDEPageContext) {
     const ast = buildUldeAst(page.token);
+    return ast;
+  }
 
-    // layout: sections
+
+  /**
+     * Build the final render context AFTER layout plugins have
+     * mutated the AST (sections, anchors, TOC, etc.).
+     *
+     * This is called AFTER the 'render' lifecycle phase.
+     */
+  buildFinalContext(page: ULDEPageContext, ast: any[]): ULDERenderContext {
+    // 1. Layout: sections (now that plugins have mutated AST)
     const sectionAst = this.layoutEngine.buildSections(ast);
 
-    // 🔥 Inject diagnostics into AST
-    const diagnostics = this.overlay.diagnostics();
+    // 2. Inject diagnostics into AST
+    const diagnostics = this.devtoolsService.$diagnostics();
     const diagnosticNodes: ULDEDiagnosticNode[] = diagnostics.map((d: ULDEDiagnostic) => ({
       type: 'diagnostic',
       meta: {
         level: d.level,
         message: d.message,
-        // code: d.code
         lifecyclePhase: d.lifecyclePhase,
-        pluginName: d.pluginName
-      }
+        pluginName: d.pluginName,
+      },
     }));
 
-    // Append diagnostics at the end of the AST
     const finalAst = [...sectionAst, ...diagnosticNodes];
-    console.log(`Log: [ULDERenderContextBuilderServic] finalAst=`, finalAst);
 
-
-    // 3. Render HTML
+    // 3. Render HTML from final AST
     const html = renderUldeAstToHtml(finalAst);
-    // console.log(`Log: [ULDERenderContextBuilderServic] 3. Render HTML FINISHED! \nhtml=`, html);
 
     // 4. Assemble render context
-    const currentFrame = this.overlay.currentFrame();
+    const currentFrame = this.devtoolsService.$currentFrame();
+
     return {
       pageId: page.pageId,
-      ast: finalAst, //sectionAst,
-      // html: '',
+      ast: finalAst,
       html,
-      layout: 'sections',
-      frame: (currentFrame !== null) ? currentFrame : undefined,
+      // layout: sectionAst, // for test
+      layout: 'sections', // original
+      frame: currentFrame ?? undefined,
     };
   }
+
 }
+
 
 ```
 
 ### 5. src/ulde/plugins/
 
-#### 5-1. contributor/
+#### 5-1. adaptors/
+```ts
+// src/ulde/plugins/adaptors/index.ts
+
+export * from './ulde-plugin-hook-adaptor';
+
+```
+
+##### 5-1-1. index.ts
+```ts
+// src/ulde/plugins/adaptors/index.ts
+
+export * from './ulde-plugin-hook-adaptor';
+
+```
+
+##### 5-1-2. ulde-plugin-hook-adaptor.ts
+```ts
+// src/ulde/plugins/adaptors/ulde-plugin-hook-adaptor.ts
+
+import { ULDEPluginInstance, ULDEPluginKind, ULDEPlugin } from "@ulde/types";
+
+export class ULDEPluginHookAdapter implements ULDEPluginInstance {
+  pluginKind: ULDEPluginKind;
+  pluginName: string;
+  enabled?: boolean;
+
+  constructor(private legacy: ULDEPlugin) {
+    this.pluginKind = legacy.pluginKind;
+    this.pluginName = legacy.pluginName;
+    this.enabled = legacy.enabled;
+  }
+
+  async run(ctx: any) {
+    const phase = ctx.lifecyclePhase;
+
+    switch (phase) {
+      case 'init':
+        return this.legacy.hooks.onInit?.();
+      case 'load':
+        return this.legacy.hooks.onPageLoad?.(ctx);
+      case 'render':
+        return this.legacy.hooks.onBeforeRender?.(ctx);
+      case 'hydrate':
+        return this.legacy.hooks.onAfterRender?.(ctx);
+      case 'afterRender':
+        return this.legacy.hooks.onDestroy?.();
+    }
+  }
+
+  async destroy() {
+    return this.legacy.hooks.onDestroy?.();
+  }
+}
+
+```
+
+#### 5-2. contributor/
 
 Maybe for the future
 
-#### 5-2. registry/
+#### 5-3. registry/
 
-##### 5-2-1. index.ts
+##### 5-3-1. index.ts
 ```ts
 // src/ulde/plugins/registry/index.ts
 
@@ -2224,75 +3095,96 @@ export * from './ulde-plugin-registry';
 
 ```
 
-##### 5-2-2. ulde-plugin-registry.ts
+##### 5-3-2. ulde-plugin-registry.ts
 ```ts
 // src/ulde/plugins/registry/ulde-plugin-registry.ts
 
-// ------------------------------
-// content PLUGINS
-// ------------------------------
-import { CodeBlockEnhancer } from '@ulde/plugins/system/content';
-import { FrontmatterNormalizer } from '@ulde/plugins/system/content';
+import {
+  ULDECodeblockPlugin,
+} from '@ulde/plugins/system/content/ulde-codeblock.plugin';
+import {
+  ULDEFrontmatterNormalizerPlugin,
+} from '@ulde/plugins/system/content/ulde-frontmatter-normalizer.plugin';
 
-// ------------------------------
-// Layout PLUGINS
-// ------------------------------
-import { AutoAnchors, AutoTOC } from '@ulde/plugins/system/layout';
+import {
+  ULDEDemoPlugin,
+} from '@ulde/plugins/system/demo/ulde-demo.plugin';
+import {
+  ULDEPlaygroundInjectorPlugin,
+} from '@ulde/plugins/system/demo/ulde-playground-injector.plugin';
 
-// ------------------------------
-//Interactive PLUGINS
-// ------------------------------
-import { createDummyTestPlugin } from '@ulde/plugins/system/interactive';
+import {
+  ULDEDummyTestPlugin,
+} from '@ulde/plugins/system/interactive/ulde-dummy-test.plugin';
 
-// ------------------------------
-// Navigation PLUGINS
-// ------------------------------
-import { Breadcrumbs } from '@ulde/plugins/system/navigation'
+import {
+  ULDEAnchorPlugin,
+} from '@ulde/plugins/system/layout/ulde-anchor.plugin';
+import {
+  ULDETocPlugin,
+} from '@ulde/plugins/system/layout/ulde-toc.plugin';
 
-// ------------------------------
-// ulde PLUGINS
-// ------------------------------
-import { OverlayCustomPanel } from '@ulde/plugins/system/ulde'
-import { SlowPluginDetector } from '@ulde/plugins/system/ulde'
-import { TimelineProfiler } from '@ulde/plugins/system/ulde'
-import { DemoBlockPlugin } from '@ulde/plugins/system';
+import {
+  ULDENavigationBreadcrumbsPlugin,
+} from '@ulde/plugins/system/navigation/ulde-navigation-breadcrumbs.plugin';
+
+import {
+  ULDEOverlayCustomPanelPlugin,
+} from '@ulde/plugins/system/ulde/ulde-overlay-custom-panel.plugin';
+import {
+  ULDESlowPluginDetectorPlugin,
+} from '@ulde/plugins/system/ulde/ulde-slow-plugin-detector.plugin';
+import {
+  ULDETimelineProfilerPlugin,
+} from '@ulde/plugins/system/ulde/ulde-timeline-profiler.plugin';
+
+import { ULDEPluginRegistryMap } from '@ulde/types/plugin';
 
 
-// -----------------------------------------------------
-// BUILD REGISTRY (ORDER MATTERS) - String World
-// -----------------------------------------------------
-export function createUldeStringPluginRegistry() {
-  return [
-    // Content PHASE
-    CodeBlockEnhancer,
-    FrontmatterNormalizer,
 
-    // Layout
-    AutoAnchors,
-    AutoTOC,
-    DemoBlockPlugin,
+/** ULDE Plugin Registry (factory-based)
+ * Phase‑aware, deterministic ULDE plugin registry.
+ * This is the single source of truth for plugin ordering.
+ */
+export const ULDE_PLUGIN_REGISTRY: ULDEPluginRegistryMap = {
+  // Reserved for future init‑only plugins
+  init: [],
 
-    // Interactive PHASE
-    createDummyTestPlugin(),
+  // Content + navigation: operate on page context / tokens / early AST
+  load: [
+    () => ULDEFrontmatterNormalizerPlugin,
+    () => ULDECodeblockPlugin,
+    () => ULDEDemoPlugin,
+    () => ULDEDummyTestPlugin,
+    () => ULDENavigationBreadcrumbsPlugin,
+  ],
 
-    // Navigation PHASE
-    Breadcrumbs,
+  // Layout: operate on AST structure (sections, anchors, TOC)
+  render: [
+    () => ULDEAnchorPlugin,
+    () => new ULDETocPlugin(),
+  ],
 
-    //ulde Phase
-    OverlayCustomPanel,
-    SlowPluginDetector,
-    TimelineProfiler
-  ];
+  // Interactive: operate on rendered HTML / DOM
+  hydrate: [
+    () => ULDEPlaygroundInjectorPlugin,
+  ],
 
-}
+  // ULDE system: diagnostics, overlay, performance analysis
+  afterRender: [
+    () => ULDEOverlayCustomPanelPlugin,
+    () => ULDESlowPluginDetectorPlugin,
+    () => ULDETimelineProfilerPlugin,
+  ],
+};
 
 ```
 
-#### 5-3. system/
+#### 5-4. system/
 
-##### 5-3-1. content/
+##### 5-4-1. content/
 
-###### 5-3-1-1. index.ts
+###### 5-4-1-1. index.ts
 ```ts
 // src/ulde/plugins/system/content/index.ts
 
@@ -2301,13 +3193,13 @@ export * from "./ulde-frontmatter-normalizer.plugin";
 
 ```
 
-###### 5-3-1-2. ulde-codeblock.plugin.ts
+###### 5-4-1-2. ulde-codeblock.plugin.ts
 ```ts
 // src/ulde/plugins/system/content/ulde-codeblock.plugin.ts
 
 import { ULDEPlugin } from "@ulde/types/plugin";
 
-export const CodeBlockEnhancer: ULDEPlugin = {
+export const ULDECodeblockPlugin: ULDEPlugin = {
   pluginKind: 'content',
   pluginName: "CodeblockEnhancer",
   description: "Markdown Code Block Enhancer: Enhances fenced code blocks with metadata",
@@ -2336,13 +3228,13 @@ export const CodeBlockEnhancer: ULDEPlugin = {
 
 ```
 
-###### 5-3-1-3. ulde-frontmatter-normalizer.plugin.ts
+###### 5-4-1-3. ulde-frontmatter-normalizer.plugin.ts
 ```ts
-// src/ulde/plugins/system/content/ulde-frontmatter-normalizer.plugin.ts
+/// src/ulde/plugins/system/content/ulde-frontmatter-normalizer.plugin.ts
 
 import { ULDEPlugin } from '@ulde/types/plugin';
 
-export const FrontmatterNormalizer: ULDEPlugin = {
+export const ULDEFrontmatterNormalizerPlugin: ULDEPlugin = {
   pluginKind: 'content',
   pluginName: "FrontmatterNormalizer",
   description: "Normalizes frontmatter fields",
@@ -2358,26 +3250,25 @@ export const FrontmatterNormalizer: ULDEPlugin = {
 
 ```
 
-##### 5-3-2. demo/
+##### 5-4-2. demo/
 
-###### 5-3-2-1. index.ts
+###### 5-4-2-1. index.ts
 ```ts
-// src/ulde/plugins/system/demo/index.ts
+/// src/ulde/plugins/system/demo/index.ts
 
 export * from "./ulde-demo.plugin";
 export * from "./ulde-playground-injector.plugin";
 
 ```
 
-
-###### 5-3-2-2. ulde-demo.plugin.ts
+###### 5-4-2-2. ulde-demo.plugin.ts
 ```ts
 // src/ulde/plugins/system/demo/ulde-demo.plugin.ts
 
 import { ULDEPlugin } from '@ulde/types/plugin';
 import { visitUldeAst } from '@ulde/engine';
 
-export const DemoBlockPlugin: ULDEPlugin = {
+export const ULDEDemoPlugin: ULDEPlugin = {
   pluginKind: 'demo',
   pluginName: 'demo-block',
   description: 'Convert fenced code blocks with demo info into ULDE demo nodes.',
@@ -2421,7 +3312,7 @@ import { ULDEPlugin } from "@ulde/types/plugin";
 import { createComponent, EnvironmentInjector } from "@angular/core";
 import { Example02 } from "../../../../app/demo/example02/example02"; // TBD
 
-export const PlaygroundInjector: ULDEPlugin = {
+export const  ULDEPlaygroundInjectorPlugin: ULDEPlugin = {
   pluginKind: 'demo',
   pluginName: "PlaygroundInjector",
   description: "Hydrates <demo-playground> blocks into live Angular components",
@@ -2446,9 +3337,9 @@ export const PlaygroundInjector: ULDEPlugin = {
 
 ```
 
-##### 5-3-3. interactive/
+##### 5-4-3. interactive/
 
-###### 5-3-3-1. index.ts
+###### 5-4-3-1. index.ts
 ```ts
 // src/ulde/plugins/system/interactive/index.ts
 
@@ -2456,7 +3347,7 @@ export * from "./ulde-dummy-test.plugin";
 
 ```
 
-###### 5-3-3-2. ulde-dummy-test.plugin.ts
+###### 5-4-2. ulde-dummy-test.plugin.ts
 ```ts
 // src/ulde/plugins/system/interactive/ulde-dummy-test.plugin.ts
 
@@ -2464,7 +3355,7 @@ export * from "./ulde-dummy-test.plugin";
 import { ULDERenderContext } from '@ulde/types/context';
 import { ULDEPlugin } from '@ulde/types/plugin';
 
-export function createDummyTestPlugin(): ULDEPlugin {
+export const ULDEDummyTestPlugin: ULDEPlugin = {
   return {
     pluginKind: 'content',
     pluginName: 'DummyTestPlugin',
@@ -2488,9 +3379,9 @@ export function createDummyTestPlugin(): ULDEPlugin {
 
 ```
 
-##### 5-3-4. layout/
+##### 5-4-4. layout/
 
-###### 5-3-4-1. index.ts
+###### 5-4-4-1. index.ts
 ```ts
 // src/ulde/plugins/system/layout/index.ts
 
@@ -2499,14 +3390,14 @@ export * from "./ulde-toc.plugin";
 
 ```
 
-###### 5-3-4-2. ulde-anchor.plugin.ts
+###### 5-4-4-2. ulde-anchor.plugin.ts
 ```ts
 // src/ulde/plugins/system/layout/ulde-anchor.plugin.ts
 
 import { ULDEPlugin } from '@ulde/types/plugin';
 import { visitUldeAst } from '@ulde/engine';
 
-export const AutoAnchors: ULDEPlugin = {
+export const ULDEAnchorPlugin: ULDEPlugin = {
   pluginKind: 'layout',
   pluginName: 'auto-anchors',
   description: 'Add <a id="slug"></a> before each heading.',
@@ -2544,121 +3435,71 @@ function slugify(s: string) {
 
 ```
 
-###### 5-3-4-3. ulde-toc.plugin.ts
+###### 5-4-4-3. ulde-toc.plugin.ts
 ```ts
 // src/ulde/plugins/system/layout/ulde-toc.plugin.ts
 
-import { ULDEPlugin } from "@ulde/types/plugin";
-import { ULDERenderContext } from "@ulde/types/context";
-import { visitUldeAst, renderUldeAstToHtml } from "@ulde/engine";
+import { ULDEPluginInstance, ULDEPluginKind } from '@ulde/types/plugin';
+import { ULDERenderContext, ULDETocNode } from '@ulde/types/context';
+import { visitUldeAst } from '@ulde/engine';
 
-// import { renderUldeAstToHtml } from './ulde-ast-renderer.engine';
+export class ULDETocPlugin implements ULDEPluginInstance {
+  pluginKind: ULDEPluginKind = 'layout';
+  pluginName = 'auto-toc';
+  enabled = true;
 
-export const AutoTOC: ULDEPlugin = {
-  pluginKind: 'layout',
-  pluginName: "auto-toc",
-  description: "Generates a table of contents from headings",
-  enabled: true,
-  hooks: {
-    async onBeforeRender(ctx: ULDERenderContext) {
+  async run(ctx: ULDERenderContext & { lifecyclePhase: string }) {
+    if (ctx.lifecyclePhase !== 'render') return;
 
-      // console.log(`Log: [AutoToc Plugin] onBeforeRender`);
+    const headings: { depth: number; text: string }[] = [];
 
-      // const headings = ctx.ast.map(n =>
-      //   n.children?.filter((n: any) => /^h[1-6]$/.test(n.tag))
-      // );
-      // const tocHtml = headings
-      //   .map((h: any) => `<li><a href="#${h.id}">${h.text}</a></li>`)
-      //   .join("");
-
-      // ctx.html = `<nav class="toc"><ul>${tocHtml}</ul></nav>` + ctx.html;
-
-      const headings: { depth: number; text: string }[] = [];
-
-      // Collect headings
-      visitUldeAst(ctx.ast, {
-        pre(node) {
-          if (node.type === 'heading') {
-            const text = node.children
-              ?.filter(c => c.type === 'text')
-              .map(c => c.value)
-              .join('') ?? '';
-            headings.push({ depth: node.depth!, text });
-          }
+    // Collect headings
+    visitUldeAst(ctx.ast, {
+      pre(node) {
+        if (node.type === 'heading') {
+          const text = node.children
+            ?.filter(c => c.type === 'text')
+            .map(c => c.value)
+            .join('') ?? '';
+          headings.push({ depth: node.depth!, text });
         }
-      });
+      }
+    });
 
-      // Build TOC AST node
-      const tocNode = {
-        type: 'toc',
-        children: headings.map(h => ({
-          type: 'link',
-          meta: { href: `#${slugify(h.text)}` },
-          children: [{ type: 'text', value: h.text }]
-        }))
-      };
+    // Build TOC AST node
+    const tocNode: ULDETocNode = {
+      type: 'toc',
+      children: headings.map(h => ({
+        type: 'link',
+        meta: { href: `#${slugify(h.text)}` },
+        children: [{ type: 'text', value: h.text }]
+      }))
+    };
 
-      // Inject TOC at top
-      ctx.ast.unshift(tocNode);
-      console.log(`Log: AutoTOC Plugin] onBeforeRender \nctx.ast=`, ctx.ast);
+    // Inject TOC at top
+    ctx.ast.unshift(tocNode);
 
-      // // New addition in debugginf
-      // const ast = ctx.ast;
-      // ctx.html = renderUldeAstToHtml(ast);
+    console.log(`[ULDETocPlugin] TOC injected. AST now:`, ctx.ast);
 
-    },
-
-    // onAfterRender(ctx) {
-    //   const headings: { depth: number; id: string, text: string }[] = [];
-    //   visitUldeAst(ctx.ast, {
-    //     pre(node) {
-    //       if (node.type === 'section') {
-    //         const id = node.meta?.['id'];
-    //         const depth = node.meta?.['depth'];
-
-    //         const heading = node.children?.map(c => c)
-    //           .filter(c => c.type === 'heading');
-
-    //         const anchor = heading?.map(c => c?.children?.filter(c => c.type==='anchor'));
-    //         // ?.map(c=>c).filter(c => c.type ==='anchor');
-    //         // .filter(c => c.type==='anchor');
-    //         const text = heading?.map(c => c?.children?.filter(c => c.type==='text')).map(c => c?.values).join('') ?? '';;
-
-    //           // .filter(c => c?.type === 'anchor').join('') ?? '';
-
-
-    //         headings.push({ depth: depth, id: id, text });
-    //       }
-    //     }
-    //   });
-
-
-
-    //   console.log(`Log: AutoTOC Plugin] onAfterRender \nheadins=\n`, headings);
-
-    //   const tocHtml = headings
-    //     .map((h: any) => `<li><a href="#${h.id}">${h.text}</a></li>`)
-    //     .join("");
-
-    //   ctx.html = `<nav class="toc"><ul>${tocHtml}</ul></nav>` + ctx.html;
-
-
-    //   console.log(`Log: AutoTOC Plugin] onAfterRender \nctx.html=\n`, ctx.html);
-    // },
+    ctx.frame?.diagnostics
 
   }
 
-};
+  destroy() {
+    // No teardown needed
+  }
+}
 
 function slugify(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 }
 
+
 ```
 
-##### 5-3-5. navigation/
+##### 5-4-5. navigation/
 
-###### 5-3-5-1. index.ts
+###### 5-4-5-1. index.ts
 ```ts
 // src/ulde/plugins/system/navigation/index.ts
 
@@ -2666,13 +3507,13 @@ export * from "./ulde-navigation-breadcrumbs.plugin";
 
 ```
 
-###### 5-3-5-2. ulde-navigation-breadcrumbs.plugin.ts
+###### 5-4-5-2. ulde-navigation-breadcrumbs.plugin.ts
 ```ts
 // src/ulde/plugins/system/navigation/ulde-navigation-breadcrumbs.plugin.ts
 
 import { ULDEPlugin } from "@ulde/types/plugin";
 
-export const Breadcrumbs: ULDEPlugin = {
+export const ULDENavigationBreadcrumbsPlugin: ULDEPlugin = {
   pluginKind: 'navigation',
   pluginName: "Breadcrumbs",
   description: "Generates breadcrumb navigation from route",
@@ -2690,9 +3531,9 @@ export const Breadcrumbs: ULDEPlugin = {
 
 ```
 
-##### 5-3-6. ulde/
+##### 5-4-6. ulde/
 
-###### 5-3-6-1. index.ts
+###### 5-4-6-1. index.ts
 ```ts
 // src/ulde/plugins/system/ulde/index.ts
 
@@ -2702,13 +3543,13 @@ export * from './ulde-timeline-profiler.plugin'
 
 ```
 
-###### 5-3-6-2. ulde-overlay-custom-panel.plugin.ts
+###### 5-4-6-2. ulde-overlay-custom-panel.plugin.ts
 ```ts
 // src/ulde/plugins/system/ulde/ulde-overlay-custom-panel.plugin.ts
 
 import { ULDEPlugin } from "@ulde/types//plugin";
 
-export const OverlayCustomPanel: ULDEPlugin = {
+export const ULDEOverlayCustomPanelPlugin: ULDEPlugin = {
   pluginKind: 'ulde',
   pluginName: "OverlayCustomPanel",
   description: "Adds a custom panel to the ULDE overlay",
@@ -2738,14 +3579,14 @@ export const OverlayCustomPanel: ULDEPlugin = {
 
 ```
 
-###### 5-3-6-3. ulde-slow-plugin-detector.plugin.ts
+###### 5-4-6-3. ulde-slow-plugin-detector.plugin.ts
 ```ts
 // src/ulde/plugins/system/ulde/ulde-slow-pluging-detector.plugin.ts
 
 import { ULDEPlugin } from "@ulde/types/plugin";
 import { ULDEPluginTiming } from "@ulde/types/timing";
 
-export const SlowPluginDetector: ULDEPlugin = {
+export const ULDESlowPluginDetectorPlugin: ULDEPlugin = {
   pluginKind: 'ulde',
   pluginName: "SlowPluginDetector",
   description: "Warns when plugin execution exceeds threshold",
@@ -2771,13 +3612,13 @@ export const SlowPluginDetector: ULDEPlugin = {
 
 ```
 
-###### 5-3-6-4. ulde-timeline-profiler.plugin.ts
+###### 5-4-6-4. ulde-timeline-profiler.plugin.ts
 ```ts
 // src/ulde/plugins/system/ulde/ulde-timeline-profiler.plugin.ts
 
 import { ULDEPlugin } from "@ulde/types/plugin";
 
-export const TimelineProfiler: ULDEPlugin = {
+export const ULDETimelineProfiler: ULDEPlugin = {
   pluginKind: 'ulde',
   pluginName: "TimelineProfiler",
   description: "Logs ULDE phase durations to console",
@@ -2795,7 +3636,7 @@ export const TimelineProfiler: ULDEPlugin = {
 
 ```
 
-##### 5-3-7. index.ts
+##### 5-4-7. index.ts
 ```ts
 // src/ulde/plugins/system/index.ts
 
@@ -2808,10 +3649,11 @@ export * from "./ulde/index";
 
 ```
 
-#### 5-4. index.ts
+#### 5-5. index.ts
 ```ts
 // src/ulde/plugins/index.ts
 
+export * from "./adaptors/index";
 export * from "./registry/index";
 export * from "./system/index";
 
@@ -2838,13 +3680,12 @@ export * from "./ulde-context.types";
 ```ts
 // src/ulde/types/context/ulde-context.types.ts
 
-import type Token from 'markdown-it/lib/token.mjs';
+import { ULDEDiagnosticLevel } from '@ulde/types/diagnostics';
 import { ULDEFrame } from "@ulde/types/frame";
 import { ULDELifecyclePhase } from '@ulde/types/lifecycle';
-import { ULDEPluginTiming } from '@ulde/types/timing';
 import { ULDEPluginKind } from '@ulde/types/plugin';
-import { ULDEDiagnosticLevel } from '@ulde/types/diagnostic';
-// import { UldeArtifacts } from "@ulde/types/ulde-artifacts";
+import type Token from 'markdown-it/lib/token.mjs';
+
 // ---------------------------------------------------------
 // ULDE Context Objects
 // ---------------------------------------------------------
@@ -2871,7 +3712,7 @@ export interface ULDERenderContext {
   ast: ULDEAstNode[];
   html: string;
   layout?: string;
-  frame?: ULDEFrame; // optional, attached after lifecycle, as “observability attachment”
+  frame?: ULDEFrame;
 }
 
 // Block Nodes
@@ -3102,31 +3943,33 @@ export type ULDEAstNodeUnion =
   | ULDEMetaNode
   | ULDEDiagnosticNode;
 
+
 ```
 
-#### 7-2. debug/
+#### 7-2. devtools/
 
 ##### 7-2-1. index.ts
 ```ts
-// src/ulde/types/debug/index.ts
+// src/ulde/types/devtools/index.ts
 
-export * from "./ulde-debug.types";
+export * from "./ulde-devtools.types";
 
 ```
 
-##### 7-2-2. ulde-debug.types.ts
+##### 7-2-2. ulde-devtools.types.ts
 ```ts
-// src/ulde/types/debug/ulde-debug.types.ts
+// src/ulde/types/devtools/ulde-devtools.types.ts
 
 import { ULDELifecyclePhase } from "../lifecycle/ulde-lifecycle.types";
-import { ULDEPluginKind, ULDEPluginHooks } from "../plugin/ulde-plugin.types";
+import { ULDEPluginKind, ULDEPluginExecutionHook } from "../plugin/ulde-plugin.types";
 
 // ---------------------------------------------------------
-// ULDE Debug Tools Types
+// ULDE DevTools Types
 // ---------------------------------------------------------
 
 export interface ULDETimelinePoint {
   frameId: string;
+  timeStamp: number;
   totalDuration: number;
   phases: {
     lifecyclePhase: ULDELifecyclePhase;
@@ -3137,9 +3980,29 @@ export interface ULDETimelinePoint {
 export interface ULDEHeatmapCell {
   pluginName: string;
   pluginKind: ULDEPluginKind;
-  hookName: keyof ULDEPluginHooks;
+  hookName: ULDEPluginExecutionHook//keyof ULDEPluginHooks;
+  lifecyclePhase: ULDELifecyclePhase;
   intensity: number; // normalized 0–1
 }
+
+export type ULDEDevToolsTab =
+  | 'diagnostics'
+  | 'timeline'
+  | 'profiler'
+  | 'heatmap'
+  | 'inspector'
+  | 'frames'
+  | 'plugins'
+  | 'sparkline';
+
+  export type ULDEDevtoolsInspectorTab =
+  | 'ast'
+  | 'layout'
+  | 'sections'
+  | 'toc'
+  | 'anchors'
+  // | 'frame'
+
 
 ```
 
@@ -3188,7 +4051,7 @@ export * from "./ulde-frame.types";
 ```ts
 // src/ulde/types/frame/ulde-frame.types.ts
 
-import { ULDEDiagnostic } from "@ulde/types/diagnostic";
+import { ULDEDiagnostic } from "@ulde/types/diagnostics";
 import { ULDELifecyclePhaseTiming } from "@ulde/types/lifecycle";
 import { ULDEPluginTiming } from "@ulde/types/timing";
 
@@ -3256,6 +4119,7 @@ export * from "./ulde-plugin.types";
 // src/ulde/types/plugin/ulde-plugin.types.ts
 
 import { ULDEPageContext, ULDERenderContext } from "@ulde/types/context";
+import { ULDELifecyclePhase } from "@ulde/types/lifecycle";
 
 // ---------------------------------------------------------
 // ULDE Plugin Kinds
@@ -3270,7 +4134,7 @@ export type ULDEPluginKind =
   | 'ulde';
 
 // ---------------------------------------------------------
-// ULDE Plugin Definition
+// ULDE Plugin Definition - Legacy
 // ---------------------------------------------------------
 
 export interface ULDEPlugin {
@@ -3283,7 +4147,7 @@ export interface ULDEPlugin {
 }
 
 // ---------------------------------------------------------
-// ULDE Plugin Hooks
+// ULDE Plugin Hooks - Legacy
 // ---------------------------------------------------------
 
 export interface ULDEPluginHooks {
@@ -3293,6 +4157,61 @@ export interface ULDEPluginHooks {
   onAfterRender?(ctx: ULDERenderContext): void | Promise<void>;
   onDestroy?(): void | Promise<void>;
 }
+
+/**
+ * ULDE Plugin Instance - Unified Runtime Plugin
+ * Every plugin ULDE executes will be an instance of this type.
+ */
+export interface ULDEPluginInstance {
+  pluginKind: ULDEPluginKind;
+  pluginName: string;
+  enabled?: boolean;
+
+  /**
+   * Unified execution entry point.
+   * The registry decides which lifecycle phase is being executed.
+   */
+  run(ctx: any): void | Promise<void>;
+
+  /**
+   * Optional teardown hook.
+   */
+  destroy?(): void | Promise<void>;
+}
+
+/**
+ * ULDE Plugin Classs
+ * This is the type stored in the registry
+ * This ensures:
+ *  registry stores classes
+*   registry instantiates instances
+*   lifecycle executes run()
+ */
+export type ULDEPluginClass = {
+  new (...args: any[]): ULDEPluginInstance;
+};
+
+
+/**
+ * Factory type:
+ * Returns either:
+ *  - a legacy ULDEPlugin (object)
+ *  - a new ULDEPluginInstance (class instance)
+ */
+export type ULDEPluginFactory = () => ULDEPlugin | ULDEPluginInstance;
+
+/**
+ * Phase-aware plugin registry using factories.
+ */
+export type ULDEPluginRegistryMap = {
+  [P in ULDELifecyclePhase]?: ULDEPluginFactory[];
+};
+
+
+export type ULDEPluginExecutionHook =
+  | 'run'
+  | 'destroy'
+  | keyof ULDEPluginHooks;
 
 ```
 
@@ -3311,7 +4230,7 @@ export * from "./ulde-renderer.types";
 // src/ulde/types/renderer/ulde-renderer.types.ts
 
 import { ULDERenderContext } from "@ulde/types/context";
-import { ULDEDiagnostic } from "@ulde/types/diagnostic";
+import { ULDEDiagnostic } from "@ulde/types/diagnostics";
 import { ULDEFrame } from "@ulde/types/frame";
 import { ULDELifecyclePhase } from "@ulde/types/lifecycle";
 
@@ -3344,6 +4263,7 @@ export interface ULDERendererEvents {
 export interface ULDERendererHandle {
   setState(state: Partial<ULDERendererState>): void;
   getState(): ULDERendererState;
+  highlightDiagnostic(message: string): void;
   dispose(): void;
 }
 
@@ -3363,7 +4283,7 @@ export * from "./ulde-timing.types";
 ```ts
 // src/ulde/types/timing/ulde-timing.types.ts
 
-import { ULDEPluginKind, ULDEPluginHooks } from "../plugin/ulde-plugin.types";
+import { ULDEPluginKind, ULDEPluginExecutionHook } from "@ulde/types/plugin";
 import { ULDELifecyclePhase } from "../lifecycle/ulde-lifecycle.types";
 
 // ---------------------------------------------------------
@@ -3374,7 +4294,7 @@ import { ULDELifecyclePhase } from "../lifecycle/ulde-lifecycle.types";
 export interface ULDEPluginTiming {
   pluginName: string;
   pluginKind: ULDEPluginKind;
-  hookName: keyof ULDEPluginHooks;
+  hookName: ULDEPluginExecutionHook;
   lifecyclePhase: ULDELifecyclePhase;
   duration: number;
 }
@@ -3386,20 +4306,156 @@ export interface ULDEPluginTiming {
 // src/ulde/types/index.ts
 
 export * from "./context/index";
-export * from "./debug/index";
-export * from "./diagnostic/index";
+export * from "./devtools/index";
+export * from "./diagnostics/index";
 export * from "./frame/index";
 export * from "./lifecycle/index";
 export * from "./plugin/index";
 export * from "./renderer/index";
 export * from "./timing/index";
 
-
 ```
 
 ### 8. src/ulde/viewer/
 
-#### 8-1. index.ts
+#### 8-1. styles/
+
+##### 8-1-1. ulde-viewer-base.scss
+```scss
+// src/ulde/viewer/styles/ulde-viewer-base.scss
+
+/* This file defines the global look of ULDE pages */
+
+:root {
+  --ulde-font: 'Segoe UI', Roboto, sans-serif;
+  --ulde-bg: #ffffff;
+  --ulde-text: #222222;
+  --ulde-accent: #0078d4;
+  --ulde-border: #e0e0e0;
+  --ulde-muted: #666666;
+
+  --ulde-section-spacing: 2rem;
+  --ulde-heading-spacing: 1.2rem;
+  --ulde-paragraph-spacing: 0.75rem;
+
+  --ulde-demo-bg: #f5f7fa;
+  --ulde-demo-border: #d0d7e0;
+
+  --ulde-diagnostic-info: #0078d4;
+  --ulde-diagnostic-warn: #e6a100;
+  --ulde-diagnostic-error: #d83b01;
+}
+
+ulder-viewer,
+.ulde-viewer-root {
+  font-family: var(--ulde-font);
+  background: var(--ulde-bg);
+  color: var(--ulde-text);
+  line-height: 1.6;
+  padding: 1rem;
+}
+
+```
+
+##### 8-1-2. ulde-viewer-components.scss
+```scss
+// src/ulde/viewer/styles/ulde-viewer-components.scss
+
+/* This file styles ULDE AST ouput */
+
+/* Headings */
+.ulde-section > h1,
+.ulde-section > h2,
+.ulde-section > h3 {
+  margin-top: var(--ulde-heading-spacing);
+  margin-bottom: var(--ulde-heading-spacing);
+  font-weight: 600;
+}
+
+/* Paragraphs */
+.ulde-paragraph {
+  margin-bottom: var(--ulde-paragraph-spacing);
+}
+
+/* TOC */
+.ulde-toc {
+  border-left: 3px solid var(--ulde-accent);
+  padding-left: 1rem;
+  margin-bottom: 2rem;
+}
+
+.ulde-toc a {
+  display: block;
+  color: var(--ulde-accent);
+  text-decoration: none;
+  margin-bottom: 0.25rem;
+}
+
+.ulde-toc a:hover {
+  text-decoration: underline;
+}
+
+/* Anchors */
+a[data-ulde-anchor] {
+  cursor: pointer;
+  color: var(--ulde-accent);
+}
+
+/* Demo Blocks */
+.ulde-demo {
+  background: var(--ulde-demo-bg);
+  border: 1px solid var(--ulde-demo-border);
+  padding: 1rem;
+  margin: 1rem 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.ulde-demo:hover {
+  background: #eef2f7;
+}
+
+```
+
+##### 8-1-3. ulde-viewer-theme-dark.scss
+```scss
+// src/ulde/viewer/styles/ulde-viewer-theme-dark.scss
+
+/* Dark theme (default) */
+
+[data-theme="dark"] {
+  --ulde-bg: #1e1e1e;
+  --ulde-text: #e0e0e0;
+  --ulde-accent: #4da3ff;
+  --ulde-border: #333333;
+  --ulde-muted: #aaaaaa;
+
+  --ulde-demo-bg: #2a2d2e;
+  --ulde-demo-border: #3a3d3e;
+}
+
+```
+
+##### 8-1-4. ulde-viewer-theme-light.scss
+```scss
+// src/ulde/viewer/styles/ulde-viewer-theme-light.scss
+
+/* Light theme (default) */
+
+[data-theme="light"] {
+  --ulde-bg: #ffffff;
+  --ulde-text: #222222;
+  --ulde-accent: #0078d4;
+  --ulde-border: #e0e0e0;
+  --ulde-muted: #666666;
+
+  --ulde-demo-bg: #f5f7fa;
+  --ulde-demo-border: #d0d7e0;
+}
+
+```
+
+#### 8-2. index.ts
 ```ts
 // src/ulde/viewer/index.ts
 
@@ -3408,17 +4464,17 @@ export * from "./ulde-viewer";
 
 ```
 
-#### 8-2. ulde-renderer.service.ts
+#### 8-3. ulde-renderer.service.ts
 ```ts
 // src/ulde/viewer/ulde-renderer.service.ts
 
-import { Injectable, ElementRef } from '@angular/core';
+import { ElementRef, Injectable } from '@angular/core';
+import { ULDERenderContext, } from '@ulde/types/context';
+import { ULDEDiagnostic } from '@ulde/types/diagnostics';
+import { ULDEFrame } from '@ulde/types/frame';
 import {
   ULDERendererConfig, ULDERendererEvents, ULDERendererHandle, ULDERendererState
 } from '@ulde/types/renderer';
-import { ULDERenderContext, } from '@ulde/types/context';
-import { ULDEDiagnostic } from '@ulde/types/diagnostic';
-import { ULDEFrame } from '@ulde/types/frame';
 
 @Injectable({ providedIn: 'root' })
 export class ULDERendererService {
@@ -3446,6 +4502,10 @@ export class ULDERendererService {
 
   getState(): ULDERendererState | null {
     return this.handle ? this.handle.getState() : null;
+  }
+
+  highlightDiagnostic(message: string): void{
+    this.handle?.highlightDiagnostic(message);
   }
 
   dispose(): void {
@@ -3504,8 +4564,23 @@ export class ULDERendererService {
         delete config.container.dataset['uldeFrameTimestamp'];
         return;
       }
+    
       config.container.dataset['uldeFrameId'] = frame.id;
       config.container.dataset['uldeFrameTimestamp'] = String(frame.timestamp);
+    }
+
+    function highlightDiagnostic(message: string) {
+      const nodes = config.container.querySelectorAll('.ulde-diagnostic');
+
+      nodes.forEach(n => {
+        if (n.textContent?.includes(message)) {
+          n.classList.add('ulde-diagnostic-highlight');
+
+          setTimeout(() => {
+            n.classList.remove('ulde-diagnostic-highlight');
+          }, 1500);
+        }
+      });
     }
 
     function bindInteractivity(container: HTMLElement) {
@@ -3594,6 +4669,7 @@ export class ULDERendererService {
       });
     }
 
+
     return {
       setState(partial: Partial<ULDERendererState>) {
         state = { ...state, ...partial };
@@ -3621,6 +4697,11 @@ export class ULDERendererService {
         return state;
       },
 
+
+      highlightDiagnostic(message: string) {
+        highlightDiagnostic(message);
+      },
+
       dispose() {
         config.container.innerHTML = '';
         delete config.container.dataset['uldeLifecyclePhase'];
@@ -3634,53 +4715,50 @@ export class ULDERendererService {
 
 ```
 
-#### 8-3. ulde-viewer.html
+#### 8-4. ulde-viewer.html
 ```html
 <!-- src/ulde/viewer/ulde-viewer.html -->
 
-<div class="ulde-viewer">
-  <!-- <p>UldeViewer Works</p> -->
-  <div #viewerHost class="viewerHost"></div>
+<div class="ulde-viewer-root">
+  <div #viewerHost class="viewer-host"></div>
+
+  <ulde-devtools [$rendererState]="$rendererState()" ></ulde-devtools>
+
 </div>
+
 
 ```
 
-#### 8-4. ulde-viewer.scss
+#### 8-5. ulde-viewer.scss
 ```scss
 // src/ulde/viewer/ulde-viewer.scss
 
-.ulde-viewer {
-  width: 80%;
-  height: 85vh;
-  display: block;
-  padding: 20px;
-  background-color: rgba(147, 192, 237, 0.779);
-  overflow-y: scroll;
+.ulde-viewer-root {
+  position: relative;
+}
+
+.viewer-host {
+  min-height: 400px;
 }
 
 ```
 
-#### 8-5. ulde-viewer.ts
+#### 8-6. ulde-viewer.ts
 ```ts
 // src/ulde/viewer/ulde-viewer.ts
 
-import {
-  AfterViewInit,
-  OnDestroy,
-  Component,
-  ElementRef,
-  ViewChild,
-  effect,
-  input,
-  output,
-} from '@angular/core';
-import { ULDEOverlayService } from '@ulde/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild, effect, input, output, signal } from '@angular/core';
+import { ULDEDevtools, ULDEDevtoolsService } from '@ulde/core';
+import { ULDEFrame } from '@ulde/types/frame';
 import type { ULDERendererState } from '@ulde/types/renderer';
 import { ULDERendererService } from '@ulde/viewer';
 import { isBrowser } from '../../app/global.utils/global.utils';
 
 @Component({
   selector: 'ulde-viewer',
+  imports: [
+    ULDEDevtools
+  ],
   templateUrl: 'ulde-viewer.html',
   styleUrl: 'ulde-viewer.scss',
 })
@@ -3689,19 +4767,20 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
   hostRef!: ElementRef<HTMLElement>;
 
   // Full renderer state comes in as a signal input
-  $rendererState = input<ULDERendererState>();
+  $rendererState = input<ULDERendererState>(); // inspector
 
-  ready = output<void>();
-  error = output<Error>();
-  stateChange = output<ULDERendererState>();
+  $ready = output<void>();
+  $error = output<Error>();
+  $stateChange = output<ULDERendererState>();
+
 
   constructor(
-    private rendererService: ULDERendererService,
-    private overlay: ULDEOverlayService,
+    public rendererService: ULDERendererService,
+    private devtoolsService: ULDEDevtoolsService,
   ) {
     // 🔥 React to ULDE lifecycle phases
     effect(() => {
-      const phase = this.overlay.currentLifecyclePhaseTiming();
+      const phase = this.devtoolsService.$currentLifecyclePhaseTiming();
       if (!phase) return;
 
       this.rendererService.setState({
@@ -3711,18 +4790,22 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
 
     // 🔥 React to diagnostics
     effect(() => {
-      const diagnostics = this.overlay.diagnostics();
+      const diagnostics = this.devtoolsService.$diagnostics();
       if (diagnostics.length < 1) return;
 
+      console.log(`Log: [UldeViewer] effect() -> diagnostics=\n`, diagnostics);
       this.rendererService.setState({ diagnostics });
+
     });
 
     // 🔥 React to frame finalization
     effect(() => {
-      const frame = this.overlay.currentFrame();
-      if (!frame) return;
+      const currentFrame = this.devtoolsService.$currentFrame();
 
-      this.rendererService.setState({ frame });
+      if (!currentFrame) return;
+
+      this.rendererService.setState({ frame: currentFrame });
+      
     });
 
     // 🔥 React to rendererState signal input (without re-init)
@@ -3744,9 +4827,9 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
         height: this.hostRef.nativeElement.clientHeight,
       },
       {
-        onReady: () => this.ready.emit(),
-        onError: (e) => this.error.emit(e),
-        onStateChange: (s) => this.stateChange.emit(s),
+        onReady: () => this.$ready.emit(),
+        onError: (e) => this.$error.emit(e),
+        onStateChange: (s) => this.$stateChange.emit(s),
       },
     );
 
@@ -3770,9 +4853,31 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
       renderContext: s.renderContext,
     });
   }
+
+  /**
+   * Theme Switcher
+   * @param theme
+   */
+  setTheme(theme: 'light' | 'dark') {
+    this.hostRef.nativeElement.setAttribute('data-theme', theme);
+  }
+
+  onHighLight(message: string) {
+    this.rendererService.highlightDiagnostic(message)
+  }
+
+  getFrame(): ULDEFrame | null {
+    const frame = this.rendererService.getState()?.frame;
+    if (!frame) return null;
+    return frame
+
+  }
 }
 
 ```
+
+**Ignore the below lines, just for my note***
+
 
 ## 3. Road Map - 1
 

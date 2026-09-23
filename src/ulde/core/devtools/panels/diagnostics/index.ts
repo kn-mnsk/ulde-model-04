@@ -1,4 +1,4 @@
-// src/ulde/viewer/panels/diagnostics/index.ts
+// src/ulde/core/devtools/panels/diagnostics/index.ts
 
 export * from "./ulde-devtools-diagnostics.panel";
 
