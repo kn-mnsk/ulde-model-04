@@ -34,8 +34,8 @@ export class UldeDevtoolsRuntimeInspectorPanel {
     function walk(node: ULDEAstNode) {
       if (node.type === 'section') {
         result.push({
-          id: node.meta?.['id'] ?? '',
-          depth: node.meta?.['depth'],
+          id: node.id ?? '',
+          depth: node.depth ?? 0,
         });
       }
 
@@ -44,7 +44,7 @@ export class UldeDevtoolsRuntimeInspectorPanel {
 
     ast.forEach(n => walk(n));
 
-    
+
     return result;
   }
 
@@ -54,7 +54,7 @@ export class UldeDevtoolsRuntimeInspectorPanel {
     function walk(node: ULDEAstNode) {
       if (node.type === 'link') {
         tocs.push({
-          href: node.meta?.['href'],
+          href: node.href,
           label: node.children?.filter(n => n.type === 'text').map(n => n.value).join('') ?? ''
         });
       }
@@ -85,7 +85,7 @@ export class UldeDevtoolsRuntimeInspectorPanel {
 
         switch (child.type) {
           case 'anchor': {
-            id = child.meta?.['id'] ?? '';
+            id = child.id ?? '';
             break;
           }
           case 'text': {

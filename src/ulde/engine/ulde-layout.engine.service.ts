@@ -15,10 +15,8 @@ export class ULDELayoutEngineService {
         // start a new section
         const section: ULDESectionNode = {
           type: 'section',
-          meta: {
-            id: slugify(collectHeadingText(node)),
-            depth: (node as ULDEHeadingNode).depth
-          },
+          id: slugify(collectHeadingText(node)),
+          depth: (node as ULDEHeadingNode).depth,
           children: [node]
         };
 

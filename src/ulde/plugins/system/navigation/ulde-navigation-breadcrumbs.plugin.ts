@@ -9,7 +9,7 @@ export const ULDENavigationBreadcrumbsPlugin: ULDEPlugin = {
   enabled: true,
   hooks: {
     onPageLoad(ctx) {
-      const parts = ctx.raw.split("/").filter(Boolean);
+      const parts = ctx.source.raw.split("/").filter(Boolean);
       ctx.meta['breadcrumbs'] = parts.map((p, i) => ({
         label: p,
         href: "/" + parts.slice(0, i + 1).join("/")

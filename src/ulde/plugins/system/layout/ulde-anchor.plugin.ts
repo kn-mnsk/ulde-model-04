@@ -26,7 +26,7 @@ export const ULDEAnchorPlugin: ULDEPlugin = {
             // Inject anchor node at the beginning of heading children
             node.children?.unshift({
               type: 'anchor',
-              meta: { id }
+              id: id
             });
           }
         }

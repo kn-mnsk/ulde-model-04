@@ -9,9 +9,9 @@ export const ULDECodeblockPlugin: ULDEPlugin = {
   enabled: true,
   hooks: {
     async onPageLoad(ctx) {
-      if (ctx.raw === undefined) return;
+      if (ctx.source.raw === undefined) return;
 
-      ctx.raw = ctx.raw.replace(/```(\w+)/g, ((m: any, lang: any) => {
+      ctx.source.raw = ctx.source.raw.replace(/```(\w+)/g, ((m: any, lang: any) => {
         return `\`\`\`${lang} data-lang="${lang}"`;
       }));
     },

@@ -13,7 +13,7 @@ export const ULDEDummyTestPlugin: ULDEPlugin = {
   hooks: {
 
     onBeforeRender(ctx: ULDERenderContext) {
-      const { frame } = ctx;
+      const { artifacts } = ctx;
 
       /**
        * To be coded

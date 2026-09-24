@@ -19,14 +19,12 @@ export const ULDEDemoPlugin: ULDEPlugin = {
 
             return {
               type: 'demo',
-              meta: {
-                id,
-                code: node.value,
-                lang: 'javascript'
-              },
+              id: id,
+              code: node.value,
+              language: 'javascript',
               children: []
             };
-          } else{
+          } else {
             return undefined;
           }
 

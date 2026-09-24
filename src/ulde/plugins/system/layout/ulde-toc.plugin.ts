@@ -1,7 +1,7 @@
 // src/ulde/plugins/system/layout/ulde-toc.plugin.ts
 
 import { ULDEPluginInstance, ULDEPluginKind } from '@ulde/types/plugin';
-import { ULDERenderContext, ULDETocNode } from '@ulde/types/context';
+import { ULDERenderContext, ULDETextNode, ULDETocNode } from '@ulde/types/context';
 import { visitUldeAst } from '@ulde/engine';
 
 export class ULDETocPlugin implements ULDEPluginInstance {
@@ -32,17 +32,24 @@ export class ULDETocPlugin implements ULDEPluginInstance {
       type: 'toc',
       children: headings.map(h => ({
         type: 'link',
-        meta: { href: `#${slugify(h.text)}` },
-        children: [{ type: 'text', value: h.text }]
+        href: `#${slugify(h.text)}`,
+        title: h.text,
+        children: [{ type: 'text', value: h.text}]
       }))
     };
 
     // Inject TOC at top
     ctx.ast.unshift(tocNode);
 
+    ctx.artifacts.toc = headings.map(h => ({
+      id: `${slugify(h.text)}`,
+      text: h.text,
+      depth: h.depth
+    }));
+    
     console.log(`[ULDETocPlugin] TOC injected. AST now:`, ctx.ast);
 
-    ctx.frame?.diagnostics
+    // ctx.frame?.diagnostics
 
   }
 
