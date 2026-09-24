@@ -1,6 +1,6 @@
 // src/ulde/types/context/ulde-context.types.ts
 
-import { ULDEDiagnosticLevel } from '@ulde/types/diagnostics';
+import { ULDEDiagnostic, ULDEDiagnosticLevel } from '@ulde/types/diagnostics';
 import { ULDEFrame } from "@ulde/types/frame";
 import { ULDELifecyclePhase } from '@ulde/types/lifecycle';
 import { ULDEPluginKind } from '@ulde/types/plugin';
@@ -11,225 +11,357 @@ import type Token from 'markdown-it/lib/token.mjs';
 // ---------------------------------------------------------
 
 
-export interface ULDEAstNode {
-  type: string;
+// export interface ULDEAstNode {
+//   type: string;
+//   children?: ULDEAstNodeBase[];
+//   value?: string;
+//   depth?: number;
+//   lang?: string;
+//   meta?: Record<string, any>;
+// }
+
+export interface ULDEAstNodeBase {
   children?: ULDEAstNode[];
-  value?: string;
-  depth?: number;
-  lang?: string;
-  meta?: Record<string, any>;
+  // children?: ULDEAstNodeBase[];
+
+  extensions?: Record<string, unknown>;
+}
+
+export interface ULDEPageSource {
+  raw: string;
+  tokens: Token[];
 }
 
 export interface ULDEPageContext {
   pageId: string;
-  raw: string;
-  token: Token[];
-  meta: Record<string, any>;
+
+  /**
+  * Original document source.
+  * Must never be mutated by render plugins.
+  */
+  source: ULDEPageSource;
+
+  /**
+  * Page-level metadata.
+  *
+  * Examples:
+  * - title
+  * - description
+  * - tags
+  * - breadcrumbs
+  * - navigation
+  */
+  meta: Record<string, unknown>;
 }
 
 export interface ULDERenderContext {
   pageId: string;
+
+  /**
+  * Final AST after all render plugins.
+  */
   ast: ULDEAstNode[];
+
+  /**
+  * Final generated HTML.
+  */
   html: string;
+
+  /**
+  * Layout identifier.
+  */
   layout?: string;
-  frame?: ULDEFrame;
+
+  /**
+  * Shared artifacts generated across phases.
+  */
+  artifacts: ULDEArtifacts;
+
+  // frame?: ULDEFrame;
 }
 
+export interface ULDEExecutionContext {
+  lifecyclePhase: ULDELifecyclePhase;
+  page: ULDEPageContext;
+  render?: ULDERenderContext;
+  artifacts: ULDEArtifacts;
+}
+
+export interface ULDETocEntry {
+  id: string;
+  text: string;
+  depth: number;
+}
+
+export interface ULDEAnchorEntry {
+  id: string;
+  text: string;
+  depth: number;
+}
+
+export interface ULDESectionInfo {
+  id: string;
+  depth: number;
+  title: string;
+}
+
+export interface ULDELinkInfo {
+  href: string;
+  text: string;
+  external: boolean;
+}
+
+export interface ULDECodeBlockInfo {
+  language?: string;
+  content: string;
+}
+
+export interface ULDEArtifacts {
+  // Navigation
+  toc: ULDETocEntry[];
+  anchors: ULDEAnchorEntry[];
+  sections: ULDESectionInfo[];
+
+  // Content Analysis
+  links: ULDELinkInfo[];
+  codeBlocks: ULDECodeBlockInfo[];
+
+  // Diagnostics
+  diagnostics: ULDEDiagnostic[];
+
+  // Runtime
+  frame?: ULDEFrame;
+
+  // Plugin Extension Area
+  pluginData: Record<string, unknown>;
+}
+
+
 // Block Nodes
-export interface ULDEHeadingNode extends ULDEAstNode {
+export interface ULDEHeadingNode extends ULDEAstNodeBase {
   type: 'heading';
   depth: number;
 }
 
-export interface ULDEParagraphNode extends ULDEAstNode {
+export interface ULDEParagraphNode extends ULDEAstNodeBase {
   type: 'paragraph';
 }
 
-export interface ULDEBlockquoteNode extends ULDEAstNode {
+export interface ULDEBlockquoteNode extends ULDEAstNodeBase {
   type: 'blockquote';
 }
 
-export interface ULDEListNode extends ULDEAstNode {
+export interface ULDEListNode extends ULDEAstNodeBase {
   type: 'list';
-  meta: {
-    ordered: boolean;
-  };
+  ordered: boolean;
+  // meta: {
+  //   ordered: boolean;
+  // };
 }
 
-export interface ULDEListItemNode extends ULDEAstNode {
+export interface ULDEListItemNode extends ULDEAstNodeBase {
   type: 'listItem';
 }
 
-export interface ULDETableNode extends ULDEAstNode {
+export interface ULDETableNode extends ULDEAstNodeBase {
   type: 'table';
 }
 
-export interface ULDETableRowNode extends ULDEAstNode {
+export interface ULDETableRowNode extends ULDEAstNodeBase {
   type: 'tableRow';
 }
 
-export interface ULDETableCellNode extends ULDEAstNode {
+export interface ULDETableCellNode extends ULDEAstNodeBase {
   type: 'tableCell';
 }
 
-export interface ULDEThematicBreakNode extends ULDEAstNode {
+export interface ULDEThematicBreakNode extends ULDEAstNodeBase {
   type: 'thematicBreak';
 }
 
 // Inline Nodes
-export interface ULDETextNode extends ULDEAstNode {
+export interface ULDETextNode extends ULDEAstNodeBase {
   type: 'text';
   value: string;
 }
 
-export interface ULDEEmphasisNode extends ULDEAstNode {
+export interface ULDEEmphasisNode extends ULDEAstNodeBase {
   type: 'emphasis';
 }
 
-export interface ULDEStrongNode extends ULDEAstNode {
+export interface ULDEStrongNode extends ULDEAstNodeBase {
   type: 'strong';
 }
 
-export interface ULDEInlineCodeNode extends ULDEAstNode {
+export interface ULDEInlineCodeNode extends ULDEAstNodeBase {
   type: 'inlineCode';
   value: string;
 }
 
-export interface ULDEBreakNode extends ULDEAstNode {
+export interface ULDEBreakNode extends ULDEAstNodeBase {
   type: 'break';
 }
 
-export interface ULDELinkNode extends ULDEAstNode {
+export interface ULDELinkNode extends ULDEAstNodeBase {
   type: 'link';
-  meta: {
-    href: string;
-    title?: string;
-  };
+  href: string;
+  title?: string;
+  // meta: {
+  //   href: string;
+  //   title?: string;
+  // };
 }
 
-export interface ULDEImageNode extends ULDEAstNode {
+export interface ULDEImageNode extends ULDEAstNodeBase {
   type: 'image';
-  meta: {
-    src: string;
-    alt?: string;
-    title?: string;
-  };
+  src: string;
+  alt?: string;
+  title?: string;
+  // meta: {
+  //   src: string;
+  //   alt?: string;
+  //   title?: string;
+  // };
 }
 
 // Structural Nodes
-export interface ULDERootNode extends ULDEAstNode {
+export interface ULDERootNode extends ULDEAstNodeBase {
   type: 'root';
 }
 
-export interface ULDESectionNode extends ULDEAstNode {
+export interface ULDESectionNode extends ULDEAstNodeBase {
   type: 'section';
-  meta: {
-    id?: string;
-    depth?: number;
-  };
+  id?: string;
+  depth?: number;
+  // meta: {
+  //   id?: string;
+  //   depth?: number;
+  // };
 }
 
-export interface ULDEFrontmatterNode extends ULDEAstNode {
+export interface ULDEFrontmatterNode extends ULDEAstNodeBase {
   type: 'frontmatter';
-  meta: Record<string, any>;
+  meta: Record<string, unknown>;
 }
 
 // Code & Media Nodes
-export interface ULDECodeNode extends ULDEAstNode {
+export interface ULDECodeNode extends ULDEAstNodeBase {
   type: 'code';
   lang?: string;
   value: string;
 }
 
-export interface ULDEFenceNode extends ULDEAstNode {
+export interface ULDEFenceNode extends ULDEAstNodeBase {
   type: 'fence';
   lang?: string;
   value: string;
 }
 
-export interface ULDEMathNode extends ULDEAstNode {
+export interface ULDEMathNode extends ULDEAstNodeBase {
   type: 'math';
   value: string;
 }
 
-export interface ULDEInlineMathNode extends ULDEAstNode {
+export interface ULDEInlineMathNode extends ULDEAstNodeBase {
   type: 'inlineMath';
   value: string;
 }
 
 // ULDE Custom Nodes
-export interface ULDEUldeBlockNode extends ULDEAstNode {
+export interface ULDEUldeBlockNode extends ULDEAstNodeBase {
   type: 'uldeBlock';
-  meta: {
-    name: string;
-    options?: Record<string, any>;
-  };
+  name: string;
+  options?: Record<string, unknown>;
+  // meta: {
+  //   name: string;
+  //   options?: Record<string, any>;
+  // };
 }
 
-export interface ULDEAdmonitionNode extends ULDEAstNode {
+export interface ULDEAdmonitionNode extends ULDEAstNodeBase {
   type: 'admonition';
-  meta: {
-    kind: 'info' | 'warning' | 'danger' | 'success';
-    title?: string;
-  };
+  kind:
+  | 'info'
+  | 'warning'
+  | 'danger'
+  | 'success';
+  title?: string;
+  // meta: {
+  //   kind: 'info' | 'warning' | 'danger' | 'success';
+  //   title?: string;
+  // };
 }
 
-export interface ULDEDemoNode extends ULDEAstNode {
+export interface ULDEDemoNode extends ULDEAstNodeBase {
   type: 'demo';
-  meta: {
-    id: string;
-    code: string;
-    lang?: string;
-  };
+  id: string;
+  code: string;
+  language?: string;
+  // meta: {
+  //   id: string;
+  //   code: string;
+  //   lang?: string;
+  // };
 }
 
-export interface ULDEComponentNode extends ULDEAstNode {
+export interface ULDEComponentNode extends ULDEAstNodeBase {
   type: 'component';
-  meta: {
-    name: string;
-    props?: Record<string, any>;
-  };
+  name: string;
+  properties?: Record<string, unknown>;
+  // meta: {
+  //   name: string;
+  //   props?: Record<string, any>;
+  // };
 }
 
-export interface ULDETocNode extends ULDEAstNode {
+export interface ULDETocNode extends ULDEAstNodeBase {
   type: 'toc';
 }
 
-export interface ULDEAnchorNode extends ULDEAstNode {
+export interface ULDEAnchorNode extends ULDEAstNodeBase {
   type: 'anchor';
-  meta: {
-    id: string;
-  };
+  id: string;
+  // meta: {
+  //   id: string;
+  // };
 }
 
 // Meta Nodes
-export interface ULDEPositionNode extends ULDEAstNode {
+export interface ULDEPositionNode extends ULDEAstNodeBase {
   type: 'position';
-  meta: {
-    start: { line: number; column: number };
-    end: { line: number; column: number };
-  };
+  start: { line: number; column: number };
+  end: { line: number; column: number };
+  // meta: {
+  //   start: { line: number; column: number };
+  //   end: { line: number; column: number };
+  // };
 }
 
-export interface ULDEMetaNode extends ULDEAstNode {
+export interface ULDEMetaNode extends ULDEAstNodeBase {
   type: 'meta';
   meta: Record<string, any>;
 }
 
-export interface ULDEDiagnosticNode extends ULDEAstNode {
+export interface ULDEDiagnosticNode extends ULDEAstNodeBase {
   type: 'diagnostic';
-  meta: {
-    level: ULDEDiagnosticLevel;
-    message: string;
-    code?: string;
-    lifecyclePhase?: ULDELifecyclePhase;
-    pluginName?: string;
-    pluginKind?: ULDEPluginKind;
-  };
+  level: ULDEDiagnosticLevel;
+  message: string;
+  code?: string;
+  pluginName?: string;
+  pluginKind?: ULDEPluginKind;
+  lifecyclePhase?: ULDELifecyclePhase;
+  // meta: {
+  //   level: ULDEDiagnosticLevel;
+  //   message: string;
+  //   code?: string;
+  //   lifecyclePhase?: ULDELifecyclePhase;
+  //   pluginName?: string;
+  //   pluginKind?: ULDEPluginKind;
+  // };
 }
 
 // Full ULDE AST Node Type Union
-export type ULDEAstNodeUnion =
+export type ULDEAstNode =
   | ULDEHeadingNode
   | ULDEParagraphNode
   | ULDEBlockquoteNode
@@ -262,4 +394,3 @@ export type ULDEAstNodeUnion =
   | ULDEPositionNode
   | ULDEMetaNode
   | ULDEDiagnosticNode;
-

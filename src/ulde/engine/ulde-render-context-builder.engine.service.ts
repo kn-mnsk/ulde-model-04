@@ -25,7 +25,7 @@ export class ULDERenderContextBuilderService {
     * This is called before the render phase plugins.
     */
   buildInitialAst(page: ULDEPageContext) {
-    const ast = buildUldeAst(page.token);
+    const ast = buildUldeAst(page.source.tokens);
     return ast;
   }
 
@@ -44,12 +44,12 @@ export class ULDERenderContextBuilderService {
     const diagnostics = this.devtoolsService.$diagnostics();
     const diagnosticNodes: ULDEDiagnosticNode[] = diagnostics.map((d: ULDEDiagnostic) => ({
       type: 'diagnostic',
-      meta: {
-        level: d.level,
-        message: d.message,
-        lifecyclePhase: d.lifecyclePhase,
-        pluginName: d.pluginName,
-      },
+      level: d.level,
+      message: d.message,
+      code: "",
+      pluginName: d.pluginName,
+      pluginKind: d.pluginKind,
+      lifecyclePhase: d.lifecyclePhase,
     }));
 
     const finalAst = [...sectionAst, ...diagnosticNodes];
@@ -66,7 +66,17 @@ export class ULDERenderContextBuilderService {
       html,
       // layout: sectionAst, // for test
       layout: 'sections', // original
-      frame: currentFrame ?? undefined,
+      artifacts: {
+        toc: [],
+        anchors: [],
+        sections: [],
+        links: [],
+        codeBlocks:[],
+        diagnostics:diagnostics,
+        frame: currentFrame?? undefined,
+        pluginData:{}
+      }
+      // frame: currentFrame ?? undefined,
     };
   }
 

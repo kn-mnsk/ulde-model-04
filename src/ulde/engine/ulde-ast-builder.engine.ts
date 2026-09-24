@@ -46,11 +46,11 @@ export function buildUldeAst(tokens: Token[]): ULDEAstNode[] {
 
       // Lists
       case 'bullet_list_open':
-        open({ type: 'list', meta: { ordered: false } });
+        open({ type: 'list', ordered: false });
         break;
 
       case 'ordered_list_open':
-        open({ type: 'list', meta: { ordered: true } });
+        open({ type: 'list', ordered: true });
         break;
 
       case 'bullet_list_close':
@@ -84,11 +84,9 @@ export function buildUldeAst(tokens: Token[]): ULDEAstNode[] {
       case 'image':
         push({
           type: 'image',
-          meta: {
-            src: t.attrGet('src') || '',
-            alt: t.attrGet('alt') || undefined,
-            title: t.attrGet('title') || undefined,
-          },
+          src: t.attrGet('src') || '',
+          alt: t.attrGet('alt') || undefined,
+          title: t.attrGet('title') || undefined,
         });
         break;
 
@@ -104,7 +102,7 @@ export function buildUldeAst(tokens: Token[]): ULDEAstNode[] {
       case 'thead_open':
       case 'tbody_open':
         // treat as section-like containers if needed
-        open({ type: 'section', meta: { id: t.type } });
+        open({ type: 'section', id: t.type  });
         break;
 
       case 'thead_close':
@@ -167,7 +165,7 @@ export function buildUldeAst(tokens: Token[]): ULDEAstNode[] {
             case 'link_open':
               open({
                 type: 'link',
-                meta: { href: child.attrGet('href') || '' },
+                href: child.attrGet('href') || '',
               });
               break;
 

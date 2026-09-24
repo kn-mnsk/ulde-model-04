@@ -50,8 +50,10 @@ export class UldeDemo01 implements AfterViewInit, OnInit {
 
     return {
       pageId: this.$pageId(),
-      raw: markdown,
-      token: tokens,
+      source: {
+        raw: markdown,
+        tokens: tokens
+      },
       meta: {},
     };
   }

@@ -12,7 +12,7 @@ export function renderUldeAstToHtml(nodes: ULDEAstNode[]): string {
       // Block nodes
       // ---------------------------------------------------------
       case 'heading': {
-      
+
         buf.push(`<h${node.depth}>`);
         node.children?.forEach(renderNode);
         buf.push(`</h${node.depth}>`);
@@ -34,7 +34,7 @@ export function renderUldeAstToHtml(nodes: ULDEAstNode[]): string {
       }
 
       case 'list': {
-        const ordered = node.meta?.['ordered'] === true;
+        const ordered = node.ordered === true;
         buf.push(ordered ? '<ol>' : '<ul>');
         node.children?.forEach(renderNode);
         buf.push(ordered ? '</ol>' : '</ul>');
@@ -88,9 +88,9 @@ export function renderUldeAstToHtml(nodes: ULDEAstNode[]): string {
       }
 
       case 'link': {
-        const href = escapeHtml(node.meta?.['href'] ?? '');
-        const title = node.meta?.['title']
-          ? ` title="${escapeHtml(node.meta?.['title'])}"`
+        const href = escapeHtml(node.href ?? '');
+        const title = node.title
+          ? ` title="${escapeHtml(node.title)}"`
           : '';
         buf.push(`<a href="${href}"${title}>`);
         node.children?.forEach(renderNode);
@@ -99,10 +99,10 @@ export function renderUldeAstToHtml(nodes: ULDEAstNode[]): string {
       }
 
       case 'image': {
-        const src = escapeHtml(node.meta?.['src'] ?? '');
-        const alt = escapeHtml(node.meta?.['alt'] ?? '');
-        const title = node.meta?.['title']
-          ? ` title="${escapeHtml(node.meta?.['title'])}"`
+        const src = escapeHtml(node.src ?? '');
+        const alt = escapeHtml(node.alt ?? '');
+        const title = node.title
+          ? ` title="${escapeHtml(node.title)}"`
           : '';
         buf.push(`<img src="${src}" alt="${alt}"${title} />`);
         break;
@@ -137,8 +137,8 @@ export function renderUldeAstToHtml(nodes: ULDEAstNode[]): string {
       // ULDE custom nodes (minimal handling)
       // ---------------------------------------------------------
       case 'admonition': {
-        const kind = node.meta?.['kind'] ?? 'info';
-        const title = node.meta?.['title'] ?? '';
+        const kind = node.kind ?? 'info';
+        const title = node.title ?? '';
         buf.push(`<div class="ulde-admonition ulde-admonition-${escapeHtml(kind)}">`);
         if (title) {
           buf.push(`<div class="ulde-admonition-title">${escapeHtml(title)}</div>`);
@@ -150,7 +150,7 @@ export function renderUldeAstToHtml(nodes: ULDEAstNode[]): string {
       }
 
       case 'uldeBlock': {
-        const name = node.meta?.['name'] ?? 'block';
+        const name = node.name ?? 'block';
         buf.push(`<div class="ulde-block ulde-block-${escapeHtml(name)}">`);
         node.children?.forEach(renderNode);
         buf.push('</div>');
@@ -158,12 +158,12 @@ export function renderUldeAstToHtml(nodes: ULDEAstNode[]): string {
       }
 
       case 'demo': {
-        const id = node.meta?.['id'] ?? '';
+        const id = node.id ?? '';
         buf.push(`
           <div class="ulde-demo"
           data-demo-id="${escapeHtml(id)}"
-          data-demo-code="${escapeHtml(node.meta?.['code'])}">
-          <pre>${escapeHtml(node.meta?.['code'])}</pre>
+          data-demo-code="${escapeHtml(node.code)}">
+          <pre>${escapeHtml(node.code)}</pre>
           `);
         // buf.push(`
         //   <div class="ulde-demo" data-demo-id="${escapeHtml(id)}">
@@ -179,7 +179,7 @@ export function renderUldeAstToHtml(nodes: ULDEAstNode[]): string {
       }
 
       case 'anchor': {
-        const id = node.meta?.['id'] ?? '';
+        const id = node.id ?? '';
         buf.push(`<a id="${escapeHtml(id)}" data-ulde-anchor="${escapeHtml(id)}"></a>`);
 
         // console.log(`Log: [ulde-ast-renderer.engine.ts renderUldeAstToHtml()]  \nnode type=anchor`, id);
@@ -195,10 +195,10 @@ export function renderUldeAstToHtml(nodes: ULDEAstNode[]): string {
       }
 
       case 'diagnostic': {
-        const level = node.meta?.['level'] ?? 'info';
-        const message = escapeHtml(node.meta?.['message'] ?? '');
-        const phase = node.meta?.['lifecyclePhase'];
-        const plugin = node.meta?.['pluginName'];
+        const level = node.level ?? 'info';
+        const message = escapeHtml(node.message ?? '');
+        const phase = node.lifecyclePhase;
+        const plugin = node.pluginName;
 
         buf.push(`<div class="ulde-diagnostic ulde-diagnostic-${level}">`);
         buf.push(`<strong>${level.toUpperCase()}</strong>: ${message}`);
