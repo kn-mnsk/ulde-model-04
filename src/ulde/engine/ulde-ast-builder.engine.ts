@@ -191,7 +191,7 @@ export function buildUldeAst(tokens: Token[]): ULDEAstNode[] {
       // Default: ignore or log
       default:
         // you can optionally push a meta node for unknown tokens
-        // push({ type: 'meta', meta: { tokenType: t.type } });
+        push({ type: 'meta', meta: { tokenType: t.type } });
         break;
     }
   }

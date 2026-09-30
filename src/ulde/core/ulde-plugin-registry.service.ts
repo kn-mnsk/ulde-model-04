@@ -86,6 +86,7 @@ export class ULDEPluginRegistryService {
       const start = performance.now();
 
       try {
+        
         await plugin.run({
           ...ctx,
           lifecyclePhase: phase,

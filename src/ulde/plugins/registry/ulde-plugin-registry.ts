@@ -62,7 +62,7 @@ export const ULDE_PLUGIN_REGISTRY: ULDEPluginRegistryMap = {
 
   // Layout: operate on AST structure (sections, anchors, TOC)
   render: [
-    () => ULDEAnchorPlugin,
+    () => new ULDEAnchorPlugin(),
     () => new ULDETocPlugin(),
   ],
 
