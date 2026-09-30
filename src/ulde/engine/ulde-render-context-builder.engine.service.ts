@@ -26,6 +26,9 @@ export class ULDERenderContextBuilderService {
     */
   buildInitialAst(page: ULDEPageContext) {
     const ast = buildUldeAst(page.source.tokens);
+
+    console.log(`Log: [ULDERenderContextBuilderService - buildInitialAst]\ntokens=`,page.source.tokens, `\nast=`, ast );
+
     return ast;
   }
 

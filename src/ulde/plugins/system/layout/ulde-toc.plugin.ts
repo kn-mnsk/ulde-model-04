@@ -1,21 +1,24 @@
 // src/ulde/plugins/system/layout/ulde-toc.plugin.ts
 
 import { ULDEPluginInstance, ULDEPluginKind } from '@ulde/types/plugin';
-import { ULDERenderContext, ULDETextNode, ULDETocNode } from '@ulde/types/context';
+import { ULDEExecutionContext, ULDERenderContext, ULDETextNode, ULDETocEntry, ULDETocNode } from '@ulde/types/context';
 import { visitUldeAst } from '@ulde/engine';
 
 export class ULDETocPlugin implements ULDEPluginInstance {
   pluginKind: ULDEPluginKind = 'layout';
-  pluginName = 'auto-toc';
+  pluginName = 'ULDETocPlugin';
   enabled = true;
 
-  async run(ctx: ULDERenderContext & { lifecyclePhase: string }) {
+  async run(ctx: ULDEExecutionContext & { lifecyclePhase: string }) {
+  // async run(ctx: ULDERenderContext & { lifecyclePhase: string }) {
     if (ctx.lifecyclePhase !== 'render') return;
+    if (!ctx.render) return;
 
     const headings: { depth: number; text: string }[] = [];
 
     // Collect headings
-    visitUldeAst(ctx.ast, {
+    visitUldeAst(ctx.render.ast, {
+    // visitUldeAst(ctx.ast, {
       pre(node) {
         if (node.type === 'heading') {
           const text = node.children
@@ -37,19 +40,23 @@ export class ULDETocPlugin implements ULDEPluginInstance {
         children: [{ type: 'text', value: h.text}]
       }))
     };
+    // console.log('Log: [ULDETocPlugin] \nBuildTOC AST node Finished');
 
     // Inject TOC at top
-    ctx.ast.unshift(tocNode);
+    ctx.render.ast.unshift(tocNode);
+    // console.log('Log: [ULDETocPlugin] \nInject TOC at top Finished');
 
-    ctx.artifacts.toc = headings.map(h => ({
+    const tocEntries: ULDETocEntry[] = headings.map(h => ({
       id: `${slugify(h.text)}`,
       text: h.text,
       depth: h.depth
     }));
-    
-    console.log(`[ULDETocPlugin] TOC injected. AST now:`, ctx.ast);
+    console.log('Log: [ULDETocPlugin] \nTOC ENTRIES=', tocEntries, ctx);
 
-    // ctx.frame?.diagnostics
+    ctx.artifacts.toc = tocEntries; // ERROR happens here!!
+
+    console.log('Log: [ULDETocPlugin] \nArtifacts TOC Finished');
+
 
   }
 

@@ -3,7 +3,7 @@
 import { Injectable } from '@angular/core';
 import { ULDEPluginRegistryService, ULDERuntimeService } from '@ulde/core';
 import { ULDEDevtoolsService } from '@ulde/core/devtools';
-import { ULDEPageContext, ULDERenderContext, } from '@ulde/types/context';
+import { ULDEArtifacts, ULDEExecutionContext, ULDEPageContext, ULDERenderContext, } from '@ulde/types/context';
 import { ULDELifecyclePhase } from '@ulde/types/lifecycle';
 
 import { ULDERenderContextBuilderService } from '@ulde/engine';
@@ -41,6 +41,7 @@ export class ULDELifecycleService {
         message: `Error in phase "${lifecyclePhase}": ${String(err)}`,
         lifecyclePhase,
       });
+      console.log(`Log: [ULDELifecycleServic - runPluginByLifecyclePhase]\nmessage=`, `Error in phase "${lifecyclePhase}": ${String(err)}`);
     }
 
   }
@@ -52,16 +53,41 @@ export class ULDELifecycleService {
 
     // INIT
     await this.runPluginByLifecyclePhase('init');
+    const artifacts: ULDEArtifacts = {
+      toc: [],
+      anchors: [],
+      sections: [],
+      links: [],
+      codeBlocks: [],
+      diagnostics: [],
+      frame: undefined,
+      pluginData: {'': ''}
+    };
+
+    const executionContext: ULDEExecutionContext = {
+      lifecyclePhase: 'load',
+      page: pageContext,
+      render: {
+        pageId: pageContext.pageId,
+        ast: [],
+        html: '',
+        layout: '',
+        artifacts: artifacts
+      },
+      artifacts: artifacts
+    }
 
     // LOAD (content + navigation plugins)
-    await this.runPluginByLifecyclePhase('load', pageContext);
+    await this.runPluginByLifecyclePhase('load', executionContext);
+    // await this.runPluginByLifecyclePhase('load', pageContext);
 
     // RENDER
     // 1. Build initial AST
     const initialAst = this.renderContextBuilder.buildInitialAst(pageContext);
 
     // 2. Run render phase plugins on AST
-    await this.runPluginByLifecyclePhase('render', { ...pageContext, ast: initialAst });
+    await this.runPluginByLifecyclePhase('render', {...executionContext, ast: initialAst});
+    // await this.runPluginByLifecyclePhase('render', { ...pageContext, ast: initialAst });
 
     // 3. Build final context (sections + diagnostics + HTML)
     const renderContext = this.renderContextBuilder.buildFinalContext(pageContext, initialAst);
@@ -79,10 +105,12 @@ export class ULDELifecycleService {
 
 
     // HYDRATE (interactive plugins)
-    await this.runPluginByLifecyclePhase('hydrate', renderContext);
+    await this.runPluginByLifecyclePhase('hydrate', executionContext);
+    // await this.runPluginByLifecyclePhase('hydrate', renderContext);
 
     // AFTER RENDER (ULDE system plugins)
-    await this.runPluginByLifecyclePhase('afterRender', renderContext);
+    await this.runPluginByLifecyclePhase('afterRender', executionContext);
+    // await this.runPluginByLifecyclePhase('afterRender', renderContext);
 
     // Cleanup + diagnostics
     await this.pluginRegistry.destroyAll();
