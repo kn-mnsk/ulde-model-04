@@ -5,14 +5,12 @@ import { ULDEAnchorEntry, ULDEAnchorNode, ULDEExecutionContext } from '@ulde/typ
 import { ULDEPluginInstance, ULDEPluginKind } from '@ulde/types/plugin';
 
 export class ULDEAnchorPlugin implements ULDEPluginInstance {
-  // export const ULDEAnchorPlugin: ULDEPlugin = {
   pluginKind: ULDEPluginKind = 'layout';
   pluginName = 'ULDEAnchorPlugin';
   description = 'Add <a id="slug"></a> before each heading.';
   enabled = true;
 
-  async run(ctx: ULDEExecutionContext & { lifecyclePhase: string }) {
-    // onBeforeRender(ctx) {
+  async run(ctx: ULDEExecutionContext) {
     if (ctx.lifecyclePhase !== 'render') return;
     if (!ctx.render) return;
 

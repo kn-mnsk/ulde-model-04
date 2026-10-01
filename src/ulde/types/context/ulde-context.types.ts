@@ -73,11 +73,10 @@ export interface ULDERenderContext {
   layout?: string;
 
   /**
-  * Shared artifacts generated across phases.
+  * @deprecated
+  * Use executionContext.artifacts instead.
   */
-  artifacts: ULDEArtifacts;
-
-  // frame?: ULDEFrame;
+  artifacts?: ULDEArtifacts;
 }
 
 export interface ULDEExecutionContext {
