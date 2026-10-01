@@ -53,11 +53,11 @@ export const ULDE_PLUGIN_REGISTRY: ULDEPluginRegistryMap = {
 
   // Content + navigation: operate on page context / tokens / early AST
   load: [
-    () => ULDEFrontmatterNormalizerPlugin,
-    () => ULDECodeblockPlugin,
+    () => new ULDEFrontmatterNormalizerPlugin(),
+    () => new ULDECodeblockPlugin(),
     () => ULDEDemoPlugin,
-    () => ULDEDummyTestPlugin,
-    () => ULDENavigationBreadcrumbsPlugin,
+    () => new ULDEDummyTestPlugin(),
+    () => new ULDENavigationBreadcrumbsPlugin(),
   ],
 
   // Layout: operate on AST structure (sections, anchors, TOC)
@@ -73,8 +73,8 @@ export const ULDE_PLUGIN_REGISTRY: ULDEPluginRegistryMap = {
 
   // ULDE system: diagnostics, overlay, performance analysis
   afterRender: [
-    () => ULDEOverlayCustomPanelPlugin,
-    () => ULDESlowPluginDetectorPlugin,
-    () => ULDETimelineProfilerPlugin,
+    () => new ULDEOverlayCustomPanelPlugin(),
+    () => new ULDETimelineProfilerPlugin(),
+    () => new ULDESlowPluginDetectorPlugin(),
   ],
 };

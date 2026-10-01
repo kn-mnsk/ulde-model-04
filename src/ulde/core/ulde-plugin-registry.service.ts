@@ -7,6 +7,7 @@ import { ULDEPluginInstance, ULDEPlugin, ULDEPluginFactory } from '@ulde/types/p
 
 import { ULDE_PLUGIN_REGISTRY } from '@ulde/plugins/registry'; // updated registry
 import { ULDEPluginHookAdapter } from '@ulde/plugins/adaptors';
+import { ULDEExecutionContext } from '@ulde/types';
 
 @Injectable({ providedIn: 'root' })
 export class ULDEPluginRegistryService {
@@ -68,11 +69,12 @@ export class ULDEPluginRegistryService {
   /**
    * Run all plugins assigned to a lifecycle phase.
    */
-  async runPhase(
-    phase: ULDELifecyclePhase,
-    ctx: Record<string, any> = {}
+  async runPhase(executionCtx: ULDEExecutionContext
+    // phase: ULDELifecyclePhase,
+    // ctx: Record<string, any> = {}
   ): Promise<void> {
 
+    const phase = executionCtx.lifecyclePhase;
     const factories = ULDE_PLUGIN_REGISTRY[phase] || [];
 
     for (const factory of factories) {
@@ -86,11 +88,8 @@ export class ULDEPluginRegistryService {
       const start = performance.now();
 
       try {
-        
-        await plugin.run({
-          ...ctx,
-          lifecyclePhase: phase,
-        });
+
+        await plugin.run(executionCtx);
       } catch (err) {
         this.devtoolsService.addDiagnostic({
           level: 'error',

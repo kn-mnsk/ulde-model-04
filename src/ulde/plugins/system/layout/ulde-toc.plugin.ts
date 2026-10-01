@@ -1,7 +1,7 @@
 // src/ulde/plugins/system/layout/ulde-toc.plugin.ts
 
 import { ULDEPluginInstance, ULDEPluginKind } from '@ulde/types/plugin';
-import { ULDEExecutionContext, ULDERenderContext, ULDETextNode, ULDETocEntry, ULDETocNode } from '@ulde/types/context';
+import { ULDEExecutionContext, ULDETextNode, ULDETocEntry, ULDETocNode } from '@ulde/types/context';
 import { visitUldeAst } from '@ulde/engine';
 
 export class ULDETocPlugin implements ULDEPluginInstance {
@@ -10,15 +10,16 @@ export class ULDETocPlugin implements ULDEPluginInstance {
   enabled = true;
 
   async run(ctx: ULDEExecutionContext & { lifecyclePhase: string }) {
-  // async run(ctx: ULDERenderContext & { lifecyclePhase: string }) {
+
     if (ctx.lifecyclePhase !== 'render') return;
     if (!ctx.render) return;
+
+    console.log('Log: [ULDETocPlugin] run');
 
     const headings: { depth: number; text: string }[] = [];
 
     // Collect headings
     visitUldeAst(ctx.render.ast, {
-    // visitUldeAst(ctx.ast, {
       pre(node) {
         if (node.type === 'heading') {
           const text = node.children
@@ -51,7 +52,6 @@ export class ULDETocPlugin implements ULDEPluginInstance {
       text: h.text,
       depth: h.depth
     }));
-    console.log('Log: [ULDETocPlugin] \nTOC ENTRIES=', tocEntries, ctx);
 
     ctx.artifacts.toc = tocEntries; // ERROR happens here!!
 

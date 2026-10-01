@@ -1,6 +1,6 @@
 // src/ulde/types/plugin/ulde-plugin.types.ts
 
-import { ULDEPageContext, ULDERenderContext } from "@ulde/types/context";
+import { ULDEExecutionContext, ULDEPageContext, ULDERenderContext } from "@ulde/types/context";
 import { ULDELifecyclePhase } from "@ulde/types/lifecycle";
 
 // ---------------------------------------------------------
@@ -53,7 +53,7 @@ export interface ULDEPluginInstance {
    * Unified execution entry point.
    * The registry decides which lifecycle phase is being executed.
    */
-  run(ctx: any): void | Promise<void>;
+  run(ctx: ULDEExecutionContext): void | Promise<void>;
 
   /**
    * Optional teardown hook.
