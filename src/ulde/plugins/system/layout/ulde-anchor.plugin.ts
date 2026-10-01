@@ -1,7 +1,7 @@
 // src/ulde/plugins/system/layout/ulde-anchor.plugin.ts
 
 import { visitUldeAst } from '@ulde/engine';
-import { ULDEAnchorNode, ULDEExecutionContext } from '@ulde/types';
+import { ULDEAnchorEntry, ULDEAnchorNode, ULDEExecutionContext } from '@ulde/types';
 import { ULDEPluginInstance, ULDEPluginKind } from '@ulde/types/plugin';
 
 export class ULDEAnchorPlugin implements ULDEPluginInstance {
@@ -17,7 +17,9 @@ export class ULDEAnchorPlugin implements ULDEPluginInstance {
     if (!ctx.render) return;
 
     console.log(`Log: [ULDEAnchorPlugin] run`);
-    const headings: { depth: number, id: string; text: string }[] = [];
+
+    const headings: { id: string; text: string; depth: number;  }[] = [];
+
     visitUldeAst(ctx.render.ast, {
       pre(node) {
         if (node.type === 'heading') {
@@ -26,32 +28,30 @@ export class ULDEAnchorPlugin implements ULDEPluginInstance {
             .map(c => c.value)
             .join('') ?? '';
           const id = slugify(text);
-          headings.push({ depth: node.depth!, id, text });
-
+          headings.push({ id, text: text ,depth: node.depth!});
 
           // Inject anchor node at the beginning of heading children
-          // node.children?.unshift({
-          //   type: 'anchor',
-          //   id: id
-          // });
+          node.children?.unshift({
+            type: 'anchor',
+            id: id
+          });
         }
       }
     });
 
-    // Build Anchor AST node
-    const anchorNode: ULDEAnchorNode = {
-      type: 'anchor',
-      id: slugify(text)
+    const anchorEntries: ULDEAnchorEntry[] = headings.map(h => ({
+      id: `${slugify(h.text)}`,
+      text: h.text,
+      depth: h.depth
+    }));
 
-    }
+    ctx.artifacts.anchors = anchorEntries;
 
 
-    // Inject anchor node at the beginning of heading children
-    node.children?.unshift({
-      type: 'anchor',
-      id: id
-    });
+    console.log('Log: [ULDEAnchorPlugin] \nArtifacts ANCHORS Finished');
+
   }
+
 }
 
 
