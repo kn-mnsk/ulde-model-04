@@ -21,8 +21,8 @@ export class UldeDevtoolsRuntimeInspectorPanel {
 
   $activeTab = signal<ULDEDevtoolsInspectorTab>('ast');
 
-  $astNodes = computed(() => this.$rendererState()?.renderContext?.ast ?? []);
-  $layout = computed(() => this.$rendererState()?.renderContext?.layout ?? null);
+  $astNodes = computed(() => this.$rendererState()?.executionContext?.render?.ast ?? []);
+  $layout = computed(() => this.$rendererState()?.executionContext?.render?.layout ?? null);
   // $frame = computed(() => this.$rendererState()?.frame ?? null);
   $sections = computed(() => this.extractSections(this.$astNodes()));
   $toc = computed(() => this.extractToc(this.$astNodes()));

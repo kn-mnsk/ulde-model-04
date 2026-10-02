@@ -17,7 +17,7 @@ export class UldeDevtoolsPluginTimelinePanel {
   $pluginTimings = input<ULDEPluginTiming[]>([]);
 
 
-  plugins = computed(() => {
+  $plugins = computed(() => {
     const list = this.$pluginTimings() ?? [];
     if (list.length === 0) return [];
 

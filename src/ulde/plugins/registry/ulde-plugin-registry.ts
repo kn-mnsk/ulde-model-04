@@ -1,43 +1,26 @@
 // src/ulde/plugins/registry/ulde-plugin-registry.ts
 
 import {
-  ULDECodeblockPlugin,
-} from '@ulde/plugins/system/content/ulde-codeblock.plugin';
-import {
-  ULDEFrontmatterNormalizerPlugin,
-} from '@ulde/plugins/system/content/ulde-frontmatter-normalizer.plugin';
+  ULDECodeblockPlugin, ULDEFrontmatterNormalizerPlugin
+} from '@ulde/plugins/system/content';
 
 import {
-  ULDEDemoPlugin,
-} from '@ulde/plugins/system/demo/ulde-demo.plugin';
-import {
-  ULDEPlaygroundInjectorPlugin,
-} from '@ulde/plugins/system/demo/ulde-playground-injector.plugin';
+  ULDEDemoPlugin, ULDEPlaygroundInjectorPlugin
+} from '@ulde/plugins/system/demo';
+
+import { ULDEDummyTestPlugin } from '@ulde/plugins/system/interactive';
 
 import {
-  ULDEDummyTestPlugin,
-} from '@ulde/plugins/system/interactive/ulde-dummy-test.plugin';
-
-import {
-  ULDEAnchorPlugin,
-} from '@ulde/plugins/system/layout/ulde-anchor.plugin';
-import {
-  ULDETocPlugin,
-} from '@ulde/plugins/system/layout/ulde-toc.plugin';
+  ULDEAnchorPlugin, ULDETocPlugin
+} from '@ulde/plugins/system/layout';
 
 import {
   ULDENavigationBreadcrumbsPlugin,
-} from '@ulde/plugins/system/navigation/ulde-navigation-breadcrumbs.plugin';
+} from '@ulde/plugins/system/navigation';
 
 import {
-  ULDEOverlayCustomPanelPlugin,
-} from '@ulde/plugins/system/ulde/ulde-overlay-custom-panel.plugin';
-import {
-  ULDESlowPluginDetectorPlugin,
-} from '@ulde/plugins/system/ulde/ulde-slow-plugin-detector.plugin';
-import {
-  ULDETimelineProfilerPlugin,
-} from '@ulde/plugins/system/ulde/ulde-timeline-profiler.plugin';
+  ULDEOverlayCustomPanelPlugin, ULDESlowPluginDetectorPlugin, ULDETimelineProfilerPlugin
+} from '@ulde/plugins/system/ulde';
 
 import { ULDEPluginRegistryMap } from '@ulde/types/plugin';
 
@@ -55,7 +38,7 @@ export const ULDE_PLUGIN_REGISTRY: ULDEPluginRegistryMap = {
   load: [
     () => new ULDEFrontmatterNormalizerPlugin(),
     () => new ULDECodeblockPlugin(),
-    () => ULDEDemoPlugin,
+    () => new ULDEDemoPlugin(),
     () => new ULDEDummyTestPlugin(),
     () => new ULDENavigationBreadcrumbsPlugin(),
   ],
@@ -68,7 +51,7 @@ export const ULDE_PLUGIN_REGISTRY: ULDEPluginRegistryMap = {
 
   // Interactive: operate on rendered HTML / DOM
   hydrate: [
-    () => ULDEPlaygroundInjectorPlugin,
+    () => new ULDEPlaygroundInjectorPlugin(),
   ],
 
   // ULDE system: diagnostics, overlay, performance analysis

@@ -13,7 +13,7 @@
   <div class="rows">
     @if($pluginTimings().length > 0){
 
-    @for (p of plugins(); track p.label) {
+    @for (p of $plugins(); track p.label) {
     <div class="row">
       <div class="color" [style.background]="p.color"></div>
       <div class="kind">{{p.kind}} </div>

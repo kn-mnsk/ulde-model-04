@@ -1,5 +1,6 @@
 // src/ulde/plugins/adaptors/ulde-plugin-hook-adaptor.ts
 
+// import { ULDEPluginInstance, ULDEPluginKind } from "@ulde/types";
 import { ULDEPluginInstance, ULDEPluginKind, ULDEPlugin } from "@ulde/types";
 
 export class ULDEPluginHookAdapter implements ULDEPluginInstance {

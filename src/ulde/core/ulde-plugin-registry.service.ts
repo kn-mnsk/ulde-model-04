@@ -2,11 +2,11 @@
 
 import { Injectable } from '@angular/core';
 import { ULDEDevtoolsService } from '@ulde/core';
-import { ULDELifecyclePhase } from '@ulde/types/lifecycle';
-import { ULDEPluginInstance, ULDEPlugin, ULDEPluginFactory } from '@ulde/types/plugin';
+import { ULDEPluginInstance, ULDEPluginFactory } from '@ulde/types/plugin';
+// import { ULDEPluginInstance, ULDEPlugin, ULDEPluginFactory } from '@ulde/types/plugin';
 
 import { ULDE_PLUGIN_REGISTRY } from '@ulde/plugins/registry'; // updated registry
-import { ULDEPluginHookAdapter } from '@ulde/plugins/adaptors';
+// import { ULDEPluginHookAdapter } from '@ulde/plugins/adaptors';
 import { ULDEExecutionContext } from '@ulde/types';
 
 @Injectable({ providedIn: 'root' })
@@ -41,47 +41,29 @@ export class ULDEPluginRegistryService {
     const raw = factory();
 
     // Legacy plugin: has "hooks"
-    if ((raw as ULDEPlugin).hooks) {
-      return new ULDEPluginHookAdapter(raw as ULDEPlugin);
-    }
+    // if ((raw as ULDEPlugin).hooks) {
+    //   return new ULDEPluginHookAdapter(raw as ULDEPlugin);
+    // }
 
     // New plugin: already run‑based
     return raw as ULDEPluginInstance;
   }
 
-  // /**
-  //   * Instantiate plugin class.
-  //   * Detect whether plugin is legacy (ULDEPlugin) or new (ULDEPluginInstance).
-  //   */
-  // private instantiatePlugin(PluginClass: ULDEPluginClass): ULDEPluginInstance {
-  //   const instance = new PluginClass();
-
-  //   // Legacy plugin: has "hooks"
-  //   if ((instance as any).hooks) {
-  //     return new ULDEPluginHookAdapter(instance as unknown as ULDEPlugin);
-  //   }
-
-  //   // New plugin: already run‑based
-  //   return instance;
-  // }
-
-
   /**
    * Run all plugins assigned to a lifecycle phase.
    */
-  async runPhase(executionCtx: ULDEExecutionContext
-    // phase: ULDELifecyclePhase,
-    // ctx: Record<string, any> = {}
-  ): Promise<void> {
+  async runPhase(executionCtx: ULDEExecutionContext): Promise<void> {
 
     const phase = executionCtx.lifecyclePhase;
     const factories = ULDE_PLUGIN_REGISTRY[phase] || [];
 
     for (const factory of factories) {
-      const raw: ULDEPlugin | ULDEPluginInstance = factory();
-      const plugin = ('hooks' in raw) ?
-        new ULDEPluginHookAdapter(raw as ULDEPlugin)
-        : (raw as ULDEPluginInstance);
+      const raw: ULDEPluginInstance = factory();
+      // const raw: ULDEPlugin | ULDEPluginInstance = factory();
+      const plugin = raw as ULDEPluginInstance;
+      // const plugin = ('hooks' in raw) ?
+      //   new ULDEPluginHookAdapter(raw as ULDEPlugin)
+      //   : (raw as ULDEPluginInstance);
 
       if (!plugin) continue;
 

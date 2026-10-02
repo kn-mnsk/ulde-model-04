@@ -1,7 +1,7 @@
 // src/ulde/plugins/system/ulde/ulde-timeline-profiler.plugin.ts
 
 import { ULDEExecutionContext } from "@ulde/types";
-import { ULDEPlugin, ULDEPluginInstance, ULDEPluginKind } from "@ulde/types/plugin";
+import { ULDEPluginInstance, ULDEPluginKind } from "@ulde/types/plugin";
 
 export class ULDETimelineProfilerPlugin implements ULDEPluginInstance {
   pluginKind: ULDEPluginKind = 'ulde';

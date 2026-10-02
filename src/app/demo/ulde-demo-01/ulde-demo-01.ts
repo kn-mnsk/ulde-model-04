@@ -31,10 +31,12 @@ export class UldeDemo01 implements AfterViewInit, OnInit {
     variantId: 'default',
     zoom: 1,
     rotation: { x: 0, y: 0, z: 0 },
-    renderContext: undefined,
-    currentLifecyclePhase: undefined,
-    diagnostics: undefined,
-    frame: undefined,
+
+    executionContext: undefined,
+    // renderContext: undefined,
+    // currentLifecyclePhase: undefined,
+    // diagnostics: undefined,
+    // frame: undefined,
   });
 
   // private md = new MarkdownIt();
@@ -61,9 +63,11 @@ export class UldeDemo01 implements AfterViewInit, OnInit {
   private async runUldeDemo(lifecycle: ULDELifecycleService) {
     const pageContext = await this.buildDemoPageContext();
     if (!pageContext) return undefined;
-    const renderContext = await lifecycle.executeLifecycle(pageContext);
 
-    return renderContext;
+    const executionContext = await lifecycle.executeLifecycle(pageContext);
+    // const renderContext = executionContext?.render;
+
+    return executionContext;
   }
 
 
@@ -79,13 +83,13 @@ export class UldeDemo01 implements AfterViewInit, OnInit {
   async ngAfterViewInit() {
     if (!isBrowser()) return;
 
-    const renderContext = await this.runUldeDemo(this.lifecycle);
-    if (!renderContext) {
+    const executeContext = await this.runUldeDemo(this.lifecycle);
+    if (!executeContext) {
       console.error('Error: [UldeDemo01] Render context is not available.');
       return;
     }
 
-    this.$rendererState.update(state => ({ ...state, renderContext }));
+    this.$rendererState.update(state => ({ ...state, executeContext }));
 
     console.log(`Log: [${this.component}] ngAfterViewInit\n rendererState:`, this.$rendererState());
 

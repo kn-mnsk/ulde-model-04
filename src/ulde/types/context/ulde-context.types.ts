@@ -70,13 +70,14 @@ export interface ULDERenderContext {
   /**
   * Layout identifier.
   */
-  layout?: string;
+  layout?: ULDELayout;
+  // layout?: string;
 
-  /**
-  * @deprecated
-  * Use executionContext.artifacts instead.
-  */
-  artifacts?: ULDEArtifacts;
+  // /**
+  // * @deprecated
+  // * Use executionContext.artifacts instead.
+  // */
+  // artifacts?: ULDEArtifacts;
 }
 
 export interface ULDEExecutionContext {
@@ -135,6 +136,12 @@ export interface ULDEArtifacts {
   pluginData: Record<string, unknown>;
 }
 
+
+export interface ULDELayout {
+  id: string;
+  type: string;
+  version?: string;
+}
 
 // Block Nodes
 export interface ULDEHeadingNode extends ULDEAstNodeBase {
