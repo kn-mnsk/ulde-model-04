@@ -1,7 +1,12 @@
 // src/ulde/types/devtools/ulde-devtools.types.ts
 
+import { ULDEExecutionContext } from "@ulde/types/context";
 import { ULDELifecyclePhase } from "../lifecycle/ulde-lifecycle.types";
+
 import { ULDEPluginKind, ULDEPluginExecutionHook } from "../plugin/ulde-plugin.types";
+import { ULDEFrame } from "@ulde/types/frame";
+import { ULDEPluginTiming } from "@ulde/types/timing";
+import { ULDEDiagnostic } from "@ulde/types/diagnostics";
 
 // ---------------------------------------------------------
 // ULDE DevTools Types
@@ -35,11 +40,19 @@ export type ULDEDevToolsTab =
   | 'plugins'
   | 'sparkline';
 
-  export type ULDEDevtoolsInspectorTab =
+export type ULDEDevtoolsInspectorTab =
   | 'ast'
   | 'layout'
   | 'sections'
   | 'toc'
   | 'anchors'
-  // | 'frame'
+// | 'frame'
 
+export interface ULDEDevtoolsSnapshot {
+  executionContext: ULDEExecutionContext;
+  frame: ULDEFrame;
+  pluginTimings: ULDEPluginTiming[];
+  diagnostics: ULDEDiagnostic[];
+  timeline: ULDETimelinePoint[];
+  heatMap: ULDEHeatmapCell[];
+}

@@ -1,6 +1,6 @@
 // src/ulde/viewer/ulde-viewer.ts
 
-import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild, effect, input, output, signal } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild, effect, input, output } from '@angular/core';
 import { ULDEDevtools, ULDEDevtoolsService } from '@ulde/core';
 import { ULDEFrame } from '@ulde/types/frame';
 import type { ULDERendererState } from '@ulde/types/renderer';
@@ -36,9 +36,18 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
       const phase = this.devtoolsService.$currentLifecyclePhaseTiming();
       if (!phase) return;
 
+      const state = this.rendererService.getState();
+      if (!state?.executionContext) return;
+
+      state.executionContext.lifecyclePhase = phase.lifecyclePhase;
       this.rendererService.setState({
-        currentLifecyclePhase: phase.lifecyclePhase,
+        executionContext: state.executionContext
       });
+
+      // this.rendererService.setState({
+      //   currentLifecyclePhase: phase.lifecyclePhase,
+      // });
+
     });
 
     // 🔥 React to diagnostics
@@ -46,8 +55,18 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
       const diagnostics = this.devtoolsService.$diagnostics();
       if (diagnostics.length < 1) return;
 
-      console.log(`Log: [UldeViewer] effect() -> diagnostics=\n`, diagnostics);
-      this.rendererService.setState({ diagnostics });
+
+      const state = this.rendererService.getState();
+      if (!state?.executionContext?.artifacts) return;
+
+      state.executionContext.artifacts.diagnostics = diagnostics;
+
+      this.rendererService.setState({
+        executionContext: state.executionContext
+      });
+
+      // console.log(`Log: [UldeViewer] effect() -> diagnostics=\n`, diagnostics);
+      // this.rendererService.setState({ diagnostics });
 
     });
 
@@ -57,8 +76,16 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
 
       if (!currentFrame) return;
 
-      this.rendererService.setState({ frame: currentFrame });
-      
+      const state = this.rendererService.getState();
+      if (!state?.executionContext?.artifacts) return;
+
+      state.executionContext.artifacts.frame = currentFrame;
+
+      this.rendererService.setState({
+        executionContext: state.executionContext
+      });
+      // this.rendererService.setState({ frame: currentFrame });
+
     });
 
     // 🔥 React to rendererState signal input (without re-init)
@@ -103,7 +130,8 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
       variantId: s.variantId,
       zoom: s.zoom,
       rotation: s.rotation,
-      renderContext: s.renderContext,
+      executionContext: s.executionContext,
+      // renderContext: s.renderContext,
     });
   }
 
@@ -120,7 +148,10 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
   }
 
   getFrame(): ULDEFrame | null {
-    const frame = this.rendererService.getState()?.frame;
+
+    const frame = this.rendererService.getState()?.executionContext?.artifacts.frame;
+    // const frame = this.rendererService.getState()?.frame;
+
     if (!frame) return null;
     return frame
 

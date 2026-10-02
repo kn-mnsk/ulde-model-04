@@ -1,7 +1,7 @@
 // src/ulde/engine/ulde-render-context-builder.engine.service.ts
 
 import { Injectable } from '@angular/core';
-import { ULDEExecutionContext, ULDEPageContext, ULDERenderContext } from '@ulde/types/context';
+import { ULDEExecutionContext } from '@ulde/types/context';
 import { buildUldeAst } from './ulde-ast-builder.engine';
 import { renderUldeAstToHtml } from './ulde-ast-renderer.engine';
 import { ULDELayoutEngineService } from './ulde-layout.engine.service';
@@ -51,17 +51,18 @@ export class ULDERenderContextBuilderService {
 
     // 2. Inject diagnostics into AST
     const diagnostics = this.devtoolsService.$diagnostics();
-    const diagnosticNodes: ULDEDiagnosticNode[] = diagnostics.map((d: ULDEDiagnostic) => ({
-      type: 'diagnostic',
-      level: d.level,
-      message: d.message,
-      code: "",
-      pluginName: d.pluginName,
-      pluginKind: d.pluginKind,
-      lifecyclePhase: d.lifecyclePhase,
-    }));
+    // const diagnosticNodes: ULDEDiagnosticNode[] = diagnostics.map((d: ULDEDiagnostic) => ({
+    //   type: 'diagnostic',
+    //   level: d.level,
+    //   message: d.message,
+    //   code: "",
+    //   pluginName: d.pluginName,
+    //   pluginKind: d.pluginKind,
+    //   lifecyclePhase: d.lifecyclePhase,
+    // }));
 
-    const finalAst = [...sectionAst, ...diagnosticNodes];
+    const finalAst = sectionAst;
+    // const finalAst = [...sectionAst, ...diagnosticNodes];
 
     // 3. Render HTML from final AST
     const html = renderUldeAstToHtml(finalAst);
@@ -70,7 +71,10 @@ export class ULDERenderContextBuilderService {
 
     executionCtx.render.ast = finalAst;
     executionCtx.render.html = html;
-    executionCtx.render.layout = 'sections';
+    executionCtx.render.layout = {
+      id: 'technical-docs',
+      type: 'book'
+    };
     executionCtx.artifacts.diagnostics = diagnostics;
 
     const currentFrame = this.devtoolsService.$currentFrame() ?? undefined;

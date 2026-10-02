@@ -206,10 +206,12 @@ export class UldeDemo01 implements AfterViewInit, OnInit {
     variantId: 'default',
     zoom: 1,
     rotation: { x: 0, y: 0, z: 0 },
-    renderContext: undefined,
-    currentLifecyclePhase: undefined,
-    diagnostics: undefined,
-    frame: undefined,
+
+    executionContext: undefined,
+    // renderContext: undefined,
+    // currentLifecyclePhase: undefined,
+    // diagnostics: undefined,
+    // frame: undefined,
   });
 
   // private md = new MarkdownIt();
@@ -225,8 +227,10 @@ export class UldeDemo01 implements AfterViewInit, OnInit {
 
     return {
       pageId: this.$pageId(),
-      raw: markdown,
-      token: tokens,
+      source: {
+        raw: markdown,
+        tokens: tokens
+      },
       meta: {},
     };
   }
@@ -234,9 +238,11 @@ export class UldeDemo01 implements AfterViewInit, OnInit {
   private async runUldeDemo(lifecycle: ULDELifecycleService) {
     const pageContext = await this.buildDemoPageContext();
     if (!pageContext) return undefined;
-    const renderContext = await lifecycle.executeLifecycle(pageContext);
 
-    return renderContext;
+    const executionContext = await lifecycle.executeLifecycle(pageContext);
+    // const renderContext = executionContext?.render;
+
+    return executionContext;
   }
 
 
@@ -252,13 +258,13 @@ export class UldeDemo01 implements AfterViewInit, OnInit {
   async ngAfterViewInit() {
     if (!isBrowser()) return;
 
-    const renderContext = await this.runUldeDemo(this.lifecycle);
-    if (!renderContext) {
+    const executeContext = await this.runUldeDemo(this.lifecycle);
+    if (!executeContext) {
       console.error('Error: [UldeDemo01] Render context is not available.');
       return;
     }
 
-    this.$rendererState.update(state => ({ ...state, renderContext }));
+    this.$rendererState.update(state => ({ ...state, executeContext }));
 
     console.log(`Log: [${this.component}] ngAfterViewInit\n rendererState:`, this.$rendererState());
 
@@ -869,7 +875,7 @@ export * from './ulde-devtools-plugin-timeline.panel';
   <div class="rows">
     @if($pluginTimings().length > 0){
 
-    @for (p of plugins(); track p.label) {
+    @for (p of $plugins(); track p.label) {
     <div class="row">
       <div class="color" [style.background]="p.color"></div>
       <div class="kind">{{p.kind}} </div>
@@ -992,7 +998,7 @@ export class UldeDevtoolsPluginTimelinePanel {
   $pluginTimings = input<ULDEPluginTiming[]>([]);
 
 
-  plugins = computed(() => {
+  $plugins = computed(() => {
     const list = this.$pluginTimings() ?? [];
     if (list.length === 0) return [];
 
@@ -1208,133 +1214,7 @@ code {
 
 ###### 3-1-4-4. ulde-devtools-runtime-inspector.panel.ts
 ```ts
-// src/ulde/core/devtools/panels/runtime-inspector/ulde-devtools-runtime-inspector.panel.ts
-
-import { JsonPipe } from '@angular/common';
-import { Component, computed, input, signal } from '@angular/core';
-import { ULDERendererState } from '@ulde/types/renderer';
-import { ULDEAstNode } from '@ulde/types/context';
-import { ULDEFrame } from '@ulde/types/frame';
-import { ULDEDevtoolsInspectorTab } from '@ulde/types/devtools';
-
-@Component({
-  selector: 'ulde-devtools-runtime-inspector-panel',
-  imports: [JsonPipe],
-  templateUrl: './ulde-devtools-runtime-inspector.panel.html',
-  styleUrl: './/ulde-devtools-runtime-inspector.panel.scss',
-})
-export class UldeDevtoolsRuntimeInspectorPanel {
-
-  $rendererState = input<ULDERendererState | undefined>(undefined);
-
-  $frame = input<ULDEFrame | null>(null);
-
-  $activeTab = signal<ULDEDevtoolsInspectorTab>('ast');
-
-  $astNodes = computed(() => this.$rendererState()?.renderContext?.ast ?? []);
-  $layout = computed(() => this.$rendererState()?.renderContext?.layout ?? null);
-  // $frame = computed(() => this.$rendererState()?.frame ?? null);
-  $sections = computed(() => this.extractSections(this.$astNodes()));
-  $toc = computed(() => this.extractToc(this.$astNodes()));
-  $anchors = computed(() => this.extractAnchors(this.$astNodes()));
-
-  private extractSections(ast: ULDEAstNode[]) {
-    const result: { id: string; depth: number }[] = [];
-
-    function walk(node: ULDEAstNode) {
-      if (node.type === 'section') {
-        result.push({
-          id: node.meta?.['id'] ?? '',
-          depth: node.meta?.['depth'],
-        });
-      }
-
-      node.children?.forEach(child => walk(child));
-    }
-
-    ast.forEach(n => walk(n));
-
-    
-    return result;
-  }
-
-  private extractToc(ast: ULDEAstNode[]) {
-    const tocs: { href: string; label: string }[] = [];
-
-    function walk(node: ULDEAstNode) {
-      if (node.type === 'link') {
-        tocs.push({
-          href: node.meta?.['href'],
-          label: node.children?.filter(n => n.type === 'text').map(n => n.value).join('') ?? ''
-        });
-      }
-
-      node.children?.forEach(child => walk(child));
-    }
-
-    ast.filter(n => n.type === 'toc').forEach(n => walk(n));
-
-    return tocs;
-  }
-
-  private extractAnchors(ast: ULDEAstNode[]) {
-
-    console.log(`Log: [UldeRuntimeInspectorPanel] extractAnchors`);
-
-    const anchors: { id: string; depth: number, text: string }[] = [];
-    let depth: number = 0;
-
-    function walk(children: ULDEAstNode[] | undefined) {
-
-      if (children === undefined) return;
-
-      let id: string ='';
-      let text: string ='';
-
-      children.forEach((child) => {
-
-        switch (child.type) {
-          case 'anchor': {
-            id = child.meta?.['id'] ?? '';
-            break;
-          }
-          case 'text': {
-            text = child.value ?? '';
-            break;
-          }
-        };
-
-        if (id !== '' && text !== '') {
-          anchors.push({
-            id: id,
-            depth: depth,
-            text: text
-          });
-
-          walk(child.children);
-        }
-
-      });
-
-    }
-
-    ast.filter(n => n.type === 'section').forEach(n => n.children?.filter(n => n.type === 'heading').forEach(n => {
-      depth = n.depth ?? -1;
-      walk(n.children);
-    }));
-
-    return anchors;
-  }
-
-  setTab(tab: ULDEDevtoolsInspectorTab) {
-    this.$activeTab.set(tab);
-  }
-
-  track(i: number) { return i; }
-
-
-}
-
+ulde-devtools-runtime-inspector.panel.ts
 ```
 
 ##### 3-1-5. panels/index.ts
@@ -1801,7 +1681,243 @@ header.header {
 
 ```
 
-#### 3-1-9. udel-devtools.ts
+#### 3-1-9. udel-devtools.service.ts
+```ts
+// src/ulde/core/devtools/ulde-devtools.service.ts
+
+import { computed, Injectable, signal } from '@angular/core';
+import { ULDEHeatmapCell, ULDETimelinePoint } from '@ulde/types';
+import { ULDEDiagnostic } from '@ulde/types/diagnostics';
+import { ULDEFrame } from '@ulde/types/frame';
+import { ULDELifecyclePhase, ULDELifecyclePhaseTiming } from '@ulde/types/lifecycle';
+import { ULDEPluginTiming } from '@ulde/types/timing';
+
+@Injectable({ providedIn: 'root' })
+export class ULDEDevtoolsService {
+
+  // devtools visibility + controls
+  $visible = signal(true);
+  $pinned = signal(false);
+  $opacity = signal(1);
+
+  // Lifecycle state
+  $lifecyclePhaseTimings = signal<ULDELifecyclePhaseTiming[]>([]);
+  $currentLifecyclePhaseTiming = signal<ULDELifecyclePhaseTiming | null>(null);
+
+  // Plugin timings
+  $pluginTimings = signal<ULDEPluginTiming[]>([]);
+
+  // Frames
+  $frameHistory = signal<ULDEFrame[]>([]);
+  $currentFrame = signal<ULDEFrame | null>(null);
+  // Diagnostics
+  $diagnostics = signal<ULDEDiagnostic[]>([]);
+
+  // Analytics
+  $timeline = signal<ULDETimelinePoint[]>([]);
+  $heatMap = signal<ULDEHeatmapCell[]>([]);
+
+  // Thresholds (tweakable)
+  thresholds = {
+    phaseWarn: 8,
+    phaseError: 16,
+  };
+
+  // signal to update computed signal
+  private $reloadToComputedSugnals = signal<number>(0);
+  // Derived: sparkline points
+  $sparklinePoints = computed(() => {
+    const history = this.$frameHistory();
+    let points: string;
+
+    if (!history.length) {
+      points = ''
+    } else {
+      points = history
+        .map((f, i) => {
+          const total = f.lifecyclePhaseTimings.reduce((a, p) => a + p.duration, 0);
+          return `${i * 10},${40 - Math.min(total, 40)}`;
+        })
+        .join(' ');
+    }
+
+    console.log(`Log: [ULDEOverlayService] sparklinePoints`, points);
+
+    return { reload: this.$reloadToComputedSugnals(), points: points };
+  });
+  // Derived: filtered plugin timings by lifecycle phase
+  $filteredPluginTimings = computed(() => {
+    const lifecyclePhaseTiming = this.$currentLifecyclePhaseTiming();
+    const timings = this.$pluginTimings();
+
+    return { reload: this.$reloadToComputedSugnals(), filtered: (!lifecyclePhaseTiming) ? timings : timings.filter(t => t.lifecyclePhase === lifecyclePhaseTiming.lifecyclePhase) };
+    //   if (!lifecyclePhaseTiming) return timings;
+    //   return timings.filter(t => t.lifecyclePhase === lifecyclePhaseTiming.lifecyclePhase);
+  });
+
+  // signal stores
+  $store = computed(() => {
+    return {
+      reload: this.$reloadToComputedSugnals(),
+      diagnostics: this.$diagnostics(),
+      currentFrame: this.$currentFrame(),
+      frameHistory: this.$frameHistory(),
+      heatMap: this.$heatMap(),
+      timeline: this.$timeline(),
+      filteredPluginTimings: this.$filteredPluginTimings().filtered,
+      pluginTimings: this.$pluginTimings(),
+      sparklinePoints: this.$sparklinePoints().points
+    };
+  });
+
+  // Frame lifecycle
+  startPhase(lifecyclePhase: ULDELifecyclePhase) {
+    this.$currentLifecyclePhaseTiming.set({
+      lifecyclePhase,
+      startTime: performance.now(),
+      endTime: 0,
+      duration: 0,
+    });
+  }
+  endPhase(lifecyclePhase: ULDELifecyclePhase) {
+    const phase = this.$currentLifecyclePhaseTiming();
+    if (!phase || phase.lifecyclePhase !== lifecyclePhase) return;
+
+    const end = performance.now();
+    const duration = end - phase.startTime;
+
+    const updatedPhase: ULDELifecyclePhaseTiming = {
+      ...phase,
+      endTime: end,
+      duration,
+    };
+
+    this.$lifecyclePhaseTimings.update(list => [...list, updatedPhase]);
+    this.$currentLifecyclePhaseTiming.set(null);
+  }
+  finalizeFrame() {
+    const frame: ULDEFrame = {
+      id: crypto.randomUUID(),
+      timestamp: Date.now(),
+      lifecyclePhaseTimings: this.$lifecyclePhaseTimings(),
+      pluginTimings: this.$pluginTimings(),
+      diagnostics: this.$diagnostics()
+    };
+
+    this.$frameHistory.update(list => [...list.slice(-50), frame]); // keep last 50 frames
+
+    this.$heatMap.set(this.buildHeatmap());
+    this.$timeline.set(this.buildTimeline());
+    this.generateWarnings();
+    this.$currentFrame.set(frame);
+    this.$reloadToComputedSugnals.update(n => n + 1);
+
+
+    // reset for next frame
+    this.$lifecyclePhaseTimings.set([]);
+    // this.$pluginTimings.set([]);
+  }
+
+  // Diagnostics
+  addDiagnostic(diag: ULDEDiagnostic) {
+    this.$diagnostics.update(list => [...list, diag]);
+  }
+  /**
+   * Generate warnings based on patterns in frame history.
+   */
+  generateWarnings() {
+    const frameHistory = this.$frameHistory();
+    if (frameHistory.length < 3) return;
+
+    const lastThree = frameHistory.slice(-3);
+    const durations = lastThree.map(f =>
+      f.lifecyclePhaseTimings.reduce((sum, p) => sum + p.duration, 0)
+    );
+
+    const avg = durations.reduce((a, b) => a + b, 0) / durations.length;
+    const last = durations[durations.length - 1];
+
+    // Sudden spike detection
+    if (last > avg * 1.5) {
+      this.addDiagnostic({
+        level: 'warn',
+        message: `Frame duration spike detected: ${last.toFixed(1)}ms (avg ${avg.toFixed(1)}ms)`
+      });
+    }
+
+    // Consistent slowdown detection
+    if (durations.every(d => d > avg)) {
+      this.addDiagnostic({
+        level: 'warn',
+        message: `Consistent slowdown across last 3 frames`
+      });
+    }
+  }
+
+  // Analytics
+  /**
+   * Plugin timing recording
+   * @param timing
+   */
+  recordPluginTiming(timing: ULDEPluginTiming) {
+    this.$pluginTimings.update(list => [...list, timing]);
+  }
+  /**
+     * Build a timeline of frames with total durations.
+     */
+  buildTimeline(): ULDETimelinePoint[] {
+    return this.$frameHistory().map(frame => {
+      const total = frame.lifecyclePhaseTimings.reduce((sum, p) => sum + p.duration, 0);
+
+      return {
+        frameId: frame.id,
+        timeStamp: frame.timestamp,
+        totalDuration: total,
+        phases: frame.lifecyclePhaseTimings.map(p => ({
+          lifecyclePhase: p.lifecyclePhase,
+          duration: p.duration
+        }))
+      };
+    });
+  }
+  /**
+   * Generate a heatmap of plugin performance.
+   * Normalizes plugin durations across all frames.
+   */
+  buildHeatmap(): ULDEHeatmapCell[] {
+    const frameHistory = this.$frameHistory();
+    const timings = frameHistory.flatMap(f => f.pluginTimings);
+
+    if (!timings.length) return [];
+
+    const max = Math.max(...timings.map(t => t.duration));
+
+    return timings.map(t => ({
+      pluginKind: t.pluginKind,
+      pluginName: t.pluginName,
+      hookName: t.hookName,
+      lifecyclePhase: t.lifecyclePhase,
+      intensity: t.duration / max // normalized 0–1
+    }));
+  }
+
+  // UI - control methods
+  toggle() {
+    this.$visible.update(v => !v);
+  }
+  pin() {
+    this.$pinned.update(p => !p);
+  }
+  setOpacity(value: number) {
+    this.$opacity.set(value);
+  }
+
+}
+
+```
+
+
+#### 3-1-10. udel-devtools.ts
 ```ts
 // src/ulde/core/devtools/ulde-devtools.ts
 
@@ -1908,7 +2024,7 @@ export class ULDEDevtools {
 
 ```
 
-#### 3-1-10. index.ts
+#### 3-1-11. index.ts
 ```ts
 // src/ulde/core/index.ts
 
@@ -1920,14 +2036,14 @@ export * from "./ulde-runtime.service";
 
 ```
 
-#### 3-1-11. ulde-lifecycle.service.ts
+#### 3-1-12. ulde-lifecycle.service.ts
 ```ts
 // src/ulde/core/ulde-lifecycle.service.ts
 
 import { Injectable } from '@angular/core';
 import { ULDEPluginRegistryService, ULDERuntimeService } from '@ulde/core';
 import { ULDEDevtoolsService } from '@ulde/core/devtools';
-import { ULDEPageContext, ULDERenderContext, } from '@ulde/types/context';
+import { ULDEArtifacts, ULDEExecutionContext, ULDEPageContext, ULDERenderContext, } from '@ulde/types/context';
 import { ULDELifecyclePhase } from '@ulde/types/lifecycle';
 
 import { ULDERenderContextBuilderService } from '@ulde/engine';
@@ -1948,15 +2064,15 @@ export class ULDELifecycleService {
    */
   private async runPluginByLifecyclePhase(
     lifecyclePhase: ULDELifecyclePhase,
-    ctx: Record<string, any> = {}
+    executionCtx: ULDEExecutionContext
   ) {
     this.devtoolsService.startPhase(lifecyclePhase);
 
     try {
-      await this.pluginRegistry.runPhase(lifecyclePhase, {
-        ...ctx,
-        lifecyclePhase: lifecyclePhase,
-      });
+
+
+      await this.pluginRegistry.runPhase(executionCtx);
+
 
       this.devtoolsService.endPhase(lifecyclePhase);
     } catch (err) {
@@ -1965,6 +2081,7 @@ export class ULDELifecycleService {
         message: `Error in phase "${lifecyclePhase}": ${String(err)}`,
         lifecyclePhase,
       });
+      console.log(`Log: [ULDELifecycleServic - runPluginByLifecyclePhase]\nmessage=`, `Error in phase "${lifecyclePhase}": ${String(err)}`);
     }
 
   }
@@ -1972,63 +2089,89 @@ export class ULDELifecycleService {
   /**
   * Full lifecycle execution for a page.
   */
-  async executeLifecycle(pageContext: ULDEPageContext): Promise<ULDERenderContext> {
+  async executeLifecycle(pageContext: ULDEPageContext): Promise<ULDEExecutionContext | undefined> {
+  // async executeLifecycle(pageContext: ULDEPageContext): Promise<ULDERenderContext | undefined> {
 
     // INIT
-    await this.runPluginByLifecyclePhase('init');
+    const artifacts: ULDEArtifacts = {
+      toc: [],
+      anchors: [],
+      sections: [],
+      links: [],
+      codeBlocks: [],
+      diagnostics: [],
+      pluginData: {}
+    };
+
+    const executionContext: ULDEExecutionContext = {
+      lifecyclePhase: 'init',
+      page: pageContext,
+      artifacts: artifacts
+    }
+
+    executionContext.lifecyclePhase = 'init';
+    await this.runPluginByLifecyclePhase('init', executionContext);
 
     // LOAD (content + navigation plugins)
-    await this.runPluginByLifecyclePhase('load', pageContext);
+    executionContext.lifecyclePhase = 'load';
+    await this.runPluginByLifecyclePhase('load', executionContext);
 
     // RENDER
     // 1. Build initial AST
-    const initialAst = this.renderContextBuilder.buildInitialAst(pageContext);
+    const initialAst = this.renderContextBuilder.buildInitialAst(executionContext);
+
+    executionContext.render = {
+      pageId: pageContext.pageId,
+      ast: initialAst,
+      html: '',
+      layout: undefined
+    };
+
+    // console.log(`Log: [ULDELifecycleService] initialAst : \n`, initialAst);
 
     // 2. Run render phase plugins on AST
-    await this.runPluginByLifecyclePhase('render', { ...pageContext, ast: initialAst });
+    executionContext.lifecyclePhase = 'render';
+    await this.runPluginByLifecyclePhase('render', executionContext);
+    // console.log(`Log: [ULDELifecycleService] rendercontex after run render phase plugins on AST : \n`, executionContext.render);
 
     // 3. Build final context (sections + diagnostics + HTML)
-    const renderContext = this.renderContextBuilder.buildFinalContext(pageContext, initialAst);
-
-    // // RENDER (layout plugins)
-    // const renderContext = await this.renderContextBuilder.build(pageContext);
-    // await this.runPluginByLifecyclePhase('render', renderContext);
-
-    // // HTML generation
-    // if (!renderContext.ast) {
-    //   this.devtoolsService.addDiagnostic({ level: 'error', message: 'AST missing after render phase' });
-    // }
-
-    // renderContext.html = renderUldeAstToHtml(renderContext.ast);
-
+    this.renderContextBuilder.buildFinalContext(executionContext);
+    // console.log(`Log: [ULDELifecycleService] rendercontex after .buildFinalContext : \n`, executionContext.render);
 
     // HYDRATE (interactive plugins)
-    await this.runPluginByLifecyclePhase('hydrate', renderContext);
+    executionContext.lifecyclePhase = 'hydrate';
+    await this.runPluginByLifecyclePhase('hydrate', executionContext);
 
     // AFTER RENDER (ULDE system plugins)
-    await this.runPluginByLifecyclePhase('afterRender', renderContext);
+    executionContext.lifecyclePhase = 'afterRender';
+    await this.runPluginByLifecyclePhase('afterRender', executionContext);
 
     // Cleanup + diagnostics
     await this.pluginRegistry.destroyAll();
     this.runtime.finalizeFrameAndAnalyze();
 
-    return renderContext;
+    // console.log(`Log: [ULDELifecycleService] final rendercontext: \n`, executionContext.render);
+
+    return executionContext;
+    // return executionContext.render;
+    // return renderContext;
   }
 }
 
 ```
 
-#### 3-1-12. ulde-plugin-registry.service.ts
+#### 3-1-13. ulde-plugin-registry.service.ts
 ```ts
 // src/ulde/core/ulde-plugin-registry.service.ts
 
 import { Injectable } from '@angular/core';
 import { ULDEDevtoolsService } from '@ulde/core';
-import { ULDELifecyclePhase } from '@ulde/types/lifecycle';
-import { ULDEPluginInstance, ULDEPlugin, ULDEPluginFactory } from '@ulde/types/plugin';
+import { ULDEPluginInstance, ULDEPluginFactory } from '@ulde/types/plugin';
+// import { ULDEPluginInstance, ULDEPlugin, ULDEPluginFactory } from '@ulde/types/plugin';
 
 import { ULDE_PLUGIN_REGISTRY } from '@ulde/plugins/registry'; // updated registry
-import { ULDEPluginHookAdapter } from '@ulde/plugins/adaptors';
+// import { ULDEPluginHookAdapter } from '@ulde/plugins/adaptors';
+import { ULDEExecutionContext } from '@ulde/types';
 
 @Injectable({ providedIn: 'root' })
 export class ULDEPluginRegistryService {
@@ -2062,9 +2205,9 @@ export class ULDEPluginRegistryService {
     const raw = factory();
 
     // Legacy plugin: has "hooks"
-    if ((raw as ULDEPlugin).hooks) {
-      return new ULDEPluginHookAdapter(raw as ULDEPlugin);
-    }
+    // if ((raw as ULDEPlugin).hooks) {
+    //   return new ULDEPluginHookAdapter(raw as ULDEPlugin);
+    // }
 
     // New plugin: already run‑based
     return raw as ULDEPluginInstance;
@@ -2073,28 +2216,26 @@ export class ULDEPluginRegistryService {
   /**
    * Run all plugins assigned to a lifecycle phase.
    */
-  async runPhase(
-    phase: ULDELifecyclePhase,
-    ctx: Record<string, any> = {}
-  ): Promise<void> {
+  async runPhase(executionCtx: ULDEExecutionContext): Promise<void> {
 
+    const phase = executionCtx.lifecyclePhase;
     const factories = ULDE_PLUGIN_REGISTRY[phase] || [];
 
     for (const factory of factories) {
-      const raw: ULDEPlugin | ULDEPluginInstance = factory();
-      const plugin = ('hooks' in raw) ?
-        new ULDEPluginHookAdapter(raw as ULDEPlugin)
-        : (raw as ULDEPluginInstance);
+      const raw: ULDEPluginInstance = factory();
+      // const raw: ULDEPlugin | ULDEPluginInstance = factory();
+      const plugin = raw as ULDEPluginInstance;
+      // const plugin = ('hooks' in raw) ?
+      //   new ULDEPluginHookAdapter(raw as ULDEPlugin)
+      //   : (raw as ULDEPluginInstance);
 
       if (!plugin) continue;
 
       const start = performance.now();
 
       try {
-        await plugin.run({
-          ...ctx,
-          lifecyclePhase: phase,
-        });
+
+        await plugin.run(executionCtx);
       } catch (err) {
         this.devtoolsService.addDiagnostic({
           level: 'error',
@@ -2159,10 +2300,9 @@ export class ULDEPluginRegistryService {
   }
 }
 
-
 ```
 
-#### 3-1-13. ulde-runtime.service.ts
+#### 3-1-14. ulde-runtime.service.ts
 ```ts
 // src/ulde/core/ulde-runtime.service.ts
 
@@ -2453,7 +2593,7 @@ export function buildUldeAst(tokens: Token[]): ULDEAstNode[] {
       // Default: ignore or log
       default:
         // you can optionally push a meta node for unknown tokens
-        // push({ type: 'meta', meta: { tokenType: t.type } });
+        push({ type: 'meta', meta: { tokenType: t.type } });
         break;
     }
   }
@@ -2484,7 +2624,7 @@ export function renderUldeAstToHtml(nodes: ULDEAstNode[]): string {
       // Block nodes
       // ---------------------------------------------------------
       case 'heading': {
-      
+
         buf.push(`<h${node.depth}>`);
         node.children?.forEach(renderNode);
         buf.push(`</h${node.depth}>`);
@@ -2506,7 +2646,7 @@ export function renderUldeAstToHtml(nodes: ULDEAstNode[]): string {
       }
 
       case 'list': {
-        const ordered = node.meta?.['ordered'] === true;
+        const ordered = node.ordered === true;
         buf.push(ordered ? '<ol>' : '<ul>');
         node.children?.forEach(renderNode);
         buf.push(ordered ? '</ol>' : '</ul>');
@@ -2560,9 +2700,9 @@ export function renderUldeAstToHtml(nodes: ULDEAstNode[]): string {
       }
 
       case 'link': {
-        const href = escapeHtml(node.meta?.['href'] ?? '');
-        const title = node.meta?.['title']
-          ? ` title="${escapeHtml(node.meta?.['title'])}"`
+        const href = escapeHtml(node.href ?? '');
+        const title = node.title
+          ? ` title="${escapeHtml(node.title)}"`
           : '';
         buf.push(`<a href="${href}"${title}>`);
         node.children?.forEach(renderNode);
@@ -2571,10 +2711,10 @@ export function renderUldeAstToHtml(nodes: ULDEAstNode[]): string {
       }
 
       case 'image': {
-        const src = escapeHtml(node.meta?.['src'] ?? '');
-        const alt = escapeHtml(node.meta?.['alt'] ?? '');
-        const title = node.meta?.['title']
-          ? ` title="${escapeHtml(node.meta?.['title'])}"`
+        const src = escapeHtml(node.src ?? '');
+        const alt = escapeHtml(node.alt ?? '');
+        const title = node.title
+          ? ` title="${escapeHtml(node.title)}"`
           : '';
         buf.push(`<img src="${src}" alt="${alt}"${title} />`);
         break;
@@ -2609,8 +2749,8 @@ export function renderUldeAstToHtml(nodes: ULDEAstNode[]): string {
       // ULDE custom nodes (minimal handling)
       // ---------------------------------------------------------
       case 'admonition': {
-        const kind = node.meta?.['kind'] ?? 'info';
-        const title = node.meta?.['title'] ?? '';
+        const kind = node.kind ?? 'info';
+        const title = node.title ?? '';
         buf.push(`<div class="ulde-admonition ulde-admonition-${escapeHtml(kind)}">`);
         if (title) {
           buf.push(`<div class="ulde-admonition-title">${escapeHtml(title)}</div>`);
@@ -2622,7 +2762,7 @@ export function renderUldeAstToHtml(nodes: ULDEAstNode[]): string {
       }
 
       case 'uldeBlock': {
-        const name = node.meta?.['name'] ?? 'block';
+        const name = node.name ?? 'block';
         buf.push(`<div class="ulde-block ulde-block-${escapeHtml(name)}">`);
         node.children?.forEach(renderNode);
         buf.push('</div>');
@@ -2630,12 +2770,12 @@ export function renderUldeAstToHtml(nodes: ULDEAstNode[]): string {
       }
 
       case 'demo': {
-        const id = node.meta?.['id'] ?? '';
+        const id = node.id ?? '';
         buf.push(`
           <div class="ulde-demo"
           data-demo-id="${escapeHtml(id)}"
-          data-demo-code="${escapeHtml(node.meta?.['code'])}">
-          <pre>${escapeHtml(node.meta?.['code'])}</pre>
+          data-demo-code="${escapeHtml(node.code)}">
+          <pre>${escapeHtml(node.code)}</pre>
           `);
         // buf.push(`
         //   <div class="ulde-demo" data-demo-id="${escapeHtml(id)}">
@@ -2651,7 +2791,7 @@ export function renderUldeAstToHtml(nodes: ULDEAstNode[]): string {
       }
 
       case 'anchor': {
-        const id = node.meta?.['id'] ?? '';
+        const id = node.id ?? '';
         buf.push(`<a id="${escapeHtml(id)}" data-ulde-anchor="${escapeHtml(id)}"></a>`);
 
         // console.log(`Log: [ulde-ast-renderer.engine.ts renderUldeAstToHtml()]  \nnode type=anchor`, id);
@@ -2667,10 +2807,10 @@ export function renderUldeAstToHtml(nodes: ULDEAstNode[]): string {
       }
 
       case 'diagnostic': {
-        const level = node.meta?.['level'] ?? 'info';
-        const message = escapeHtml(node.meta?.['message'] ?? '');
-        const phase = node.meta?.['lifecyclePhase'];
-        const plugin = node.meta?.['pluginName'];
+        const level = node.level ?? 'info';
+        const message = escapeHtml(node.message ?? '');
+        const phase = node.lifecyclePhase;
+        const plugin = node.pluginName;
 
         buf.push(`<div class="ulde-diagnostic ulde-diagnostic-${level}">`);
         buf.push(`<strong>${level.toUpperCase()}</strong>: ${message}`);
@@ -2907,10 +3047,8 @@ export class ULDELayoutEngineService {
         // start a new section
         const section: ULDESectionNode = {
           type: 'section',
-          meta: {
-            id: slugify(collectHeadingText(node)),
-            depth: (node as ULDEHeadingNode).depth
-          },
+          id: slugify(collectHeadingText(node)),
+          depth: (node as ULDEHeadingNode).depth,
           children: [node]
         };
 
@@ -2948,7 +3086,7 @@ function slugify(s: string) {
 // src/ulde/engine/ulde-render-context-builder.engine.service.ts
 
 import { Injectable } from '@angular/core';
-import { ULDEPageContext, ULDERenderContext } from '@ulde/types/context';
+import { ULDEExecutionContext } from '@ulde/types/context';
 import { buildUldeAst } from './ulde-ast-builder.engine';
 import { renderUldeAstToHtml } from './ulde-ast-renderer.engine';
 import { ULDELayoutEngineService } from './ulde-layout.engine.service';
@@ -2971,8 +3109,12 @@ export class ULDERenderContextBuilderService {
     * Build the initial AST from page tokens.
     * This is called before the render phase plugins.
     */
-  buildInitialAst(page: ULDEPageContext) {
-    const ast = buildUldeAst(page.token);
+  buildInitialAst(executionCtx: ULDEExecutionContext) {
+    const page = executionCtx.page;
+    const ast = buildUldeAst(page.source.tokens);
+
+    // console.log(`Log: [ULDERenderContextBuilderService - buildInitialAst]\ntokens=`, page.source.tokens, `\nast=`, ast);
+
     return ast;
   }
 
@@ -2983,39 +3125,53 @@ export class ULDERenderContextBuilderService {
      *
      * This is called AFTER the 'render' lifecycle phase.
      */
-  buildFinalContext(page: ULDEPageContext, ast: any[]): ULDERenderContext {
+
+
+  buildFinalContext(executionCtx: ULDEExecutionContext) {
     // 1. Layout: sections (now that plugins have mutated AST)
+    if (!executionCtx.render) return;
+    const ast = executionCtx.render.ast;
+    if (!ast) return;
     const sectionAst = this.layoutEngine.buildSections(ast);
 
     // 2. Inject diagnostics into AST
     const diagnostics = this.devtoolsService.$diagnostics();
-    const diagnosticNodes: ULDEDiagnosticNode[] = diagnostics.map((d: ULDEDiagnostic) => ({
-      type: 'diagnostic',
-      meta: {
-        level: d.level,
-        message: d.message,
-        lifecyclePhase: d.lifecyclePhase,
-        pluginName: d.pluginName,
-      },
-    }));
+    // const diagnosticNodes: ULDEDiagnosticNode[] = diagnostics.map((d: ULDEDiagnostic) => ({
+    //   type: 'diagnostic',
+    //   level: d.level,
+    //   message: d.message,
+    //   code: "",
+    //   pluginName: d.pluginName,
+    //   pluginKind: d.pluginKind,
+    //   lifecyclePhase: d.lifecyclePhase,
+    // }));
 
-    const finalAst = [...sectionAst, ...diagnosticNodes];
+    const finalAst = sectionAst;
+    // const finalAst = [...sectionAst, ...diagnosticNodes];
 
     // 3. Render HTML from final AST
     const html = renderUldeAstToHtml(finalAst);
 
-    // 4. Assemble render context
-    const currentFrame = this.devtoolsService.$currentFrame();
+    // 4. Assemble
 
-    return {
-      pageId: page.pageId,
-      ast: finalAst,
-      html,
-      // layout: sectionAst, // for test
-      layout: 'sections', // original
-      frame: currentFrame ?? undefined,
+    executionCtx.render.ast = finalAst;
+    executionCtx.render.html = html;
+    executionCtx.render.layout = {
+      id: 'technical-docs',
+      type: 'book'
     };
+    executionCtx.artifacts.diagnostics = diagnostics;
+
+    const currentFrame = this.devtoolsService.$currentFrame() ?? undefined;
+    executionCtx.artifacts.frame = currentFrame;
+    // const artifacts = { ...executionCtx.artifacts, diagnostics, frame: currentFrame };
+
+    // const render = { ...executionCtx.render, ast: finalAst, html, layout: 'sections', artifacts: executionCtx.artifacts };
+
+    // executionCtx = {...executionCtx, render, artifacts};
+
   }
+
 
 }
 
@@ -3025,6 +3181,8 @@ export class ULDERenderContextBuilderService {
 ### 5. src/ulde/plugins/
 
 #### 5-1. adaptors/
+
+##### 5-1-1. index.ts ***DELETED***
 ```ts
 // src/ulde/plugins/adaptors/index.ts
 
@@ -3032,15 +3190,7 @@ export * from './ulde-plugin-hook-adaptor';
 
 ```
 
-##### 5-1-1. index.ts
-```ts
-// src/ulde/plugins/adaptors/index.ts
-
-export * from './ulde-plugin-hook-adaptor';
-
-```
-
-##### 5-1-2. ulde-plugin-hook-adaptor.ts
+##### 5-1-2. ulde-plugin-hook-adaptor.ts  ***DELETED***
 ```ts
 // src/ulde/plugins/adaptors/ulde-plugin-hook-adaptor.ts
 
@@ -3152,29 +3302,29 @@ export const ULDE_PLUGIN_REGISTRY: ULDEPluginRegistryMap = {
 
   // Content + navigation: operate on page context / tokens / early AST
   load: [
-    () => ULDEFrontmatterNormalizerPlugin,
-    () => ULDECodeblockPlugin,
-    () => ULDEDemoPlugin,
-    () => ULDEDummyTestPlugin,
-    () => ULDENavigationBreadcrumbsPlugin,
+    () => new ULDEFrontmatterNormalizerPlugin(),
+    () => new ULDECodeblockPlugin(),
+    () => new ULDEDemoPlugin(),
+    () => new ULDEDummyTestPlugin(),
+    () => new ULDENavigationBreadcrumbsPlugin(),
   ],
 
   // Layout: operate on AST structure (sections, anchors, TOC)
   render: [
-    () => ULDEAnchorPlugin,
+    () => new ULDEAnchorPlugin(),
     () => new ULDETocPlugin(),
   ],
 
   // Interactive: operate on rendered HTML / DOM
   hydrate: [
-    () => ULDEPlaygroundInjectorPlugin,
+    () => new ULDEPlaygroundInjectorPlugin(),
   ],
 
   // ULDE system: diagnostics, overlay, performance analysis
   afterRender: [
-    () => ULDEOverlayCustomPanelPlugin,
-    () => ULDESlowPluginDetectorPlugin,
-    () => ULDETimelineProfilerPlugin,
+    () => new ULDEOverlayCustomPanelPlugin(),
+    () => new ULDETimelineProfilerPlugin(),
+    () => new ULDESlowPluginDetectorPlugin(),
   ],
 };
 
@@ -3197,56 +3347,64 @@ export * from "./ulde-frontmatter-normalizer.plugin";
 ```ts
 // src/ulde/plugins/system/content/ulde-codeblock.plugin.ts
 
-import { ULDEPlugin } from "@ulde/types/plugin";
+import { ULDEExecutionContext } from "@ulde/types";
+import {ULDEPluginInstance, ULDEPluginKind } from "@ulde/types/plugin";
 
-export const ULDECodeblockPlugin: ULDEPlugin = {
-  pluginKind: 'content',
-  pluginName: "CodeblockEnhancer",
-  description: "Markdown Code Block Enhancer: Enhances fenced code blocks with metadata",
-  enabled: true,
-  hooks: {
-    async onPageLoad(ctx) {
-      if (ctx.raw === undefined) return;
+export class ULDECodeblockPlugin implements ULDEPluginInstance {
+  pluginKind: ULDEPluginKind = 'content';
+  pluginName = "CodeblockEnhancer";
+  description = "Markdown Code Block Enhancer: Enhances fenced code blocks with metadata";
+  enabled = true;
 
-      ctx.raw = ctx.raw.replace(/```(\w+)/g, ((m: any, lang: any) => {
-        return `\`\`\`${lang} data-lang="${lang}"`;
-      }));
-    },
+  async run(ctx: ULDEExecutionContext) {
+    if (ctx.lifecyclePhase !== 'load') return;
+    if (ctx.page.source.raw === undefined) return;
 
-    async onBeforeRender(ctx) {
-      if (ctx.html === undefined) return;
 
-      const html = ctx.html.replace(
-        /<pre><code class="language-(\w+)">/g,
-        ((m: any, lang: any) => `<pre data-lang="${lang}"><code class="language-${lang}">`
-        ));
+    console.log('Log: [ULDECodeblockPlugin] run');
 
-      ctx.html = html;
-    }
+    ctx.page.source.raw = ctx.page.source.raw.replace(/```(\w+)/g, ((m: any, lang: any) => {
+      return `\`\`\`${lang} data-lang="${lang}"`;
+    }));
+
+    console.log('Log: [ULDECodeblockPlugin] finished');
   }
-};
 
 ```
 
 ###### 5-4-1-3. ulde-frontmatter-normalizer.plugin.ts
 ```ts
-/// src/ulde/plugins/system/content/ulde-frontmatter-normalizer.plugin.ts
+// src/ulde/plugins/system/content/ulde-frontmatter-normalizer.plugin.ts
 
-import { ULDEPlugin } from '@ulde/types/plugin';
+import { ULDEExecutionContext } from '@ulde/types';
+import { ULDEPluginInstance, ULDEPluginKind } from '@ulde/types/plugin';
 
-export const ULDEFrontmatterNormalizerPlugin: ULDEPlugin = {
-  pluginKind: 'content',
-  pluginName: "FrontmatterNormalizer",
-  description: "Normalizes frontmatter fields",
-  enabled: true,
-  hooks: {
-    onPageLoad(ctx) {
-      ctx.meta['title'] ??= "Untitled";
-      ctx.meta['tags'] ??= [];
-      ctx.meta['updated'] ??= new Date().toISOString();
-    }
+export class ULDEFrontmatterNormalizerPlugin implements ULDEPluginInstance {
+  pluginKind: ULDEPluginKind = 'content';
+  pluginName = "ULDEFrontmatterNormalizerPlugin";
+  description = "Normalizes frontmatter fields";
+  enabled = true;
+  async run(ctx: ULDEExecutionContext) {
+
+    if (ctx.lifecyclePhase !== 'load') return;
+
+    console.log('Log: [ULDEFrontmatterNormalizerPlugin] run');
+
+    // How and what to be Coded???
+    // ctx.meta['title'] ??= "Untitled";
+    // ctx.meta['tags'] ??= [];
+    // ctx.meta['updated'] ??= new Date().toISOString();
+
+
+    const frontmatter = { title: "Untitled", 'tags': [], updated: new Date().toISOString() };
+
+    ctx.artifacts.pluginData['frontmatter'] = frontmatter;
+
+    console.log('Log: [ULDEFrontmatterNormalizerPlugin] finished');
+
+
   }
-};
+}
 
 ```
 
@@ -3265,41 +3423,42 @@ export * from "./ulde-playground-injector.plugin";
 ```ts
 // src/ulde/plugins/system/demo/ulde-demo.plugin.ts
 
-import { ULDEPlugin } from '@ulde/types/plugin';
+import { ULDEPluginInstance, ULDEPluginKind } from '@ulde/types/plugin';
 import { visitUldeAst } from '@ulde/engine';
+import { ULDEExecutionContext } from '@ulde/types';
 
-export const ULDEDemoPlugin: ULDEPlugin = {
-  pluginKind: 'demo',
-  pluginName: 'demo-block',
-  description: 'Convert fenced code blocks with demo info into ULDE demo nodes.',
-  enabled: true,
-  hooks: {
-    onBeforeRender(ctx) {
-      visitUldeAst(ctx.ast, {
-        pre(node) {
-          if (node.type === 'code' && node.lang?.startsWith('demo')) {
-            const parts = node.lang.split(/\s+/);
-            const idPart = parts.find(p => p.startsWith('id='));
-            const id = idPart ? idPart.split('=')[1] : 'demo';
+export class ULDEDemoPlugin implements ULDEPluginInstance {
+  pluginKind: ULDEPluginKind = 'demo';
+  pluginName = 'demo-block';
+  description = 'Convert fenced code blocks with demo info into ULDE demo nodes.';
+  enabled = true;
+  async run(ctx: ULDEExecutionContext) {
 
-            return {
-              type: 'demo',
-              meta: {
-                id,
-                code: node.value,
-                lang: 'javascript'
-              },
-              children: []
-            };
-          } else{
-            return undefined;
-          }
+    if (ctx.lifecyclePhase !== 'load') return;
+    if (!ctx.render) return;
 
+    visitUldeAst(ctx.render.ast, {
+      pre(node) {
+        if (node.type === 'code' && node.lang?.startsWith('demo')) {
+          const parts = node.lang.split(/\s+/);
+          const idPart = parts.find(p => p.startsWith('id='));
+          const id = idPart ? idPart.split('=')[1] : 'demo';
+
+          return {
+            type: 'demo',
+            id: id,
+            code: node.value,
+            language: 'javascript',
+            children: []
+          };
+        } else {
+          return undefined;
         }
-      });
-    }
+
+      }
+    });
   }
-};
+}
 
 ```
 
@@ -3307,33 +3466,36 @@ export const ULDEDemoPlugin: ULDEPlugin = {
 ```ts
 // src/ulde/plugins/system/demo/ulde-playground-injector.plugin.ts
 
-import { ULDEPlugin } from "@ulde/types/plugin";
+import { ULDEPluginInstance, ULDEPluginKind } from "@ulde/types/plugin";
 
 import { createComponent, EnvironmentInjector } from "@angular/core";
 import { Example02 } from "../../../../app/demo/example02/example02"; // TBD
+import { ULDEExecutionContext } from "@ulde/types";
 
-export const  ULDEPlaygroundInjectorPlugin: ULDEPlugin = {
-  pluginKind: 'demo',
-  pluginName: "PlaygroundInjector",
-  description: "Hydrates <demo-playground> blocks into live Angular components",
-  enabled: true,
-  hooks: {
-    async onAfterRender(ctx) {
-      const placeholders = document.querySelectorAll("demo-playground");
-      // You must provide the Angular environment injector
-      const injector = (window as any).ngEnvironment as EnvironmentInjector;
+export class ULDEPlaygroundInjectorPlugin implements ULDEPluginInstance {
+  pluginKind: ULDEPluginKind = 'demo';
+  pluginName = "ULDEPlaygroundInjectorPlugin";
+  description = "Hydrates <demo-playground> blocks into live Angular components";
+  enabled = true;
+  async run(ctx: ULDEExecutionContext) {
 
-      for (const el of placeholders) {
-        const cmpRef = createComponent(Example02, {
-          hostElement: el,
-          environmentInjector: injector
-        });
+    if (ctx.lifecyclePhase !== 'hydrate') return;
+    if (!ctx.render) return;
 
-        cmpRef.changeDetectorRef.detectChanges();
-      }
+    const placeholders = document.querySelectorAll("demo-playground");
+    // You must provide the Angular environment injector
+    const injector = (window as any).ngEnvironment as EnvironmentInjector;
+
+    for (const el of placeholders) {
+      const cmpRef = createComponent(Example02, {
+        hostElement: el,
+        environmentInjector: injector
+      });
+
+      cmpRef.changeDetectorRef.detectChanges();
     }
   }
-};
+}
 
 ```
 
@@ -3351,30 +3513,28 @@ export * from "./ulde-dummy-test.plugin";
 ```ts
 // src/ulde/plugins/system/interactive/ulde-dummy-test.plugin.ts
 
+import { ULDEExecutionContext } from '@ulde/types/context';
+import { ULDEPluginInstance, ULDEPluginKind } from '@ulde/types/plugin';
 
-import { ULDERenderContext } from '@ulde/types/context';
-import { ULDEPlugin } from '@ulde/types/plugin';
+export class ULDEDummyTestPlugin implements ULDEPluginInstance {
+  pluginKind: ULDEPluginKind = 'content';
+  pluginName = 'ULDEDummyTestPlugin';
+  version = '0.0.1';
+  description = 'create dummy test plugin';
+  enabled = true;
+  async run(ctx: ULDEExecutionContext) {
+    if (ctx.lifecyclePhase !== 'load') return;
+    if (!ctx.artifacts) return;
 
-export const ULDEDummyTestPlugin: ULDEPlugin = {
-  return {
-    pluginKind: 'content',
-    pluginName: 'DummyTestPlugin',
-    version: '0.0.1',
-    description: 'create dummy test plugin',
-    enabled: true,
-    hooks: {
+    const { artifacts } = ctx;
 
-      onBeforeRender(ctx: ULDERenderContext) {
-        const { frame } = ctx;
-
-        /**
-         * To be coded
-         */
+    /**
+     * To be coded
+     */
 
 
-      },
-    }
   };
+
 }
 
 ```
@@ -3394,40 +3554,58 @@ export * from "./ulde-toc.plugin";
 ```ts
 // src/ulde/plugins/system/layout/ulde-anchor.plugin.ts
 
-import { ULDEPlugin } from '@ulde/types/plugin';
 import { visitUldeAst } from '@ulde/engine';
+import { ULDEAnchorEntry, ULDEExecutionContext } from '@ulde/types';
+import { ULDEPluginInstance, ULDEPluginKind } from '@ulde/types/plugin';
 
-export const ULDEAnchorPlugin: ULDEPlugin = {
-  pluginKind: 'layout',
-  pluginName: 'auto-anchors',
-  description: 'Add <a id="slug"></a> before each heading.',
-  enabled: true,
-  hooks: {
-    onBeforeRender(ctx) {
+export class ULDEAnchorPlugin implements ULDEPluginInstance {
+  pluginKind: ULDEPluginKind = 'layout';
+  pluginName = 'ULDEAnchorPlugin';
+  description = 'Add <a id="slug"></a> before each heading.';
+  enabled = true;
 
-      console.log(`Log: [AutoAnchors Plugin] onBeforeRender`);
+  async run(ctx: ULDEExecutionContext) {
+    if (ctx.lifecyclePhase !== 'render') return;
+    if (!ctx.render) return;
 
-      visitUldeAst(ctx.ast, {
-        pre(node) {
-          if (node.type === 'heading') {
-            const text = node.children
-              ?.filter(c => c.type === 'text')
-              .map(c => c.value)
-              .join('') ?? '';
+    console.log(`Log: [ULDEAnchorPlugin] run`);
 
-            const id = slugify(text);
+    const headings: { id: string; text: string; depth: number;  }[] = [];
 
-            // Inject anchor node at the beginning of heading children
-            node.children?.unshift({
-              type: 'anchor',
-              meta: { id }
-            });
-          }
+    visitUldeAst(ctx.render.ast, {
+      pre(node) {
+        if (node.type === 'heading') {
+          const text = node.children
+            ?.filter(c => c.type === 'text')
+            .map(c => c.value)
+            .join('') ?? '';
+          const id = slugify(text);
+          headings.push({ id, text: text ,depth: node.depth!});
+
+          // Inject anchor node at the beginning of heading children
+          node.children?.unshift({
+            type: 'anchor',
+            id: id
+          });
         }
-      });
-    }
+      }
+    });
+
+    const anchorEntries: ULDEAnchorEntry[] = headings.map(h => ({
+      id: `${slugify(h.text)}`,
+      text: h.text,
+      depth: h.depth
+    }));
+
+    ctx.artifacts.anchors = anchorEntries;
+
+
+    console.log('Log: [ULDEAnchorPlugin] \nArtifacts ANCHORS Finished');
+
   }
-};
+
+}
+
 
 function slugify(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '-');
@@ -3440,21 +3618,25 @@ function slugify(s: string) {
 // src/ulde/plugins/system/layout/ulde-toc.plugin.ts
 
 import { ULDEPluginInstance, ULDEPluginKind } from '@ulde/types/plugin';
-import { ULDERenderContext, ULDETocNode } from '@ulde/types/context';
+import { ULDEExecutionContext, ULDETocEntry, ULDETocNode } from '@ulde/types/context';
 import { visitUldeAst } from '@ulde/engine';
 
 export class ULDETocPlugin implements ULDEPluginInstance {
   pluginKind: ULDEPluginKind = 'layout';
-  pluginName = 'auto-toc';
+  pluginName = 'ULDETocPlugin';
   enabled = true;
 
-  async run(ctx: ULDERenderContext & { lifecyclePhase: string }) {
+  async run(ctx: ULDEExecutionContext) {
+
     if (ctx.lifecyclePhase !== 'render') return;
+    if (!ctx.render) return;
+
+    console.log('Log: [ULDETocPlugin] run');
 
     const headings: { depth: number; text: string }[] = [];
 
     // Collect headings
-    visitUldeAst(ctx.ast, {
+    visitUldeAst(ctx.render.ast, {
       pre(node) {
         if (node.type === 'heading') {
           const text = node.children
@@ -3471,17 +3653,27 @@ export class ULDETocPlugin implements ULDEPluginInstance {
       type: 'toc',
       children: headings.map(h => ({
         type: 'link',
-        meta: { href: `#${slugify(h.text)}` },
-        children: [{ type: 'text', value: h.text }]
+        href: `#${slugify(h.text)}`,
+        title: h.text,
+        children: [{ type: 'text', value: h.text}]
       }))
     };
+    // console.log('Log: [ULDETocPlugin] \nBuildTOC AST node Finished');
 
     // Inject TOC at top
-    ctx.ast.unshift(tocNode);
+    ctx.render.ast.unshift(tocNode);
+    // console.log('Log: [ULDETocPlugin] \nInject TOC at top Finished');
 
-    console.log(`[ULDETocPlugin] TOC injected. AST now:`, ctx.ast);
+    const tocEntries: ULDETocEntry[] = headings.map(h => ({
+      id: `${slugify(h.text)}`,
+      text: h.text,
+      depth: h.depth
+    }));
 
-    ctx.frame?.diagnostics
+    ctx.artifacts.toc = tocEntries; // ERROR happens here!!
+
+    console.log('Log: [ULDETocPlugin] \nArtifacts TOC Finished');
+
 
   }
 
@@ -3493,7 +3685,6 @@ export class ULDETocPlugin implements ULDEPluginInstance {
 function slugify(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 }
-
 
 ```
 
@@ -3511,23 +3702,32 @@ export * from "./ulde-navigation-breadcrumbs.plugin";
 ```ts
 // src/ulde/plugins/system/navigation/ulde-navigation-breadcrumbs.plugin.ts
 
-import { ULDEPlugin } from "@ulde/types/plugin";
+import { ULDEExecutionContext } from "@ulde/types";
+import { ULDEPluginInstance, ULDEPluginKind } from "@ulde/types/plugin";
 
-export const ULDENavigationBreadcrumbsPlugin: ULDEPlugin = {
-  pluginKind: 'navigation',
-  pluginName: "Breadcrumbs",
-  description: "Generates breadcrumb navigation from route",
-  enabled: true,
-  hooks: {
-    onPageLoad(ctx) {
-      const parts = ctx.raw.split("/").filter(Boolean);
-      ctx.meta['breadcrumbs'] = parts.map((p, i) => ({
-        label: p,
-        href: "/" + parts.slice(0, i + 1).join("/")
-      }));
-    }
+export class ULDENavigationBreadcrumbsPlugin implements ULDEPluginInstance {
+  pluginKind: ULDEPluginKind = 'navigation';
+  pluginName = "ULDENavigationBreadcrumbsPlugin";
+  description = "Generates breadcrumb navigationfrom route";
+  enabled = true;
+  async run(ctx: ULDEExecutionContext) {
+
+    if (ctx.lifecyclePhase !== 'load') return;
+    if (ctx.page.source.raw === undefined) return;
+
+    console.log('Log: [ULDENavigationBreadcrumbsPlugin] run');
+
+    const parts = ctx.page.source.raw.split("/").filter(Boolean);
+    const breadCrumbs = parts.map((p, i) => ({ label: p, href: "/" + parts.slice(0, i + 1).join("/") }));
+
+    ctx.artifacts.pluginData['breadcrumbs'] = breadCrumbs;
+
+    console.log('Log: [ULDENavigationBreadcrumbsPlugin] finished');
+
+
   }
-};
+
+}
 
 ```
 
@@ -3547,35 +3747,39 @@ export * from './ulde-timeline-profiler.plugin'
 ```ts
 // src/ulde/plugins/system/ulde/ulde-overlay-custom-panel.plugin.ts
 
-import { ULDEPlugin } from "@ulde/types//plugin";
+import { ULDEExecutionContext } from "@ulde/types";
+import { ULDEPluginInstance, ULDEPluginKind } from "@ulde/types//plugin";
 
-export const ULDEOverlayCustomPanelPlugin: ULDEPlugin = {
-  pluginKind: 'ulde',
-  pluginName: "OverlayCustomPanel",
-  description: "Adds a custom panel to the ULDE overlay",
-  enabled: true,
-  hooks: {
-    // onInit() {
-    //   const panel = document.createElement("div");
-    //   panel.className = "ulde-custom-panel";
-    //   panel.innerHTML = "<strong>Custom ULDE Panel</strong>";
-    //   document.body.appendChild(panel);
-    // },
+export class ULDEOverlayCustomPanelPlugin implements ULDEPluginInstance {
+  pluginKind: ULDEPluginKind = 'ulde';
+  pluginName = "ULDEOverlayCustomPanelPlugin";
+  description = "Adds a custom panel to the ULDE overlay";
+  enabled = true;
+  // onInit() {
+  //   const panel = document.createElement("div");
+  //   panel.className = "ulde-custom-panel";
+  //   panel.innerHTML = "<strong>Custom ULDE Panel</strong>";
+  //   document.body.appendChild(panel);
+  // },
 
-    async onAfterRender(ctx) {
+  async run(ctx: ULDEExecutionContext) {
+    
+    if (ctx.lifecyclePhase !== 'afterRender') return;
+    if (!ctx.render) return;
 
-      const customPanel: string = `
+    const customPanel: string = `
       <div class="ulde-custom-panel">
       <strong>Custom ULDE Panel</strong>
       </div>
       `;
 
-      ctx.html = customPanel;
+    const html = ctx.render.html;
+    ctx.render.html = html + customPanel;
+    // ctx.html = customPanel;
 
-    }
+  };
 
-  }
-};
+}
 
 ```
 
@@ -3583,32 +3787,43 @@ export const ULDEOverlayCustomPanelPlugin: ULDEPlugin = {
 ```ts
 // src/ulde/plugins/system/ulde/ulde-slow-pluging-detector.plugin.ts
 
-import { ULDEPlugin } from "@ulde/types/plugin";
+import { ULDEExecutionContext } from "@ulde/types";
+import { ULDEPluginInstance, ULDEPluginKind } from "@ulde/types/plugin";
 import { ULDEPluginTiming } from "@ulde/types/timing";
 
-export const ULDESlowPluginDetectorPlugin: ULDEPlugin = {
-  pluginKind: 'ulde',
-  pluginName: "SlowPluginDetector",
-  description: "Warns when plugin execution exceeds threshold",
-  enabled: true,
-  hooks: {
-    async onAfterRender(ctx) {
-      if (ctx.frame === undefined) return;
-      
-      const timings: ULDEPluginTiming[] = ctx.frame.pluginTimings; // ULDE exposes timing store
-      // const timings = window.ULDE.timings; // ULDE exposes timing store
-      const threshold = 8; // ms
+export class ULDESlowPluginDetectorPlugin implements ULDEPluginInstance {
+  pluginKind: ULDEPluginKind = 'ulde';
+  pluginName = "SlowPluginDetector";
+  description = "Warns when plugin execution exceeds threshold";
+  enabled = true;
+  async run(ctx: ULDEExecutionContext) {
 
-      for (const t of timings) {
-        if (t.duration > threshold) {
-          console.warn(
-            `[ULDE] Plugin "${t.pluginName}" exceeded ${threshold}ms: ${t.duration}ms`
-          );
-        }
+
+    if (ctx.lifecyclePhase !== 'afterRender') return;
+    if (ctx.artifacts.frame === undefined) return;
+
+    const timings: ULDEPluginTiming[] = ctx.artifacts.frame.pluginTimings; // ULDE exposes timing store
+    // const timings = window.ULDE.timings; // ULDE exposes timing store
+    const threshold = 200; // ms
+
+    for (const t of timings) {
+      if (t.duration > threshold) {
+
+        ctx.artifacts.diagnostics.push({
+          level: "warn",
+          message: `[ULDE] Plugin "${t.pluginName}" exceeded ${threshold}ms: ${t.duration}ms`,
+          lifecyclePhase: `${ctx.lifecyclePhase}`,
+          pluginKind: this.pluginKind,
+          pluginName: this.pluginName
+        })
+        // console.warn(
+        //   `[ULDE] Plugin "${t.pluginName}" exceeded ${threshold}ms: ${t.duration}ms`
+        // );
       }
     }
-  }
-};
+  };
+
+}
 
 ```
 
@@ -3616,23 +3831,24 @@ export const ULDESlowPluginDetectorPlugin: ULDEPlugin = {
 ```ts
 // src/ulde/plugins/system/ulde/ulde-timeline-profiler.plugin.ts
 
-import { ULDEPlugin } from "@ulde/types/plugin";
+import { ULDEExecutionContext } from "@ulde/types";
+import { ULDEPluginInstance, ULDEPluginKind } from "@ulde/types/plugin";
 
-export const ULDETimelineProfiler: ULDEPlugin = {
-  pluginKind: 'ulde',
-  pluginName: "TimelineProfiler",
-  description: "Logs ULDE phase durations to console",
-  enabled: true,
-  hooks: {
-    onInit() {
-      console.log("[ULDE] Timeline profiler initialized");
-    },
+export class ULDETimelineProfilerPlugin implements ULDEPluginInstance {
+  pluginKind: ULDEPluginKind = 'ulde';
+  pluginName = "ULDETimelineProfilerPlugin";
+  description = "Logs ULDE phase durations to console";
+  enabled = true;
+  async run(ctx: ULDEExecutionContext) {
 
-    onDestroy() {
-      console.log("[ULDE] Timeline profiler destroyed");
-    }
-  }
-};
+    if (ctx.lifecyclePhase !== 'afterRender') return;
+
+    if (!ctx.artifacts) return;
+
+    console.log("[ULDE] Timeline profiler initialized");
+  };
+
+}
 
 ```
 
@@ -3653,7 +3869,7 @@ export * from "./ulde/index";
 ```ts
 // src/ulde/plugins/index.ts
 
-export * from "./adaptors/index";
+// export * from "./adaptors/index";
 export * from "./registry/index";
 export * from "./system/index";
 
@@ -3680,7 +3896,7 @@ export * from "./ulde-context.types";
 ```ts
 // src/ulde/types/context/ulde-context.types.ts
 
-import { ULDEDiagnosticLevel } from '@ulde/types/diagnostics';
+import { ULDEDiagnostic, ULDEDiagnosticLevel } from '@ulde/types/diagnostics';
 import { ULDEFrame } from "@ulde/types/frame";
 import { ULDELifecyclePhase } from '@ulde/types/lifecycle';
 import { ULDEPluginKind } from '@ulde/types/plugin';
@@ -3691,225 +3907,363 @@ import type Token from 'markdown-it/lib/token.mjs';
 // ---------------------------------------------------------
 
 
-export interface ULDEAstNode {
-  type: string;
+// export interface ULDEAstNode {
+//   type: string;
+//   children?: ULDEAstNodeBase[];
+//   value?: string;
+//   depth?: number;
+//   lang?: string;
+//   meta?: Record<string, any>;
+// }
+
+export interface ULDEAstNodeBase {
   children?: ULDEAstNode[];
-  value?: string;
-  depth?: number;
-  lang?: string;
-  meta?: Record<string, any>;
+  // children?: ULDEAstNodeBase[];
+
+  extensions?: Record<string, unknown>;
+}
+
+export interface ULDEPageSource {
+  raw: string;
+  tokens: Token[];
 }
 
 export interface ULDEPageContext {
   pageId: string;
-  raw: string;
-  token: Token[];
-  meta: Record<string, any>;
+
+  /**
+  * Original document source.
+  * Must never be mutated by render plugins.
+  */
+  source: ULDEPageSource;
+
+  /**
+  * Page-level metadata.
+  *
+  * Examples:
+  * - title
+  * - description
+  * - tags
+  * - breadcrumbs
+  * - navigation
+  */
+  meta: Record<string, unknown>;
 }
 
 export interface ULDERenderContext {
   pageId: string;
+
+  /**
+  * Final AST after all render plugins.
+  */
   ast: ULDEAstNode[];
+
+  /**
+  * Final generated HTML.
+  */
   html: string;
-  layout?: string;
+
+  /**
+  * Layout identifier.
+  */
+  layout?: ULDELayout;
+  // layout?: string;
+
+  // /**
+  // * @deprecated
+  // * Use executionContext.artifacts instead.
+  // */
+  // artifacts?: ULDEArtifacts;
+}
+
+export interface ULDEExecutionContext {
+  lifecyclePhase: ULDELifecyclePhase;
+  page: ULDEPageContext;
+  render?: ULDERenderContext;
+  artifacts: ULDEArtifacts;
+}
+
+export interface ULDETocEntry {
+  id: string;
+  text: string;
+  depth: number;
+}
+
+export interface ULDEAnchorEntry {
+  id: string;
+  text: string;
+  depth: number;
+}
+
+export interface ULDESectionInfo {
+  id: string;
+  depth: number;
+  title: string;
+}
+
+export interface ULDELinkInfo {
+  href: string;
+  text: string;
+  external: boolean;
+}
+
+export interface ULDECodeBlockInfo {
+  language?: string;
+  content: string;
+}
+
+export interface ULDEArtifacts {
+  // Navigation
+  toc: ULDETocEntry[];
+  anchors: ULDEAnchorEntry[];
+  sections: ULDESectionInfo[];
+
+  // Content Analysis
+  links: ULDELinkInfo[];
+  codeBlocks: ULDECodeBlockInfo[];
+
+  // Diagnostics
+  diagnostics: ULDEDiagnostic[];
+
+  // Runtime
   frame?: ULDEFrame;
+
+  // Plugin Extension Area
+  pluginData: Record<string, unknown>;
+}
+
+
+export interface ULDELayout {
+  id: string;
+  type: string;
+  version?: string;
 }
 
 // Block Nodes
-export interface ULDEHeadingNode extends ULDEAstNode {
+export interface ULDEHeadingNode extends ULDEAstNodeBase {
   type: 'heading';
   depth: number;
 }
 
-export interface ULDEParagraphNode extends ULDEAstNode {
+export interface ULDEParagraphNode extends ULDEAstNodeBase {
   type: 'paragraph';
 }
 
-export interface ULDEBlockquoteNode extends ULDEAstNode {
+export interface ULDEBlockquoteNode extends ULDEAstNodeBase {
   type: 'blockquote';
 }
 
-export interface ULDEListNode extends ULDEAstNode {
+export interface ULDEListNode extends ULDEAstNodeBase {
   type: 'list';
-  meta: {
-    ordered: boolean;
-  };
+  ordered: boolean;
+  // meta: {
+  //   ordered: boolean;
+  // };
 }
 
-export interface ULDEListItemNode extends ULDEAstNode {
+export interface ULDEListItemNode extends ULDEAstNodeBase {
   type: 'listItem';
 }
 
-export interface ULDETableNode extends ULDEAstNode {
+export interface ULDETableNode extends ULDEAstNodeBase {
   type: 'table';
 }
 
-export interface ULDETableRowNode extends ULDEAstNode {
+export interface ULDETableRowNode extends ULDEAstNodeBase {
   type: 'tableRow';
 }
 
-export interface ULDETableCellNode extends ULDEAstNode {
+export interface ULDETableCellNode extends ULDEAstNodeBase {
   type: 'tableCell';
 }
 
-export interface ULDEThematicBreakNode extends ULDEAstNode {
+export interface ULDEThematicBreakNode extends ULDEAstNodeBase {
   type: 'thematicBreak';
 }
 
 // Inline Nodes
-export interface ULDETextNode extends ULDEAstNode {
+export interface ULDETextNode extends ULDEAstNodeBase {
   type: 'text';
   value: string;
 }
 
-export interface ULDEEmphasisNode extends ULDEAstNode {
+export interface ULDEEmphasisNode extends ULDEAstNodeBase {
   type: 'emphasis';
 }
 
-export interface ULDEStrongNode extends ULDEAstNode {
+export interface ULDEStrongNode extends ULDEAstNodeBase {
   type: 'strong';
 }
 
-export interface ULDEInlineCodeNode extends ULDEAstNode {
+export interface ULDEInlineCodeNode extends ULDEAstNodeBase {
   type: 'inlineCode';
   value: string;
 }
 
-export interface ULDEBreakNode extends ULDEAstNode {
+export interface ULDEBreakNode extends ULDEAstNodeBase {
   type: 'break';
 }
 
-export interface ULDELinkNode extends ULDEAstNode {
+export interface ULDELinkNode extends ULDEAstNodeBase {
   type: 'link';
-  meta: {
-    href: string;
-    title?: string;
-  };
+  href: string;
+  title?: string;
+  // meta: {
+  //   href: string;
+  //   title?: string;
+  // };
 }
 
-export interface ULDEImageNode extends ULDEAstNode {
+export interface ULDEImageNode extends ULDEAstNodeBase {
   type: 'image';
-  meta: {
-    src: string;
-    alt?: string;
-    title?: string;
-  };
+  src: string;
+  alt?: string;
+  title?: string;
+  // meta: {
+  //   src: string;
+  //   alt?: string;
+  //   title?: string;
+  // };
 }
 
 // Structural Nodes
-export interface ULDERootNode extends ULDEAstNode {
+export interface ULDERootNode extends ULDEAstNodeBase {
   type: 'root';
 }
 
-export interface ULDESectionNode extends ULDEAstNode {
+export interface ULDESectionNode extends ULDEAstNodeBase {
   type: 'section';
-  meta: {
-    id?: string;
-    depth?: number;
-  };
+  id?: string;
+  depth?: number;
+  // meta: {
+  //   id?: string;
+  //   depth?: number;
+  // };
 }
 
-export interface ULDEFrontmatterNode extends ULDEAstNode {
+export interface ULDEFrontmatterNode extends ULDEAstNodeBase {
   type: 'frontmatter';
-  meta: Record<string, any>;
+  meta: Record<string, unknown>;
 }
 
 // Code & Media Nodes
-export interface ULDECodeNode extends ULDEAstNode {
+export interface ULDECodeNode extends ULDEAstNodeBase {
   type: 'code';
   lang?: string;
   value: string;
 }
 
-export interface ULDEFenceNode extends ULDEAstNode {
+export interface ULDEFenceNode extends ULDEAstNodeBase {
   type: 'fence';
   lang?: string;
   value: string;
 }
 
-export interface ULDEMathNode extends ULDEAstNode {
+export interface ULDEMathNode extends ULDEAstNodeBase {
   type: 'math';
   value: string;
 }
 
-export interface ULDEInlineMathNode extends ULDEAstNode {
+export interface ULDEInlineMathNode extends ULDEAstNodeBase {
   type: 'inlineMath';
   value: string;
 }
 
 // ULDE Custom Nodes
-export interface ULDEUldeBlockNode extends ULDEAstNode {
+export interface ULDEUldeBlockNode extends ULDEAstNodeBase {
   type: 'uldeBlock';
-  meta: {
-    name: string;
-    options?: Record<string, any>;
-  };
+  name: string;
+  options?: Record<string, unknown>;
+  // meta: {
+  //   name: string;
+  //   options?: Record<string, any>;
+  // };
 }
 
-export interface ULDEAdmonitionNode extends ULDEAstNode {
+export interface ULDEAdmonitionNode extends ULDEAstNodeBase {
   type: 'admonition';
-  meta: {
-    kind: 'info' | 'warning' | 'danger' | 'success';
-    title?: string;
-  };
+  kind:
+  | 'info'
+  | 'warning'
+  | 'danger'
+  | 'success';
+  title?: string;
+  // meta: {
+  //   kind: 'info' | 'warning' | 'danger' | 'success';
+  //   title?: string;
+  // };
 }
 
-export interface ULDEDemoNode extends ULDEAstNode {
+export interface ULDEDemoNode extends ULDEAstNodeBase {
   type: 'demo';
-  meta: {
-    id: string;
-    code: string;
-    lang?: string;
-  };
+  id: string;
+  code: string;
+  language?: string;
+  // meta: {
+  //   id: string;
+  //   code: string;
+  //   lang?: string;
+  // };
 }
 
-export interface ULDEComponentNode extends ULDEAstNode {
+export interface ULDEComponentNode extends ULDEAstNodeBase {
   type: 'component';
-  meta: {
-    name: string;
-    props?: Record<string, any>;
-  };
+  name: string;
+  properties?: Record<string, unknown>;
+  // meta: {
+  //   name: string;
+  //   props?: Record<string, any>;
+  // };
 }
 
-export interface ULDETocNode extends ULDEAstNode {
+export interface ULDETocNode extends ULDEAstNodeBase {
   type: 'toc';
 }
 
-export interface ULDEAnchorNode extends ULDEAstNode {
+export interface ULDEAnchorNode extends ULDEAstNodeBase {
   type: 'anchor';
-  meta: {
-    id: string;
-  };
+  id: string;
+  // meta: {
+  //   id: string;
+  // };
 }
 
 // Meta Nodes
-export interface ULDEPositionNode extends ULDEAstNode {
+export interface ULDEPositionNode extends ULDEAstNodeBase {
   type: 'position';
-  meta: {
-    start: { line: number; column: number };
-    end: { line: number; column: number };
-  };
+  start: { line: number; column: number };
+  end: { line: number; column: number };
+  // meta: {
+  //   start: { line: number; column: number };
+  //   end: { line: number; column: number };
+  // };
 }
 
-export interface ULDEMetaNode extends ULDEAstNode {
+export interface ULDEMetaNode extends ULDEAstNodeBase {
   type: 'meta';
   meta: Record<string, any>;
 }
 
-export interface ULDEDiagnosticNode extends ULDEAstNode {
+export interface ULDEDiagnosticNode extends ULDEAstNodeBase {
   type: 'diagnostic';
-  meta: {
-    level: ULDEDiagnosticLevel;
-    message: string;
-    code?: string;
-    lifecyclePhase?: ULDELifecyclePhase;
-    pluginName?: string;
-    pluginKind?: ULDEPluginKind;
-  };
+  level: ULDEDiagnosticLevel;
+  message: string;
+  code?: string;
+  pluginName?: string;
+  pluginKind?: ULDEPluginKind;
+  lifecyclePhase?: ULDELifecyclePhase;
+  // meta: {
+  //   level: ULDEDiagnosticLevel;
+  //   message: string;
+  //   code?: string;
+  //   lifecyclePhase?: ULDELifecyclePhase;
+  //   pluginName?: string;
+  //   pluginKind?: ULDEPluginKind;
+  // };
 }
 
 // Full ULDE AST Node Type Union
-export type ULDEAstNodeUnion =
+export type ULDEAstNode =
   | ULDEHeadingNode
   | ULDEParagraphNode
   | ULDEBlockquoteNode
@@ -3942,7 +4296,6 @@ export type ULDEAstNodeUnion =
   | ULDEPositionNode
   | ULDEMetaNode
   | ULDEDiagnosticNode;
-
 
 ```
 
@@ -3980,7 +4333,7 @@ export interface ULDETimelinePoint {
 export interface ULDEHeatmapCell {
   pluginName: string;
   pluginKind: ULDEPluginKind;
-  hookName: ULDEPluginExecutionHook//keyof ULDEPluginHooks;
+  hookName: ULDEPluginExecutionHook;
   lifecyclePhase: ULDELifecyclePhase;
   intensity: number; // normalized 0–1
 }
@@ -4003,6 +4356,15 @@ export type ULDEDevToolsTab =
   | 'anchors'
   // | 'frame'
 
+
+export interface ULDEDevtoolsSnapshot {
+  executionContext: ULDEExecutionContext;
+  frame: ULDEFrame;
+  pluginTimings: ULDEPluginTiming[];
+  diagnostics: ULDEDiagnostic[];
+  timeline: ULDETimelinePoint[];
+  heatMap: ULDEHeatmapCell[];
+}
 
 ```
 
@@ -4118,7 +4480,7 @@ export * from "./ulde-plugin.types";
 ```ts
 // src/ulde/types/plugin/ulde-plugin.types.ts
 
-import { ULDEPageContext, ULDERenderContext } from "@ulde/types/context";
+import { ULDEExecutionContext, ULDEPageContext, ULDERenderContext } from "@ulde/types/context";
 import { ULDELifecyclePhase } from "@ulde/types/lifecycle";
 
 // ---------------------------------------------------------
@@ -4137,26 +4499,26 @@ export type ULDEPluginKind =
 // ULDE Plugin Definition - Legacy
 // ---------------------------------------------------------
 
-export interface ULDEPlugin {
-  pluginKind: ULDEPluginKind;
-  pluginName: string;
-  version?: string;
-  description?: string;
-  enabled?: boolean;
-  hooks: ULDEPluginHooks;
-}
+// export interface ULDEPlugin {
+//   pluginKind: ULDEPluginKind;
+//   pluginName: string;
+//   version?: string;
+//   description?: string;
+//   enabled?: boolean;
+//   hooks: ULDEPluginHooks;
+// }
 
 // ---------------------------------------------------------
 // ULDE Plugin Hooks - Legacy
 // ---------------------------------------------------------
 
-export interface ULDEPluginHooks {
-  onInit?(): void | Promise<void>;
-  onPageLoad?(ctx: ULDEPageContext): void | Promise<void>;
-  onBeforeRender?(ctx: ULDERenderContext): void | Promise<void>;
-  onAfterRender?(ctx: ULDERenderContext): void | Promise<void>;
-  onDestroy?(): void | Promise<void>;
-}
+// export interface ULDEPluginHooks {
+//   onInit?(): void | Promise<void>;
+//   onPageLoad?(ctx: ULDEPageContext): void | Promise<void>;
+//   onBeforeRender?(ctx: ULDERenderContext): void | Promise<void>;
+//   onAfterRender?(ctx: ULDERenderContext): void | Promise<void>;
+//   onDestroy?(): void | Promise<void>;
+// }
 
 /**
  * ULDE Plugin Instance - Unified Runtime Plugin
@@ -4171,7 +4533,7 @@ export interface ULDEPluginInstance {
    * Unified execution entry point.
    * The registry decides which lifecycle phase is being executed.
    */
-  run(ctx: any): void | Promise<void>;
+  run(ctx: ULDEExecutionContext): void | Promise<void>;
 
   /**
    * Optional teardown hook.
@@ -4198,7 +4560,8 @@ export type ULDEPluginClass = {
  *  - a legacy ULDEPlugin (object)
  *  - a new ULDEPluginInstance (class instance)
  */
-export type ULDEPluginFactory = () => ULDEPlugin | ULDEPluginInstance;
+export type ULDEPluginFactory = () => ULDEPluginInstance;
+// export type ULDEPluginFactory = () => ULDEPlugin | ULDEPluginInstance;
 
 /**
  * Phase-aware plugin registry using factories.
@@ -4211,7 +4574,8 @@ export type ULDEPluginRegistryMap = {
 export type ULDEPluginExecutionHook =
   | 'run'
   | 'destroy'
-  | keyof ULDEPluginHooks;
+//   | keyof ULDEPluginHooks;
+
 
 ```
 
@@ -4229,10 +4593,8 @@ export * from "./ulde-renderer.types";
 ```ts
 // src/ulde/types/renderer/ulde-renderer.types.ts
 
-import { ULDERenderContext } from "@ulde/types/context";
-import { ULDEDiagnostic } from "@ulde/types/diagnostics";
-import { ULDEFrame } from "@ulde/types/frame";
-import { ULDELifecyclePhase } from "@ulde/types/lifecycle";
+import { ULDEExecutionContext } from "@ulde/types/context";
+import { ULDEDevtoolsSnapshot } from "@ulde/types/devtools";
 
 export interface ULDERendererConfig {
   container: HTMLElement;
@@ -4248,10 +4610,13 @@ export interface ULDERendererState {
   rotation?: { x: number; y: number; z: number };
 
   // ULDE docs rendering
-  renderContext?: ULDERenderContext;
-  currentLifecyclePhase?: ULDELifecyclePhase;
-  diagnostics?: ULDEDiagnostic[];
-  frame?: ULDEFrame;
+  executionContext?: ULDEExecutionContext;
+  // renderContext?: ULDERenderContext;
+  // currentLifecyclePhase?: ULDELifecyclePhase;
+  // diagnostics?: ULDEDiagnostic[];
+  // frame?: ULDEFrame;
+  
+  devtoolsSnapshot?: ULDEDevtoolsSnapshot;
 }
 
 export interface ULDERendererEvents {
@@ -4522,10 +4887,12 @@ export class ULDERendererService {
       variantId: undefined,
       zoom: 1,
       rotation: { x: 0, y: 0, z: 0 },
-      renderContext: undefined,
-      currentLifecyclePhase: undefined,
-      diagnostics: [],
-      frame: undefined
+
+      executionContext: undefined
+      // renderContext: undefined,
+      // currentLifecyclePhase: undefined,
+      // diagnostics: [],
+      // frame: undefined
     };
 
     // initial placeholder
@@ -4564,7 +4931,7 @@ export class ULDERendererService {
         delete config.container.dataset['uldeFrameTimestamp'];
         return;
       }
-    
+
       config.container.dataset['uldeFrameId'] = frame.id;
       config.container.dataset['uldeFrameTimestamp'] = String(frame.timestamp);
     }
@@ -4674,21 +5041,26 @@ export class ULDERendererService {
       setState(partial: Partial<ULDERendererState>) {
         state = { ...state, ...partial };
 
-        if (partial.renderContext !== undefined) {
-          renderFromContext(state.renderContext);
+
+        if (partial.executionContext !== undefined) {
+          renderFromContext(state.executionContext?.render);
         }
 
-        if (partial.currentLifecyclePhase !== undefined) {
-          renderLifecyclePhase(state.currentLifecyclePhase);
-        }
+        // if (partial.renderContext !== undefined) {
+        //   renderFromContext(state.renderContext);
+        // }
 
-        if (partial.diagnostics !== undefined) {
-          renderDiagnosticsOverlay(state.diagnostics);
-        }
+        // if (partial.currentLifecyclePhase !== undefined) {
+        //   renderLifecyclePhase(state.currentLifecyclePhase);
+        // }
 
-        if (partial.frame !== undefined) {
-          renderFrameInfo(state.frame);
-        }
+        // if (partial.diagnostics !== undefined) {
+        //   renderDiagnosticsOverlay(state.diagnostics);
+        // }
+
+        // if (partial.frame !== undefined) {
+        //   renderFrameInfo(state.frame);
+        // }
 
         events?.onStateChange?.(state);
       },
@@ -4704,13 +5076,15 @@ export class ULDERendererService {
 
       dispose() {
         config.container.innerHTML = '';
-        delete config.container.dataset['uldeLifecyclePhase'];
-        delete config.container.dataset['uldeDiagnosticsCount'];
-        delete config.container.dataset['uldeFrameId'];
-        delete config.container.dataset['uldeFrameTimestamp'];
+        // delete config.container.dataset['uldeLifecyclePhase'];
+        // delete config.container.dataset['uldeDiagnosticsCount'];
+        // delete config.container.dataset['uldeFrameId'];
+        // delete config.container.dataset['uldeFrameTimestamp'];
       }
     };
   }
+}
+
 }
 
 ```
@@ -4747,7 +5121,7 @@ export class ULDERendererService {
 ```ts
 // src/ulde/viewer/ulde-viewer.ts
 
-import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild, effect, input, output, signal } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild, effect, input, output } from '@angular/core';
 import { ULDEDevtools, ULDEDevtoolsService } from '@ulde/core';
 import { ULDEFrame } from '@ulde/types/frame';
 import type { ULDERendererState } from '@ulde/types/renderer';
@@ -4783,9 +5157,18 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
       const phase = this.devtoolsService.$currentLifecyclePhaseTiming();
       if (!phase) return;
 
+      const state = this.rendererService.getState();
+      if (!state?.executionContext) return;
+
+      state.executionContext.lifecyclePhase = phase.lifecyclePhase;
       this.rendererService.setState({
-        currentLifecyclePhase: phase.lifecyclePhase,
+        executionContext: state.executionContext
       });
+
+      // this.rendererService.setState({
+      //   currentLifecyclePhase: phase.lifecyclePhase,
+      // });
+
     });
 
     // 🔥 React to diagnostics
@@ -4793,8 +5176,18 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
       const diagnostics = this.devtoolsService.$diagnostics();
       if (diagnostics.length < 1) return;
 
-      console.log(`Log: [UldeViewer] effect() -> diagnostics=\n`, diagnostics);
-      this.rendererService.setState({ diagnostics });
+
+      const state = this.rendererService.getState();
+      if (!state?.executionContext?.artifacts) return;
+
+      state.executionContext.artifacts.diagnostics = diagnostics;
+
+      this.rendererService.setState({
+        executionContext: state.executionContext
+      });
+
+      // console.log(`Log: [UldeViewer] effect() -> diagnostics=\n`, diagnostics);
+      // this.rendererService.setState({ diagnostics });
 
     });
 
@@ -4804,8 +5197,16 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
 
       if (!currentFrame) return;
 
-      this.rendererService.setState({ frame: currentFrame });
-      
+      const state = this.rendererService.getState();
+      if (!state?.executionContext?.artifacts) return;
+
+      state.executionContext.artifacts.frame = currentFrame;
+
+      this.rendererService.setState({
+        executionContext: state.executionContext
+      });
+      // this.rendererService.setState({ frame: currentFrame });
+
     });
 
     // 🔥 React to rendererState signal input (without re-init)
@@ -4850,7 +5251,8 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
       variantId: s.variantId,
       zoom: s.zoom,
       rotation: s.rotation,
-      renderContext: s.renderContext,
+      executionContext: s.executionContext,
+      // renderContext: s.renderContext,
     });
   }
 
@@ -4867,7 +5269,10 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
   }
 
   getFrame(): ULDEFrame | null {
-    const frame = this.rendererService.getState()?.frame;
+
+    const frame = this.rendererService.getState()?.executionContext?.artifacts.frame;
+    // const frame = this.rendererService.getState()?.frame;
+
     if (!frame) return null;
     return frame
 

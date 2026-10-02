@@ -1,7 +1,7 @@
 // src/ulde/plugins/system/layout/ulde-anchor.plugin.ts
 
 import { visitUldeAst } from '@ulde/engine';
-import { ULDEAnchorEntry, ULDEAnchorNode, ULDEExecutionContext } from '@ulde/types';
+import { ULDEAnchorEntry, ULDEExecutionContext } from '@ulde/types';
 import { ULDEPluginInstance, ULDEPluginKind } from '@ulde/types/plugin';
 
 export class ULDEAnchorPlugin implements ULDEPluginInstance {

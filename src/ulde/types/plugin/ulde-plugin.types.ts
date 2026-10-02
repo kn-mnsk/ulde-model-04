@@ -19,26 +19,26 @@ export type ULDEPluginKind =
 // ULDE Plugin Definition - Legacy
 // ---------------------------------------------------------
 
-export interface ULDEPlugin {
-  pluginKind: ULDEPluginKind;
-  pluginName: string;
-  version?: string;
-  description?: string;
-  enabled?: boolean;
-  hooks: ULDEPluginHooks;
-}
+// export interface ULDEPlugin {
+//   pluginKind: ULDEPluginKind;
+//   pluginName: string;
+//   version?: string;
+//   description?: string;
+//   enabled?: boolean;
+//   hooks: ULDEPluginHooks;
+// }
 
 // ---------------------------------------------------------
 // ULDE Plugin Hooks - Legacy
 // ---------------------------------------------------------
 
-export interface ULDEPluginHooks {
-  onInit?(): void | Promise<void>;
-  onPageLoad?(ctx: ULDEPageContext): void | Promise<void>;
-  onBeforeRender?(ctx: ULDERenderContext): void | Promise<void>;
-  onAfterRender?(ctx: ULDERenderContext): void | Promise<void>;
-  onDestroy?(): void | Promise<void>;
-}
+// export interface ULDEPluginHooks {
+//   onInit?(): void | Promise<void>;
+//   onPageLoad?(ctx: ULDEPageContext): void | Promise<void>;
+//   onBeforeRender?(ctx: ULDERenderContext): void | Promise<void>;
+//   onAfterRender?(ctx: ULDERenderContext): void | Promise<void>;
+//   onDestroy?(): void | Promise<void>;
+// }
 
 /**
  * ULDE Plugin Instance - Unified Runtime Plugin
@@ -80,7 +80,8 @@ export type ULDEPluginClass = {
  *  - a legacy ULDEPlugin (object)
  *  - a new ULDEPluginInstance (class instance)
  */
-export type ULDEPluginFactory = () => ULDEPlugin | ULDEPluginInstance;
+export type ULDEPluginFactory = () => ULDEPluginInstance;
+// export type ULDEPluginFactory = () => ULDEPlugin | ULDEPluginInstance;
 
 /**
  * Phase-aware plugin registry using factories.
@@ -93,7 +94,7 @@ export type ULDEPluginRegistryMap = {
 export type ULDEPluginExecutionHook =
   | 'run'
   | 'destroy'
-  | keyof ULDEPluginHooks;
+  // | keyof ULDEPluginHooks;
 
 
 

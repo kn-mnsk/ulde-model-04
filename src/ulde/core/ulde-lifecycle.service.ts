@@ -24,15 +24,15 @@ export class ULDELifecycleService {
    */
   private async runPluginByLifecyclePhase(
     lifecyclePhase: ULDELifecyclePhase,
-    executionCtx?: ULDEExecutionContext
+    executionCtx: ULDEExecutionContext
   ) {
     this.devtoolsService.startPhase(lifecyclePhase);
 
     try {
 
-      if (executionCtx) {
-        await this.pluginRegistry.runPhase(executionCtx);
-      }
+
+      await this.pluginRegistry.runPhase(executionCtx);
+
 
       this.devtoolsService.endPhase(lifecyclePhase);
     } catch (err) {
@@ -49,7 +49,8 @@ export class ULDELifecycleService {
   /**
   * Full lifecycle execution for a page.
   */
-  async executeLifecycle(pageContext: ULDEPageContext): Promise<ULDERenderContext | undefined> {
+  async executeLifecycle(pageContext: ULDEPageContext): Promise<ULDEExecutionContext | undefined> {
+  // async executeLifecycle(pageContext: ULDEPageContext): Promise<ULDERenderContext | undefined> {
 
     // INIT
     const artifacts: ULDEArtifacts = {
@@ -68,7 +69,8 @@ export class ULDELifecycleService {
       artifacts: artifacts
     }
 
-    await this.runPluginByLifecyclePhase('init');
+    executionContext.lifecyclePhase = 'init';
+    await this.runPluginByLifecyclePhase('init', executionContext);
 
     // LOAD (content + navigation plugins)
     executionContext.lifecyclePhase = 'load';
@@ -82,7 +84,7 @@ export class ULDELifecycleService {
       pageId: pageContext.pageId,
       ast: initialAst,
       html: '',
-      layout: ''
+      layout: undefined
     };
 
     // console.log(`Log: [ULDELifecycleService] initialAst : \n`, initialAst);
@@ -110,7 +112,8 @@ export class ULDELifecycleService {
 
     // console.log(`Log: [ULDELifecycleService] final rendercontext: \n`, executionContext.render);
 
-    return executionContext.render;
+    return executionContext;
+    // return executionContext.render;
     // return renderContext;
   }
 }

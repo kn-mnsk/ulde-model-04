@@ -54,10 +54,12 @@ export class ULDERendererService {
       variantId: undefined,
       zoom: 1,
       rotation: { x: 0, y: 0, z: 0 },
-      renderContext: undefined,
-      currentLifecyclePhase: undefined,
-      diagnostics: [],
-      frame: undefined
+
+      executionContext: undefined
+      // renderContext: undefined,
+      // currentLifecyclePhase: undefined,
+      // diagnostics: [],
+      // frame: undefined
     };
 
     // initial placeholder
@@ -96,7 +98,7 @@ export class ULDERendererService {
         delete config.container.dataset['uldeFrameTimestamp'];
         return;
       }
-    
+
       config.container.dataset['uldeFrameId'] = frame.id;
       config.container.dataset['uldeFrameTimestamp'] = String(frame.timestamp);
     }
@@ -206,21 +208,26 @@ export class ULDERendererService {
       setState(partial: Partial<ULDERendererState>) {
         state = { ...state, ...partial };
 
-        if (partial.renderContext !== undefined) {
-          renderFromContext(state.renderContext);
+
+        if (partial.executionContext !== undefined) {
+          renderFromContext(state.executionContext?.render);
         }
 
-        if (partial.currentLifecyclePhase !== undefined) {
-          renderLifecyclePhase(state.currentLifecyclePhase);
-        }
+        // if (partial.renderContext !== undefined) {
+        //   renderFromContext(state.renderContext);
+        // }
 
-        if (partial.diagnostics !== undefined) {
-          renderDiagnosticsOverlay(state.diagnostics);
-        }
+        // if (partial.currentLifecyclePhase !== undefined) {
+        //   renderLifecyclePhase(state.currentLifecyclePhase);
+        // }
 
-        if (partial.frame !== undefined) {
-          renderFrameInfo(state.frame);
-        }
+        // if (partial.diagnostics !== undefined) {
+        //   renderDiagnosticsOverlay(state.diagnostics);
+        // }
+
+        // if (partial.frame !== undefined) {
+        //   renderFrameInfo(state.frame);
+        // }
 
         events?.onStateChange?.(state);
       },
@@ -236,10 +243,10 @@ export class ULDERendererService {
 
       dispose() {
         config.container.innerHTML = '';
-        delete config.container.dataset['uldeLifecyclePhase'];
-        delete config.container.dataset['uldeDiagnosticsCount'];
-        delete config.container.dataset['uldeFrameId'];
-        delete config.container.dataset['uldeFrameTimestamp'];
+        // delete config.container.dataset['uldeLifecyclePhase'];
+        // delete config.container.dataset['uldeDiagnosticsCount'];
+        // delete config.container.dataset['uldeFrameId'];
+        // delete config.container.dataset['uldeFrameTimestamp'];
       }
     };
   }

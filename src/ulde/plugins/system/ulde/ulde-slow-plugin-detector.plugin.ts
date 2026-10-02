@@ -1,7 +1,7 @@
 // src/ulde/plugins/system/ulde/ulde-slow-pluging-detector.plugin.ts
 
 import { ULDEExecutionContext } from "@ulde/types";
-import { ULDEPlugin, ULDEPluginInstance, ULDEPluginKind } from "@ulde/types/plugin";
+import { ULDEPluginInstance, ULDEPluginKind } from "@ulde/types/plugin";
 import { ULDEPluginTiming } from "@ulde/types/timing";
 
 export class ULDESlowPluginDetectorPlugin implements ULDEPluginInstance {

@@ -1,7 +1,7 @@
 // src/ulde/plugins/system/interactive/ulde-dummy-test.plugin.ts
 
-import { ULDEExecutionContext, ULDERenderContext } from '@ulde/types/context';
-import { ULDEPlugin, ULDEPluginInstance, ULDEPluginKind } from '@ulde/types/plugin';
+import { ULDEExecutionContext } from '@ulde/types/context';
+import { ULDEPluginInstance, ULDEPluginKind } from '@ulde/types/plugin';
 
 export class ULDEDummyTestPlugin implements ULDEPluginInstance {
   pluginKind: ULDEPluginKind = 'content';

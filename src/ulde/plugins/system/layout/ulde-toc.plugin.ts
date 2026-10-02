@@ -1,7 +1,7 @@
 // src/ulde/plugins/system/layout/ulde-toc.plugin.ts
 
 import { ULDEPluginInstance, ULDEPluginKind } from '@ulde/types/plugin';
-import { ULDEExecutionContext, ULDETextNode, ULDETocEntry, ULDETocNode } from '@ulde/types/context';
+import { ULDEExecutionContext, ULDETocEntry, ULDETocNode } from '@ulde/types/context';
 import { visitUldeAst } from '@ulde/engine';
 
 export class ULDETocPlugin implements ULDEPluginInstance {
@@ -9,7 +9,7 @@ export class ULDETocPlugin implements ULDEPluginInstance {
   pluginName = 'ULDETocPlugin';
   enabled = true;
 
-  async run(ctx: ULDEExecutionContext & { lifecyclePhase: string }) {
+  async run(ctx: ULDEExecutionContext) {
 
     if (ctx.lifecyclePhase !== 'render') return;
     if (!ctx.render) return;

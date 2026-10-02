@@ -1,7 +1,7 @@
 // src/ulde/plugins/system/ulde/ulde-overlay-custom-panel.plugin.ts
 
 import { ULDEExecutionContext } from "@ulde/types";
-import { ULDEPlugin, ULDEPluginInstance, ULDEPluginKind } from "@ulde/types//plugin";
+import { ULDEPluginInstance, ULDEPluginKind } from "@ulde/types/plugin";
 
 export class ULDEOverlayCustomPanelPlugin implements ULDEPluginInstance {
   pluginKind: ULDEPluginKind = 'ulde';
@@ -16,7 +16,7 @@ export class ULDEOverlayCustomPanelPlugin implements ULDEPluginInstance {
   // },
 
   async run(ctx: ULDEExecutionContext) {
-    
+
     if (ctx.lifecyclePhase !== 'afterRender') return;
     if (!ctx.render) return;
 
