@@ -55,11 +55,8 @@ export class ULDERendererService {
       zoom: 1,
       rotation: { x: 0, y: 0, z: 0 },
 
-      executionContext: undefined
-      // renderContext: undefined,
-      // currentLifecyclePhase: undefined,
-      // diagnostics: [],
-      // frame: undefined
+      executionContext: undefined,
+      devtoolsSnapshot: undefined
     };
 
     // initial placeholder

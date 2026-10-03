@@ -131,7 +131,7 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
       zoom: s.zoom,
       rotation: s.rotation,
       executionContext: s.executionContext,
-      // renderContext: s.renderContext,
+      devtoolsSnapshot: s.devtoolsSnapshot
     });
   }
 

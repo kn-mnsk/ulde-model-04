@@ -32,11 +32,8 @@ export class UldeDemo01 implements AfterViewInit, OnInit {
     zoom: 1,
     rotation: { x: 0, y: 0, z: 0 },
 
-    executionContext: undefined,
-    // renderContext: undefined,
-    // currentLifecyclePhase: undefined,
-    // diagnostics: undefined,
-    // frame: undefined,
+    // executionContext: undefined,
+    // devtoolsSnapshot: undefined
   });
 
   // private md = new MarkdownIt();
@@ -83,13 +80,13 @@ export class UldeDemo01 implements AfterViewInit, OnInit {
   async ngAfterViewInit() {
     if (!isBrowser()) return;
 
-    const executeContext = await this.runUldeDemo(this.lifecycle);
-    if (!executeContext) {
+    const executionContext = await this.runUldeDemo(this.lifecycle);
+    if (!executionContext) {
       console.error('Error: [UldeDemo01] Render context is not available.');
       return;
     }
 
-    this.$rendererState.update(state => ({ ...state, executeContext }));
+    this.$rendererState.update(state => ({ ...state, executionContext }));
 
     console.log(`Log: [${this.component}] ngAfterViewInit\n rendererState:`, this.$rendererState());
 
@@ -97,6 +94,7 @@ export class UldeDemo01 implements AfterViewInit, OnInit {
 
   onViewerStateChange(state: ULDERendererState) {
 
+    // this.$rendererState.update(state => ({ ...state, state }));
     console.log(`Log: [${this.component}] onViewerStateChanged state=`, state);
     // sync UI or analytics
   }
