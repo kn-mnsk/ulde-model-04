@@ -1,11 +1,12 @@
 // src/ulde/core/devtools/ulde-devtools.service.ts
 
 import { computed, Injectable, signal } from '@angular/core';
-import { ULDEHeatmapCell, ULDETimelinePoint } from '@ulde/types';
+import { ULDEDevtoolsSnapshot, ULDEHeatmapCell, ULDEPluginStatistics, ULDETimelinePoint, ULDETrendSnapshot } from '@ulde/types';
 import { ULDEDiagnostic } from '@ulde/types/diagnostics';
 import { ULDEFrame } from '@ulde/types/frame';
 import { ULDELifecyclePhase, ULDELifecyclePhaseTiming } from '@ulde/types/lifecycle';
 import { ULDEPluginTiming } from '@ulde/types/timing';
+import { ULDERendererService } from '@ulde/viewer';
 
 @Injectable({ providedIn: 'root' })
 export class ULDEDevtoolsService {
@@ -24,7 +25,7 @@ export class ULDEDevtoolsService {
 
   // Frames
   $frameHistory = signal<ULDEFrame[]>([]);
-  $currentFrame = signal<ULDEFrame | null>(null);
+  $currentFrame = signal<ULDEFrame | undefined>(undefined);
   // Diagnostics
   $diagnostics = signal<ULDEDiagnostic[]>([]);
 
@@ -39,7 +40,7 @@ export class ULDEDevtoolsService {
   };
 
   // signal to update computed signal
-  private $reloadToComputedSugnals = signal<number>(0);
+  private $reloadComputedSugnals = signal<number>(0);
   // Derived: sparkline points
   $sparklinePoints = computed(() => {
     const history = this.$frameHistory();
@@ -58,14 +59,14 @@ export class ULDEDevtoolsService {
 
     console.log(`Log: [ULDEOverlayService] sparklinePoints`, points);
 
-    return { reload: this.$reloadToComputedSugnals(), points: points };
+    return { reload: this.$reloadComputedSugnals(), points: points };
   });
   // Derived: filtered plugin timings by lifecycle phase
   $filteredPluginTimings = computed(() => {
     const lifecyclePhaseTiming = this.$currentLifecyclePhaseTiming();
     const timings = this.$pluginTimings();
 
-    return { reload: this.$reloadToComputedSugnals(), filtered: (!lifecyclePhaseTiming) ? timings : timings.filter(t => t.lifecyclePhase === lifecyclePhaseTiming.lifecyclePhase) };
+    return { reload: this.$reloadComputedSugnals(), filtered: (!lifecyclePhaseTiming) ? timings : timings.filter(t => t.lifecyclePhase === lifecyclePhaseTiming.lifecyclePhase) };
     //   if (!lifecyclePhaseTiming) return timings;
     //   return timings.filter(t => t.lifecyclePhase === lifecyclePhaseTiming.lifecyclePhase);
   });
@@ -73,7 +74,6 @@ export class ULDEDevtoolsService {
   // signal stores
   $store = computed(() => {
     return {
-      reload: this.$reloadToComputedSugnals(),
       diagnostics: this.$diagnostics(),
       currentFrame: this.$currentFrame(),
       frameHistory: this.$frameHistory(),
@@ -81,9 +81,38 @@ export class ULDEDevtoolsService {
       timeline: this.$timeline(),
       filteredPluginTimings: this.$filteredPluginTimings().filtered,
       pluginTimings: this.$pluginTimings(),
-      sparklinePoints: this.$sparklinePoints().points
+      sparklinePoints: this.$sparklinePoints().points,
+      reload: this.$reloadComputedSugnals()
     };
   });
+
+  $devtoolsSnapshot = computed<{ snapshot: ULDEDevtoolsSnapshot; reload: number }>(() => {
+    const state = this.rendererService.getState();
+    if (!state?.executionContext) return { snapshot: {} as ULDEDevtoolsSnapshot, reload: 0 };
+
+    const executionContext = state.executionContext;
+    executionContext.artifacts.diagnostics = this.$diagnostics();
+    executionContext.artifacts.frame = this.$currentFrame();
+
+
+    const snapshot: ULDEDevtoolsSnapshot = {
+      executionContext: executionContext,
+      frameHistory: this.$frameHistory(),
+      analytics: {
+        timeline: this.$timeline(),
+        heatMap: this.$heatMap(),
+        trends: {} as ULDETrendSnapshot,
+        pluginStats: [] as ULDEPluginStatistics[],
+      }
+    };
+
+    return {
+      snapshot: snapshot,
+      reload: this.$reloadComputedSugnals()
+    };
+  });
+
+  constructor(private rendererService: ULDERendererService) { }
 
   // Frame lifecycle
   startPhase(lifecyclePhase: ULDELifecyclePhase) {
@@ -125,7 +154,7 @@ export class ULDEDevtoolsService {
     this.$timeline.set(this.buildTimeline());
     this.generateWarnings();
     this.$currentFrame.set(frame);
-    this.$reloadToComputedSugnals.update(n => n + 1);
+    this.$reloadComputedSugnals.update(n => n + 1);
 
 
     // reset for next frame

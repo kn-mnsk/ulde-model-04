@@ -4,7 +4,7 @@ import { DatePipe, DecimalPipe, JsonPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, effect, input, output, signal } from '@angular/core';
 import { UldeDevToolsDiagnosticsPanel, UldeDevtoolsFrameTimelinePanel, UldeDevtoolsPluginTimelinePanel, UldeDevtoolsRuntimeInspectorPanel, ULDEDevtoolsService } from '@ulde/core/devtools';
 import { ULDERendererState } from '@ulde/types';
-import { ULDEDevToolsTab } from '@ulde/types/devtools';
+import { ULDEDevtoolsSnapshot, ULDEDevToolsTab } from '@ulde/types/devtools';
 import { ULDEDiagnostic } from '@ulde/types/diagnostics';
 import { ULDEFrame } from '@ulde/types/frame';
 import { ULDELifecyclePhaseTiming } from '@ulde/types/lifecycle';
@@ -29,8 +29,9 @@ export class ULDEDevtools {
 
   $highlight = output<string>();
 
-  // Declare signals (uninitialized)
+  // Declare signals
   $store = signal<any | null>(null);
+  $snapshot = signal<ULDEDevtoolsSnapshot|null>(null);
 
   $visible!: typeof this.devtoolsService.$visible;
   $pinned!: typeof this.devtoolsService.$pinned;
@@ -58,6 +59,7 @@ export class ULDEDevtools {
     effect(() => {
 
       this.$store.set(this.devtoolsService.$store());
+      this.$snapshot.set(this.devtoolsService.$devtoolsSnapshot().snapshot);
 
       console.log(`Log: [UldeDevtools] effect() \ntimeline=`, this.$store().timeline);
     });

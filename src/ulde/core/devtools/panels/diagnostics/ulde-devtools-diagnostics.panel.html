@@ -5,7 +5,7 @@
 <div #diagnosticHost class="ulde-diagnostics-panel-root" [class.collapsed]="!$expanded()">
 
   <div class="header" (click)="toggle()">
-    <span>Diagnostics ({{ $diagnostics().length }})</span>
+    <span>Diagnostics ({{ $diagnostics()?.length }})</span>
     <span class="chevron">{{ $expanded() ? '▼' : '▲' }}</span>
   </div>
 
