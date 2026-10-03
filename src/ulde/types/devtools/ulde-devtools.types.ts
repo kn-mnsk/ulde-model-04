@@ -48,11 +48,46 @@ export type ULDEDevtoolsInspectorTab =
   | 'anchors'
 // | 'frame'
 
+/** Devtools Projection
+ * role: developer projection, that is, not execution ownership, not artifacts ownership, not source of truth
+ * rule: snapshot never duplicates execution-owned objects
+ *
+ */
 export interface ULDEDevtoolsSnapshot {
   executionContext: ULDEExecutionContext;
-  frame: ULDEFrame;
-  pluginTimings: ULDEPluginTiming[];
-  diagnostics: ULDEDiagnostic[];
-  timeline: ULDETimelinePoint[];
-  heatMap: ULDEHeatmapCell[];
+  frameHistory: ULDEFrame[];
+  analytics: ULDEAnalyticsSnapshot;
+}
+
+/**
+ * Cross-execution analytics
+ */
+export interface ULDEAnalyticsSnapshot {
+  timeline: ULDETimelinePoint[]; // visual analytics
+  heatMap: ULDEHeatmapCell[]; // performance anlytics
+  trends: ULDETrendSnapshot; // trend anaytics
+  pluginStats: ULDEPluginStatistics[]; // aggregation analytics
+}
+
+export interface ULDETrendSnapshot {
+  averageFrameDuration: number;
+  worstFrameDuration: number;
+  averagePluginDuration: number;
+  slowestPlugin?: {
+    pluginName: string;
+    averageDuration: number;
+  };
+  regressionDetected: boolean;
+}
+
+/**
+ * Plugin statistics - for future devtools tab
+ */
+export interface ULDEPluginStatistics {
+  pluginName: string;
+  pluginKind: ULDEPluginKind;
+  executions: number;
+  averageDuration: number;
+  maxDuration: number;
+  totalDuration: number;
 }

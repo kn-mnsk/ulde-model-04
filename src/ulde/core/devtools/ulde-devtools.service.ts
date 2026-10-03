@@ -116,7 +116,7 @@ export class ULDEDevtoolsService {
       timestamp: Date.now(),
       lifecyclePhaseTimings: this.$lifecyclePhaseTimings(),
       pluginTimings: this.$pluginTimings(),
-      diagnostics: this.$diagnostics()
+      // diagnostics: this.$diagnostics()
     };
 
     this.$frameHistory.update(list => [...list.slice(-50), frame]); // keep last 50 frames

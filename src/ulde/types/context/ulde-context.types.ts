@@ -32,6 +32,11 @@ export interface ULDEPageSource {
   tokens: Token[];
 }
 
+/**
+ * role: input - contains only source document information
+ * rule: represent the document before execution
+ * plugins may read, or should rarely mutate it
+ */
 export interface ULDEPageContext {
   pageId: string;
 
@@ -80,6 +85,11 @@ export interface ULDERenderContext {
   // artifacts?: ULDEArtifacts;
 }
 
+/** runtime truth
+ * role: current execution - contains everything necessary for a single lifecycle run
+ * rule: one execution, one document and one lifecycle
+ * lifetime: created -> executed -> disposed
+ */
 export interface ULDEExecutionContext {
   lifecyclePhase: ULDELifecyclePhase;
   page: ULDEPageContext;
@@ -116,6 +126,10 @@ export interface ULDECodeBlockInfo {
   content: string;
 }
 
+/** runtime outputs
+ * role: execution outputs which are just results produced during execution, not analytics, not history
+ * rule: everything produced by plugins belongs here, including diagnostics that are outputs, and frame that represents the result of the execution
+ */
 export interface ULDEArtifacts {
   // Navigation
   toc: ULDETocEntry[];
