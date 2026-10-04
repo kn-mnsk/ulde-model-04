@@ -1,7 +1,7 @@
 // src/ulde/core/devtools/ulde-devtools.service.ts
 
-import { computed, Injectable, signal } from '@angular/core';
-import { ULDEDevtoolsSnapshot, ULDEHeatmapCell, ULDEPluginStatistics, ULDETimelinePoint, ULDETrendSnapshot } from '@ulde/types';
+import { computed, Injectable, signal, Signal } from '@angular/core';
+import { ULDEDevtoolsSnapshot, ULDEExecutionContext, ULDEHeatmapCell, ULDEPluginStatistics, ULDETimelinePoint, ULDETrendSnapshot } from '@ulde/types';
 import { ULDEDiagnostic } from '@ulde/types/diagnostics';
 import { ULDEFrame } from '@ulde/types/frame';
 import { ULDELifecyclePhase, ULDELifecyclePhaseTiming } from '@ulde/types/lifecycle';
@@ -40,7 +40,7 @@ export class ULDEDevtoolsService {
   };
 
   // signal to update computed signal
-  private $reloadComputedSugnals = signal<number>(0);
+  $reloadComputedSugnals = signal<number>(0);
   // Derived: sparkline points
   $sparklinePoints = computed(() => {
     const history = this.$frameHistory();
@@ -86,33 +86,27 @@ export class ULDEDevtoolsService {
     };
   });
 
-  $devtoolsSnapshot = computed<{ snapshot: ULDEDevtoolsSnapshot; reload: number }>(() => {
-    const state = this.rendererService.getState();
-    if (!state?.executionContext) return { snapshot: {} as ULDEDevtoolsSnapshot, reload: 0 };
+  $generateDevtoolsSnapshot(executionContext: ULDEExecutionContext): Signal<ULDEDevtoolsSnapshot>{
 
-    const executionContext = state.executionContext;
     executionContext.artifacts.diagnostics = this.$diagnostics();
     executionContext.artifacts.frame = this.$currentFrame();
 
-
-    const snapshot: ULDEDevtoolsSnapshot = {
-      executionContext: executionContext,
-      frameHistory: this.$frameHistory(),
-      analytics: {
-        timeline: this.$timeline(),
-        heatMap: this.$heatMap(),
-        trends: {} as ULDETrendSnapshot,
-        pluginStats: [] as ULDEPluginStatistics[],
+    return computed(() => {
+      return {
+        executionContext: executionContext,
+        frameHistory: this.$frameHistory(),
+        analytics: {
+          timeline: this.$timeline(),
+          heatMap: this.$heatMap(),
+          trends: {} as ULDETrendSnapshot,
+          pluginStats: [] as ULDEPluginStatistics[],
+        }
       }
-    };
+    });
+  }
 
-    return {
-      snapshot: snapshot,
-      reload: this.$reloadComputedSugnals()
-    };
-  });
 
-  constructor(private rendererService: ULDERendererService) { }
+  constructor() { }
 
   // Frame lifecycle
   startPhase(lifecyclePhase: ULDELifecyclePhase) {
@@ -154,7 +148,7 @@ export class ULDEDevtoolsService {
     this.$timeline.set(this.buildTimeline());
     this.generateWarnings();
     this.$currentFrame.set(frame);
-    this.$reloadComputedSugnals.update(n => n + 1);
+    // this.$reloadComputedSugnals.update(n => n + 1);
 
 
     // reset for next frame

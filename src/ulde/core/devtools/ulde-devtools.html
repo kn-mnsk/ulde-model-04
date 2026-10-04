@@ -31,12 +31,14 @@
       (click)="selectTab('sparkline')">Sparkline</button>
   </div>
 
+  <!-- @if($snapshot() !== undefined){ -->
   <div class="body">
 
-    @if($activeTab() === 'diagnostics' && $snapshot()?.executionContext !== null){
+    @if($activeTab() === 'diagnostics'){
     <!-- Disgnostics -->
     <div class="diagnostics-tab">
-      <ulde-devtools-diagnostics-panel [$diagnostics]="($snapshot()?.executionContext.artifacts === undefined) ? [] : $snapshot()?.executionContext.artifacts.diagnostics"></ulde-devtools-diagnostics-panel>
+      <ulde-devtools-diagnostics-panel
+        [$diagnostics]="snapshot?.executionContext?.artifacts?.diagnostics"></ulde-devtools-diagnostics-panel>
       <!-- <ulde-devtools-diagnostics-panel [$diagnostics]="$store().diagnostics"></ulde-devtools-diagnostics-panel> -->
     </div>
 
@@ -45,8 +47,10 @@
     @if($activeTab() === 'timeline'){
     <!-- Timeline -->
     <div class="timeline-tab">
-      <ulde-devtools-frame-timeline-panel [$timelines]="$store().timeline"
+      <ulde-devtools-frame-timeline-panel [$timelines]="snapshot?.analytics?.timeline"
         [$thresholds]="thresholds"></ulde-devtools-frame-timeline-panel>
+      <!-- <ulde-devtools-frame-timeline-panel [$timelines]="$store().timeline"
+        [$thresholds]="thresholds"></ulde-devtools-frame-timeline-panel> -->
     </div>
     }
 
@@ -76,8 +80,8 @@
             <span>{{ t.pluginName }} ({{ t.hookName }}) </span>
           </div>
           <!-- <div class="hook">
-            <span>{{ t.hookName }} </span>
-          </div> -->
+          <span>{{ t.hookName }} </span>
+        </div> -->
           <div class="intensity-container">
             <div class="intensity" [style.width.%]="t.intensity * 100" [style.background]="'#d53c3c'"
               [title]="t.lifecyclePhase + '-' + t.pluginKind + '-' + t.pluginName + '-' + t.hookName ">
@@ -135,7 +139,8 @@
     @if($activeTab() === 'plugins'){
     <!-- Plugin Timings -->
     <div class="plugins-tab">
-      <ulde-devtools-plugin-timeline-panel [$pluginTimings]="$store().pluginTimings"></ulde-devtools-plugin-timeline-panel>
+      <ulde-devtools-plugin-timeline-panel
+        [$pluginTimings]="$store().pluginTimings"></ulde-devtools-plugin-timeline-panel>
     </div>
     }
 
@@ -152,6 +157,7 @@
     </div>
     }
 
+    <!-- } -->
   </div>
-
+  <!-- } -->
 </div>

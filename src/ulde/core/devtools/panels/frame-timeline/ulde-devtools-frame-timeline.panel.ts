@@ -14,7 +14,7 @@ export class UldeDevtoolsFrameTimelinePanel {
 
   $thresholds = input<any>();
 
-  $timelines = input<ULDETimelinePoint[]>([]);
+  $timelines = input<ULDETimelinePoint[]>();
 
 
   phaseColor(phase: ULDELifecyclePhase) {

@@ -11,7 +11,8 @@
   </div>
 
   <div class="rows">
-    @if($pluginTimings().length > 0){
+    @if($pluginTimings()){
+    <!-- @if($pluginTimings().length > 0){ -->
 
     @for (p of $plugins(); track p.label) {
     <div class="row">

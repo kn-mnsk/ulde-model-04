@@ -30,8 +30,13 @@ export class ULDEDevtools {
   $highlight = output<string>();
 
   // Declare signals
-  $store = signal<any | null>(null);
-  $snapshot = signal<ULDEDevtoolsSnapshot|null>(null);
+  // $store = signal<any | null>(null);
+
+  // $snapshot = signal<ULDEDevtoolsSnapshot | undefined>(undefined);
+  // $snapshot = signal<any | undefined>(undefined);
+  // $snapshot!: Signal<ULDEDevtoolsSnapshot>;
+  $store!: typeof this.devtoolsService.$store;
+  snapshot: ULDEDevtoolsSnapshot | undefined = undefined;
 
   $visible!: typeof this.devtoolsService.$visible;
   $pinned!: typeof this.devtoolsService.$pinned;
@@ -39,31 +44,30 @@ export class ULDEDevtools {
 
   thresholds!: typeof this.devtoolsService.thresholds;
 
+  // $activeTab = signal<ULDEDevToolsTab>('timeline');
   $activeTab = signal<ULDEDevToolsTab>('diagnostics');
+
   selectTab(tab: ULDEDevToolsTab) {
     this.$activeTab.set(tab);
+    // this.devtoolsService.$reloadComputedSugnals.update(n => n+1);
   }
 
   constructor(
     private devtoolsService: ULDEDevtoolsService,
   ) {
 
-    this.$visible = devtoolsService.$visible;
-    this.$pinned = devtoolsService.$pinned;
-    this.$opacity = devtoolsService.$opacity;
-
-    this.thresholds = devtoolsService.thresholds;
-
-
-    // react to devtools data change
     effect(() => {
+      if (this.$rendererState() === undefined) return;
 
-      this.$store.set(this.devtoolsService.$store());
-      this.$snapshot.set(this.devtoolsService.$devtoolsSnapshot().snapshot);
+      this.snapshot = this.$rendererState().devtoolsSnapshot;
+      this.$store = devtoolsService.$store;
+      this.$visible = devtoolsService.$visible;
+      this.$pinned = devtoolsService.$pinned;
+      this.$opacity = devtoolsService.$opacity;
 
-      console.log(`Log: [UldeDevtools] effect() \ntimeline=`, this.$store().timeline);
-    });
+      this.thresholds = devtoolsService.thresholds;
 
+    })
   }
 
   // UI actions

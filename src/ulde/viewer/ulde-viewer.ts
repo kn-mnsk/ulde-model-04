@@ -91,7 +91,7 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
     // 🔥 React to rendererState signal input (without re-init)
     effect(() => {
       const s = this.$rendererState();
-      if (!s) return;
+      if (!s || !s.executionContext) return;
 
       this.syncSignalInput();
     });
@@ -123,7 +123,7 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
 
   private syncSignalInput(): void {
     const s = this.$rendererState();
-    if (!s) return;
+    if (!s || !s.executionContext) return;
 
     this.rendererService.setState({
       modelId: s.modelId,
@@ -131,7 +131,7 @@ export class UldeViewer implements AfterViewInit, OnDestroy {
       zoom: s.zoom,
       rotation: s.rotation,
       executionContext: s.executionContext,
-      devtoolsSnapshot: s.devtoolsSnapshot
+      devtoolsSnapshot: this.devtoolsService.$generateDevtoolsSnapshot(s.executionContext)()
     });
   }
 
