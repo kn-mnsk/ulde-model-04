@@ -14,7 +14,7 @@ export class UldeDevToolsDiagnosticsPanel {
   @ViewChild('diagnosticsHost', { static: true })
   hostRef!: ElementRef<HTMLElement>;
 
-  $diagnostics = input<ULDEDiagnostic[] >();
+  $diagnostics = input<ULDEDiagnostic[]>();
   // $highlight = output<string>();
 
   $expanded = signal(true);

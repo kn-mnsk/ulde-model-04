@@ -6,7 +6,8 @@
   <div class="header">
     <span>Frame Execution Timeline Panel</span>
   </div>
-  @if($timelines().length > 0 ){
+  @if($timelines()){
+  <!-- @if($timelines().length > 0 ){ -->
   <div class="timelines">
     @for(t of $timelines(); track t.frameId){
     <div class="timeline">

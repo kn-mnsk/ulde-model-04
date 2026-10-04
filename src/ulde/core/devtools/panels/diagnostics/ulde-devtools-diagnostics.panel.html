@@ -9,6 +9,7 @@
     <span class="chevron">{{ $expanded() ? '▼' : '▲' }}</span>
   </div>
 
+
   @if ($expanded()) {
     <div class="body">
       @for (d of $diagnostics(); track trackDiag($index, d)) {

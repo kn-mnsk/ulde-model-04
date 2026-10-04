@@ -15,9 +15,10 @@ import { ULDEDevtoolsInspectorTab } from '@ulde/types/devtools';
 })
 export class UldeDevtoolsRuntimeInspectorPanel {
 
-  $rendererState = input<ULDERendererState | undefined>(undefined);
+  $rendererState = input<ULDERendererState>();
 
-  $frame = input<ULDEFrame | null>(null);
+  $frame = input<ULDEFrame>();
+  // $frame = input<ULDEFrame | null>(null);
 
   $activeTab = signal<ULDEDevtoolsInspectorTab>('ast');
 
