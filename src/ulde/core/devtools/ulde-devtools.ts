@@ -57,9 +57,10 @@ export class ULDEDevtools {
   ) {
 
     effect(() => {
-      if (this.$rendererState() === undefined) return;
+      const state = this.$rendererState();
+      if (state === undefined) return;
 
-      this.snapshot = this.$rendererState().devtoolsSnapshot;
+      this.snapshot = state.devtoolsSnapshot;
       this.$store = devtoolsService.$store;
       this.$visible = devtoolsService.$visible;
       this.$pinned = devtoolsService.$pinned;
