@@ -1,7 +1,7 @@
 // src/ulde/core/devtools/ulde-devtools.service.ts
 
 import { computed, Injectable, signal, Signal } from '@angular/core';
-import { ULDEDevtoolsSnapshot, ULDEExecutionContext, ULDEHeatmapCell, ULDEPluginStatistics, ULDETimelinePoint, ULDETrendSnapshot } from '@ulde/types';
+import { ULDEDevtoolsSnapshot, ULDEExecutionContext, ULDEHeatmapCell, ULDEPluginKind, ULDEPluginStatistics, ULDETimelinePoint, ULDETrendSnapshot } from '@ulde/types';
 import { ULDEDiagnostic } from '@ulde/types/diagnostics';
 import { ULDEFrame } from '@ulde/types/frame';
 import { ULDELifecyclePhase, ULDELifecyclePhaseTiming } from '@ulde/types/lifecycle';
@@ -71,6 +71,47 @@ export class ULDEDevtoolsService {
     //   return timings.filter(t => t.lifecyclePhase === lifecyclePhaseTiming.lifecyclePhase);
   });
 
+  $pluginStats = computed<ULDEPluginStatistics[]>(() => {
+    const timings = this.$pluginTimings();
+
+    // sort by pluginKind, then by pluginName
+    const stat1 = timings.sort((a, b) => {
+      const pluginKindResult = safeCompare(a.pluginKind, b.pluginKind);
+      if (pluginKindResult !== 0) {
+        return pluginKindResult;
+      }
+      return safeCompare(a.pluginName, b.pluginName);
+      // }).map(t => { return { key: `${t.pluginKind} ${t.pluginName}`, duration: t.duration }; }
+    }).map(t => { return { key: { kind: t.pluginKind, name: t.pluginName }, duration: t.duration }; }
+
+
+    );
+
+    const duraionByKey = stat1.reduce<Record<string, number>>((acc, curr) => {
+      acc[curr.key.kind + ',' + curr.key.name] += curr.duration
+      return acc;
+    },
+      {},
+    );
+
+    const executions = stat1.reduce<Record<string, number>>((acc, curr) => {
+      acc[curr.key.kind + ',' + curr.key.name] += 1
+      return acc;
+    }, {}
+    );
+
+    return Object.entries(duraionByKey).map(([k, v]) => {
+      return {
+        pluginName: k.split(',')[1],
+        pluginKind: k.split(',')[0] as ULDEPluginKind,
+        executions: executions[k],
+        averageDuration: 0,
+        maxDuration: 0,
+        totalDuration: duraionByKey[k]
+      }
+    })
+  });
+
   // signal stores
   $store = computed(() => {
     return {
@@ -86,7 +127,7 @@ export class ULDEDevtoolsService {
     };
   });
 
-  $generateDevtoolsSnapshot(executionContext: ULDEExecutionContext): Signal<ULDEDevtoolsSnapshot>{
+  $generateDevtoolsSnapshot(executionContext: ULDEExecutionContext): Signal<ULDEDevtoolsSnapshot> {
 
     executionContext.artifacts.diagnostics = this.$diagnostics();
     executionContext.artifacts.frame = this.$currentFrame();
@@ -99,7 +140,7 @@ export class ULDEDevtoolsService {
           timeline: this.$timeline(),
           heatMap: this.$heatMap(),
           trends: {} as ULDETrendSnapshot,
-          pluginStats: [] as ULDEPluginStatistics[],
+          pluginStats: this.$pluginStats(),
         }
       }
     });
@@ -252,3 +293,9 @@ export class ULDEDevtoolsService {
 
 }
 
+// Safe string comparison function
+function safeCompare(a: string | null, b: string | null): number {
+  const strA = a ?? ""; // Treat null/undefined as empty string
+  const strB = b ?? "";
+  return strA.localeCompare(strB, undefined, { sensitivity: "base" });
+}
