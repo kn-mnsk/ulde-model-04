@@ -14,7 +14,7 @@ export class UldeDevtoolsPluginTimelinePanel {
 
   total: number = 0;
 
-  $pluginTimings = input<ULDEPluginTiming[]>([]);
+  $pluginTimings = input<ULDEPluginTiming[]>();
 
 
   $plugins = computed(() => {

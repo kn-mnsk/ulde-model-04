@@ -1,13 +1,14 @@
 // src/ulde/core/devtools/ulde-devtools.ts
 
 import { DatePipe, DecimalPipe, JsonPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, effect, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, input, output, signal, Signal, computed } from '@angular/core';
 import { UldeDevToolsDiagnosticsPanel, UldeDevtoolsFrameTimelinePanel, UldeDevtoolsPluginTimelinePanel, UldeDevtoolsRuntimeInspectorPanel, ULDEDevtoolsService } from '@ulde/core/devtools';
 import { ULDERendererState } from '@ulde/types';
 import { ULDEDevtoolsSnapshot, ULDEDevToolsTab } from '@ulde/types/devtools';
 import { ULDEDiagnostic } from '@ulde/types/diagnostics';
 import { ULDEFrame } from '@ulde/types/frame';
 import { ULDELifecyclePhaseTiming } from '@ulde/types/lifecycle';
+import { isBrowser } from '../../../app/global.utils/global.utils';
 
 @Component({
   selector: 'ulde-devtools',
@@ -34,9 +35,10 @@ export class ULDEDevtools {
 
   // $snapshot = signal<ULDEDevtoolsSnapshot | undefined>(undefined);
   // $snapshot = signal<any | undefined>(undefined);
+  $snapshot = computed(() => this.$rendererState()?.devtoolsSnapshot);
   // $snapshot!: Signal<ULDEDevtoolsSnapshot>;
+  // snapshot: ULDEDevtoolsSnapshot | undefined = undefined;
   $store!: typeof this.devtoolsService.$store;
-  snapshot: ULDEDevtoolsSnapshot | undefined = undefined;
 
   $visible!: typeof this.devtoolsService.$visible;
   $pinned!: typeof this.devtoolsService.$pinned;
@@ -56,19 +58,20 @@ export class ULDEDevtools {
     private devtoolsService: ULDEDevtoolsService,
   ) {
 
+    this.$store = devtoolsService.$store;
+
+    this.$visible = devtoolsService.$visible;
+    this.$pinned = devtoolsService.$pinned;
+    this.$opacity = devtoolsService.$opacity;
+
+    this.thresholds = devtoolsService.thresholds;
+
     effect(() => {
-      const state = this.$rendererState();
-      if (state === undefined) return;
-
-      this.snapshot = state.devtoolsSnapshot;
-      this.$store = devtoolsService.$store;
-      this.$visible = devtoolsService.$visible;
-      this.$pinned = devtoolsService.$pinned;
-      this.$opacity = devtoolsService.$opacity;
-
-      this.thresholds = devtoolsService.thresholds;
+      if (!this.$rendererState()) return;
+      console.log(`Log: [UldeDevTools] effect() $rendererState:\n`, this.$rendererState());
 
     })
+
   }
 
   // UI actions

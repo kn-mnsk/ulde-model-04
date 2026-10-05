@@ -31,14 +31,14 @@
       (click)="selectTab('sparkline')">Sparkline</button>
   </div>
 
-  <!-- @if($snapshot() !== undefined){ -->
+  @if($rendererState() !== undefined){
   <div class="body">
 
     @if($activeTab() === 'diagnostics'){
     <!-- Disgnostics -->
     <div class="diagnostics-tab">
       <ulde-devtools-diagnostics-panel
-        [$diagnostics]="snapshot?.executionContext?.artifacts?.diagnostics"></ulde-devtools-diagnostics-panel>
+        [$diagnostics]="$snapshot()?.executionContext?.artifacts?.diagnostics"></ulde-devtools-diagnostics-panel>
       <!-- <ulde-devtools-diagnostics-panel [$diagnostics]="$store().diagnostics"></ulde-devtools-diagnostics-panel> -->
     </div>
 
@@ -47,7 +47,7 @@
     @if($activeTab() === 'timeline'){
     <!-- Timeline -->
     <div class="timeline-tab">
-      <ulde-devtools-frame-timeline-panel [$timelines]="snapshot?.analytics?.timeline"
+      <ulde-devtools-frame-timeline-panel [$timelines]="$snapshot()?.analytics?.timeline"
         [$thresholds]="thresholds"></ulde-devtools-frame-timeline-panel>
       <!-- <ulde-devtools-frame-timeline-panel [$timelines]="$store().timeline"
         [$thresholds]="thresholds"></ulde-devtools-frame-timeline-panel> -->
@@ -68,7 +68,8 @@
       </div>
 
       <div class="rows">
-        @for (t of $store().heatMap; track ($index)) {
+        @for (t of $snapshot()?.analytics?.heatMap; track ($index)) {
+        <!-- @for (t of $store().heatMap; track ($index)) { -->
         <div class="row">
           <div class="phase">
             <span>{{ t.lifecyclePhase }} </span>
@@ -101,8 +102,11 @@
     <!-- Inspector -->
     <div class="inspector-tab">
       <ulde-devtools-runtime-inspector-panel [$rendererState]="$rendererState()"
-        [$frame]="$store().currentFrame"></ulde-devtools-runtime-inspector-panel>
+        [$frame]="$snapshot()?.executionContext?.artifacts?.frame"></ulde-devtools-runtime-inspector-panel>
     </div>
+    <!-- <ulde-devtools-runtime-inspector-panel [$rendererState]="$rendererState()"
+        [$frame]="$store().currentFrame"></ulde-devtools-runtime-inspector-panel>
+    </div> -->
     }
 
     @if($activeTab() === 'frames'){
@@ -111,8 +115,8 @@
       <section class="frame-history">
         <h4>Frame History</h4>
 
-        @for (f of $store().frameHistory; track f.id) {
-        <!-- @for (f of $frameHistory(); track f.id) { -->
+        @for (f of $snapshot()?.frameHistory; track f.id) {
+        <!-- @for (f of $store().frameHistory; track f.id) { -->
         <div class="frame-row" (click)="selectFrame(f)">
           <span class="frame-id">Frame Id: {{ f.id }}</span>
           <span class="timestamp">Timestamp: {{ f.timestamp | date:'full' }}</span>
@@ -140,8 +144,11 @@
     <!-- Plugin Timings -->
     <div class="plugins-tab">
       <ulde-devtools-plugin-timeline-panel
-        [$pluginTimings]="$store().pluginTimings"></ulde-devtools-plugin-timeline-panel>
+        [$pluginTimings]=" $snapshot()?.executionContext?.artifacts?.frame?.pluginTimings"></ulde-devtools-plugin-timeline-panel>
+      <!-- <ulde-devtools-plugin-timeline-panel
+        [$pluginTimings]="$store().pluginTimings"></ulde-devtools-plugin-timeline-panel> -->
     </div>
+
     }
 
     @if($activeTab() === 'sparkline'){
@@ -159,5 +166,5 @@
 
     <!-- } -->
   </div>
-  <!-- } -->
+  }
 </div>
