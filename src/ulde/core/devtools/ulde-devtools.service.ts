@@ -6,7 +6,6 @@ import { ULDEDiagnostic } from '@ulde/types/diagnostics';
 import { ULDEFrame } from '@ulde/types/frame';
 import { ULDELifecyclePhase, ULDELifecyclePhaseTiming } from '@ulde/types/lifecycle';
 import { ULDEPluginTiming } from '@ulde/types/timing';
-import { ULDERendererService } from '@ulde/viewer';
 
 @Injectable({ providedIn: 'root' })
 export class ULDEDevtoolsService {
@@ -40,7 +39,6 @@ export class ULDEDevtoolsService {
   };
 
   // signal to update computed signal
-  $reloadComputedSugnals = signal<number>(0);
   // Derived: sparkline points
   $sparklinePoints = computed(() => {
     const history = this.$frameHistory();
@@ -57,74 +55,65 @@ export class ULDEDevtoolsService {
         .join(' ');
     }
 
-    console.log(`Log: [ULDEOverlayService] sparklinePoints`, points);
+    console.log(`Log: [ULDEDevtoolsService] sparklinePoints`, points);
 
-    return { reload: this.$reloadComputedSugnals(), points: points };
+    return points;
   });
   // Derived: filtered plugin timings by lifecycle phase
   $filteredPluginTimings = computed(() => {
     const lifecyclePhaseTiming = this.$currentLifecyclePhaseTiming();
     const timings = this.$pluginTimings();
 
-    return { reload: this.$reloadComputedSugnals(), filtered: (!lifecyclePhaseTiming) ? timings : timings.filter(t => t.lifecyclePhase === lifecyclePhaseTiming.lifecyclePhase) };
-    //   if (!lifecyclePhaseTiming) return timings;
-    //   return timings.filter(t => t.lifecyclePhase === lifecyclePhaseTiming.lifecyclePhase);
+    if (!lifecyclePhaseTiming) return timings;
+    return timings.filter(t => t.lifecyclePhase === lifecyclePhaseTiming.lifecyclePhase);
   });
 
   $pluginStats = computed<ULDEPluginStatistics[]>(() => {
     const timings = this.$pluginTimings();
 
     // sort by pluginKind, then by pluginName
-    const stat1 = timings.sort((a, b) => {
+    const tempResult1 = [...timings].sort((a, b) => {
       const pluginKindResult = safeCompare(a.pluginKind, b.pluginKind);
       if (pluginKindResult !== 0) {
         return pluginKindResult;
       }
       return safeCompare(a.pluginName, b.pluginName);
-      // }).map(t => { return { key: `${t.pluginKind} ${t.pluginName}`, duration: t.duration }; }
-    }).map(t => { return { key: { kind: t.pluginKind, name: t.pluginName }, duration: t.duration }; }
-
-
+    }).map(t => { return { key: `${t.pluginKind},${t.pluginName}`, duration: t.duration }; }
     );
 
-    const duraionByKey = stat1.reduce<Record<string, number>>((acc, curr) => {
-      acc[curr.key.kind + ',' + curr.key.name] += curr.duration
+    // source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/
+    const max: Record<string, number[]> = Object.create(null);
+    const statsByKey = tempResult1.reduce((acc: Record<string, ULDEPluginStatistics>, curr) => {
+
+      if (!acc[curr.key]) {
+        acc[curr.key] = {
+          pluginName: curr.key.split(',')[1],
+          pluginKind: curr.key.split(',')[0] as ULDEPluginKind,
+          executions: 0,
+          averageDuration: 0,
+          maxDuration: 0,
+          totalDuration: 0
+        }
+        max[curr.key] = [];
+      }
+
+      acc[curr.key].pluginName = acc[curr.key].pluginName;
+      acc[curr.key].pluginKind = acc[curr.key].pluginKind;
+      max[curr.key].push(curr.duration);
+      acc[curr.key].executions =  acc[curr.key].executions + 1;
+      acc[curr.key].totalDuration = acc[curr.key].totalDuration + curr.duration;
+      acc[curr.key].averageDuration = (acc[curr.key].executions !== 0) ? acc[curr.key].totalDuration / acc[curr.key].executions : 0;
+      acc[curr.key].maxDuration = Math.max(...max[curr.key]);
+
       return acc;
     },
-      {},
+
+      Object.create(null)
     );
 
-    const executions = stat1.reduce<Record<string, number>>((acc, curr) => {
-      acc[curr.key.kind + ',' + curr.key.name] += 1
-      return acc;
-    }, {}
-    );
-
-    return Object.entries(duraionByKey).map(([k, v]) => {
-      return {
-        pluginName: k.split(',')[1],
-        pluginKind: k.split(',')[0] as ULDEPluginKind,
-        executions: executions[k],
-        averageDuration: 0,
-        maxDuration: 0,
-        totalDuration: duraionByKey[k]
-      }
+    return Object.entries(statsByKey).map(([k, v]) => {
+      return v;
     })
-  });
-
-  // signal stores
-  $store = computed(() => {
-    return {
-      diagnostics: this.$diagnostics(),
-      currentFrame: this.$currentFrame(),
-      frameHistory: this.$frameHistory(),
-      heatMap: this.$heatMap(),
-      timeline: this.$timeline(),
-      filteredPluginTimings: this.$filteredPluginTimings().filtered,
-      pluginTimings: this.$pluginTimings(),
-      sparklinePoints: this.$sparklinePoints().points,
-      reload: this.$reloadComputedSugnals()
-    };
   });
 
   $generateDevtoolsSnapshot(executionContext: ULDEExecutionContext): Signal<ULDEDevtoolsSnapshot> {
@@ -179,8 +168,7 @@ export class ULDEDevtoolsService {
       id: crypto.randomUUID(),
       timestamp: Date.now(),
       lifecyclePhaseTimings: this.$lifecyclePhaseTimings(),
-      pluginTimings: this.$pluginTimings(),
-      // diagnostics: this.$diagnostics()
+      pluginTimings: this.$pluginTimings()
     };
 
     this.$frameHistory.update(list => [...list.slice(-50), frame]); // keep last 50 frames
@@ -189,8 +177,6 @@ export class ULDEDevtoolsService {
     this.$timeline.set(this.buildTimeline());
     this.generateWarnings();
     this.$currentFrame.set(frame);
-    // this.$reloadComputedSugnals.update(n => n + 1);
-
 
     // reset for next frame
     this.$lifecyclePhaseTimings.set([]);
