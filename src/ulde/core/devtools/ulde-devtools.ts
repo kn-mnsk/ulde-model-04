@@ -31,14 +31,8 @@ export class ULDEDevtools {
   $highlight = output<string>();
 
   // Declare signals
-  // $store = signal<any | null>(null);
-
-  // $snapshot = signal<ULDEDevtoolsSnapshot | undefined>(undefined);
-  // $snapshot = signal<any | undefined>(undefined);
   $snapshot = computed(() => this.$rendererState()?.devtoolsSnapshot);
-  // $snapshot!: Signal<ULDEDevtoolsSnapshot>;
-  // snapshot: ULDEDevtoolsSnapshot | undefined = undefined;
-  $store!: typeof this.devtoolsService.$store;
+  $sparklinePoints!: typeof this.devtoolsService.$sparklinePoints;
 
   $visible!: typeof this.devtoolsService.$visible;
   $pinned!: typeof this.devtoolsService.$pinned;
@@ -46,19 +40,17 @@ export class ULDEDevtools {
 
   thresholds!: typeof this.devtoolsService.thresholds;
 
-  // $activeTab = signal<ULDEDevToolsTab>('timeline');
   $activeTab = signal<ULDEDevToolsTab>('diagnostics');
 
   selectTab(tab: ULDEDevToolsTab) {
     this.$activeTab.set(tab);
-    // this.devtoolsService.$reloadComputedSugnals.update(n => n+1);
   }
 
   constructor(
     private devtoolsService: ULDEDevtoolsService,
   ) {
 
-    this.$store = devtoolsService.$store;
+    this.$sparklinePoints = devtoolsService.$sparklinePoints;
 
     this.$visible = devtoolsService.$visible;
     this.$pinned = devtoolsService.$pinned;
@@ -66,11 +58,12 @@ export class ULDEDevtools {
 
     this.thresholds = devtoolsService.thresholds;
 
-    effect(() => {
-      if (!this.$rendererState()) return;
-      console.log(`Log: [UldeDevTools] effect() $rendererState:\n`, this.$rendererState());
+    // effect(() => {
+    //   // for debug
+    //   if (!this.$rendererState()) return;
+    //   console.log(`Log: [UldeDevTools] effect() $rendererState:\n`, this.$rendererState());
 
-    })
+    // })
 
   }
 
