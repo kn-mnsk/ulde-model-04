@@ -100,7 +100,7 @@ export class ULDEDevtoolsService {
       acc[curr.key].pluginName = acc[curr.key].pluginName;
       acc[curr.key].pluginKind = acc[curr.key].pluginKind;
       max[curr.key].push(curr.duration);
-      acc[curr.key].executions =  acc[curr.key].executions + 1;
+      acc[curr.key].executions = acc[curr.key].executions + 1;
       acc[curr.key].totalDuration = acc[curr.key].totalDuration + curr.duration;
       acc[curr.key].averageDuration = (acc[curr.key].executions !== 0) ? acc[curr.key].totalDuration / acc[curr.key].executions : 0;
       acc[curr.key].maxDuration = Math.max(...max[curr.key]);
@@ -116,6 +116,93 @@ export class ULDEDevtoolsService {
     })
   });
 
+  $trendSnashot = computed<ULDETrendSnapshot>(() => {
+
+    const pluginInfo = [...this.$pluginTimings()].filter(t => {
+      t.duration !== 0;
+    }).sort((a, b) => {
+      return safeCompare(a.pluginName, b.pluginName);
+    }).map(t => {
+      return { pluginname: t.pluginName, duration: t.duration };
+    }).reduce((acc: Record<string, { duration: number; executions: number, averageDuration: number }>, curr) => {
+
+      if (!acc[curr.pluginname]) {
+        acc[curr.pluginname] = {
+          duration: 0,
+          executions: 0,
+          averageDuration: 0
+        }
+      }
+
+      acc[curr.pluginname].duration = acc[curr.pluginname].duration + curr.duration;
+      acc[curr.pluginname].executions = acc[curr.pluginname].executions + 1;
+      acc[curr.pluginname].averageDuration = acc[curr.pluginname].executions !== 0 ? acc[curr.pluginname].duration / acc[curr.pluginname].executions : 0;
+
+      return acc;
+    },
+      Object.create(null)
+    );
+
+    const { totalDurations, totalExecutions } = Object.entries(pluginInfo).map(([k, v]) => {
+      return v;
+    }).reduce((acc: { totalDurations: number; totalExecutions: number }, curr) => {
+      const totalDurations = acc.totalDurations ?? 0;
+      const totalExecutions = acc.totalExecutions ?? 0;
+
+      acc.totalDurations = totalDurations + curr.duration;
+      acc.totalExecutions = totalExecutions + curr.executions;
+      return acc;
+    },
+      Object.create(null)
+    );
+
+    const averagePluginDuration = totalExecutions !== 0 ? totalDurations / totalExecutions : 0;
+
+    const slowestPlugin = Object.entries(pluginInfo).map(([k, v]) => {
+      return { pluginName: k, averageDuration: v.averageDuration };
+    }).sort((a, b) => {
+      return b.averageDuration - a.averageDuration;
+    })[1];
+
+    const frameInfo = [...this.$frameHistory()].map(f => {
+      return {
+        id: f.id, frameDuration: f.lifecyclePhaseTimings.map(t => t.duration).reduce((acc, curr) => {
+          acc = acc + curr;
+          return acc;
+        })
+      };
+    }, 0);
+
+    const worstFrameDuration = [...frameInfo].sort((a, b) => {
+      return b.frameDuration - a.frameDuration;
+    }).flat()[0].frameDuration;
+
+    const { totalFrameDurations, totalFrameExecutions } = [...frameInfo].reduce((acc: { totalFrameDurations: number, totalFrameExecutions: number }, curr) => {
+      const totalDurations = acc.totalFrameDurations ?? 0;
+      const totalExecutions = acc.totalFrameExecutions ?? 0;
+
+      acc.totalFrameDurations = totalDurations + curr.frameDuration;
+      acc.totalFrameExecutions = totalExecutions + 1;
+      return acc;
+    },
+      Object.create(null)
+    )
+
+    const averageFrameDuration = totalFrameDurations !== 0 ? totalFrameDurations / totalFrameExecutions : 0;
+
+    return {
+      averageFrameDuration: averageFrameDuration,
+      worstFrameDuration: worstFrameDuration,
+      averagePluginDuration: averagePluginDuration,
+      slowestPlugin: slowestPlugin,
+      regressionDetected: false // TO BE CLARIFIED: MEANING
+    };
+
+  });
+
+
+
+
   $generateDevtoolsSnapshot(executionContext: ULDEExecutionContext): Signal<ULDEDevtoolsSnapshot> {
 
     executionContext.artifacts.diagnostics = this.$diagnostics();
@@ -128,7 +215,7 @@ export class ULDEDevtoolsService {
         analytics: {
           timeline: this.$timeline(),
           heatMap: this.$heatMap(),
-          trends: {} as ULDETrendSnapshot,
+          trends: this.$trendSnashot(),
           pluginStats: this.$pluginStats(),
         }
       }
