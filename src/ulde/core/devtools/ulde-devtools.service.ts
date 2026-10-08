@@ -119,8 +119,9 @@ export class ULDEDevtoolsService {
   $trendSnashot = computed<ULDETrendSnapshot>(() => {
 
     const pluginInfo = [...this.$pluginTimings()].filter(t => {
-      t.duration !== 0;
-    }).sort((a, b) => {
+      return t.duration !== 0;
+    }
+    ).sort((a, b) => {
       return safeCompare(a.pluginName, b.pluginName);
     }).map(t => {
       return { pluginname: t.pluginName, duration: t.duration };
@@ -151,6 +152,7 @@ export class ULDEDevtoolsService {
 
       acc.totalDurations = totalDurations + curr.duration;
       acc.totalExecutions = totalExecutions + curr.executions;
+
       return acc;
     },
       Object.create(null)
@@ -162,7 +164,7 @@ export class ULDEDevtoolsService {
       return { pluginName: k, averageDuration: v.averageDuration };
     }).sort((a, b) => {
       return b.averageDuration - a.averageDuration;
-    })[1];
+    })[0];
 
     const frameInfo = [...this.$frameHistory()].map(f => {
       return {
