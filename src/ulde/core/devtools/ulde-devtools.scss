@@ -5,22 +5,34 @@
   top: 0;
   right: 0;
   width: 650px;
-  height: 80vh;
+  height: 90vh;
   background: rgba(20, 20, 20, 0.85); // var(--ulde-background
   color: #eee;
   font-family: system-ui, sans-serif;
-  border-radius: 8px 8px 0 0;
+  border-radius: 8px 8px 8px 8px;
   display: flex;
   flex-direction: column;
   padding: 12px;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(6px);
   transition: opacity 0.2s ease;
+  // opacity: 1.0;
+  // visibility: visible;
 
   &.hidden {
-    opacity: 0;
-    pointer-events: none;
+    // position: relative;
+    // display: flex;
+    // flex-direction: row;
+    right: 0;
+    width: 300px;
+    height: 5vh;
+    background: var(--ulde-background);
+    color: rgb(20, 16, 16); //
+    // opacity: 0;
+      // visibility: hidden;
+      // pointer-events: none;
   }
+
 }
 
 header.header {
@@ -56,8 +68,52 @@ header.header {
 
     input[type='range'] {
       width: 80px;
+
+      //input
+      &.hidden {
+        visibility: hidden;
+      }
     }
+
+    // control
+    &.hidden {
+      padding-left: 5px;
+      padding-right: 5px;
+      width: 100%;
+      display: grid;
+      flex-direction: column;
+      align-items: center;
+      grid-template-columns: 0.5fr 0.5fr 0.5fr;
+    }
+
   }
+
+  // header
+  &.hidden {
+    width: fit-content;
+    opacity: 0.3;
+
+    h3 {
+      font-size: 12px;
+      font-weight: 500;
+
+    }
+
+  }
+}
+
+
+.body {
+  // height: 85vh; // max-height: auto;
+  visibility: visible;
+
+  // body;
+  &.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
 }
 
 .tabs {
@@ -83,11 +139,6 @@ header.header {
 }
 
 
-.body {
-  height: 65vh; // max-height: auto;
-  // overflow: auto;
-
-}
 
 
 /* Diagnostics */
@@ -144,7 +195,7 @@ header.header {
       flex-direction: row;
       align-items: center;
       border: 1px solid var(--ulde-border);
-      grid-template-columns: 0.3fr 0.3fr 0.9fr  0.3fr 0.3fr;
+      grid-template-columns: 0.3fr 0.3fr 0.9fr 0.3fr 0.3fr;
       // padding: 4px 0;
       // border-bottom: 1px solid #f3ebeb;
       cursor: pointer;

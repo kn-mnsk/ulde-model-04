@@ -358,6 +358,7 @@ export class ULDEDevtoolsService {
   // UI - control methods
   toggle() {
     this.$visible.update(v => !v);
+    console.log(`Log: [UldeDevtoolsService] toggle90 => $visible()=`, this.$visible());
   }
   pin() {
     this.$pinned.update(p => !p);

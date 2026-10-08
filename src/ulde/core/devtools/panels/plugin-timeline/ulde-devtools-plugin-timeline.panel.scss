@@ -1,6 +1,9 @@
 // src/ulde/core/devtools/panels/plugin-timeline/ulde-devtools-plugin-timeline.panel.scss
 
 .ulde-plugin-timeline-panel-root {
+  display: inline-block;
+  height: auto;
+  width: 90%;
   border: 1px solid var(--ulde-border);
   border-radius: 6px;
   padding: 1rem;
@@ -19,56 +22,58 @@
 
 .rows {
   display: flex;
-  height: 350px;
+  height: 400px;
   flex-direction: column;
   gap: 0.5rem;
   overflow: auto;
-}
-
-.row {
-  padding-left:5px;
-  padding-right:5px;
-  width: 95%;
-  display: grid;
-  flex-direction: row;
-  align-items: center;
-  border: 1px solid var(--ulde-border);
-  grid-template-columns: 0.05fr 0.3fr 0.6fr 0.3fr 0.3fr 0.3fr;
-
-  font-size: 0.8rem;
-}
-
-.kind,
-.phase,
-.label,
-.duraion {
-  height: 20px;
-  padding-left: 3px;
-  text-wrap: wrap;
-  text-align: left;
-
-}
-
-.color {
-  height: 12px;
-  border-radius: 3px;
-}
 
 
-.duration {
-  font-weight: bold;
-}
+  .row {
+    padding-left: 5px;
+    padding-right: 5px;
+    width: 100%;
+    display: grid;
+    flex-direction: row;
+    align-items: center;
+    border: 1px solid var(--ulde-border);
+    grid-template-columns: 0.05fr 0.2fr 0.8fr 0.25fr 0.25fr 0.3fr;
+    // grid-template-columns: 0.05fr 0.3fr 0.6fr 0.3fr 0.3fr 0.3fr;
 
-.bar-container {
-  background: var(--ulde-border);
-  width: 100px;
-  height: 12px;
-  border-radius: 3px;
-
-  .bar {
-    border-radius: 3px;
-    height: 100%;
-    transition: width 0.15s ease-out;
+    font-size: 0.8rem;
   }
 
+  .kind,
+  .phase,
+  .label,
+  .duraion {
+    height: 20px;
+    padding-left: 3px;
+    text-wrap: wrap;
+    text-align: left;
+
+  }
+
+  .color {
+    height: 12px;
+    border-radius: 3px;
+  }
+
+
+  .duration {
+    font-weight: bold;
+  }
+
+  .bar-container {
+    background: var(--ulde-border);
+    width: 100px;
+    height: 12px;
+    border-radius: 3px;
+
+    .bar {
+      border-radius: 3px;
+      height: 100%;
+      transition: width 0.15s ease-out;
+    }
+
+  }
 }
