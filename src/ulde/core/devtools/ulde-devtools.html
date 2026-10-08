@@ -1,38 +1,42 @@
 <!-- src/ulde/core/devtools/ulde-devtools.html -->
 
 <p>UldeDevtools Works!</p>
-<div class="ulde-devtools-root" [class.hidden]="!$visible()" [style.opacity]="$opacity()">
+<div class="ulde-devtools-root" [class.hidden]="!$visible()">
+  <!-- <div class="ulde-devtools-root" [class.hidden]="!$visible()" [style.opacity]="$opacity()"> -->
 
   <!-- Header -->
-  <header class="header">
+  <header class="header" [class.hidden]="!$visible()">
+    <!-- <header class="header"> -->
     <h3>ULDE DevTools Panel</h3>
-    <div class="controls">
+    <div class="controls"  [class.hidden]="!$visible()">
       <button (click)="toggleDevTools()">Toggle</button>
       <button (click)="pinDevTools()">
         {{ $pinned() ? 'Unpin' : 'Pin' }}
       </button>
-      <input type="range" min="0.2" max="1" step="0.1" [value]="$opacity()"
+      <input [class.hidden]="!$visible()" type="range" min="0.2" max="1" step="0.1" [value]="$opacity()"
         (input)="setDevToolsOpacity($any($event.target).value)" />
     </div>
   </header>
 
+  <div class="body" [class.hidden]="!$visible()" [style.opacity]="$opacity()">
+    <!-- <div class="body"> -->
 
-  <div class="tabs">
-    <button class="tab" [class.active]="$activeTab() === 'diagnostics'"
-      (click)="selectTab('diagnostics')">Diagnostics</button>
-    <button class="tab" [class.active]="$activeTab() === 'timeline'" (click)="selectTab('timeline')">Timeline</button>
-    <button class="tab" [class.active]="$activeTab() === 'profiler'" (click)="selectTab('profiler')">Profiler</button>
-    <button class="tab" [class.active]="$activeTab() === 'heatmap'" (click)="selectTab('heatmap')">Heatmap</button>
-    <button class="tab" [class.active]="$activeTab() === 'inspector'"
-      (click)="selectTab('inspector')">Inspector</button>
-    <button class="tab" [class.active]="$activeTab() === 'frames'" (click)="selectTab('frames')">Frames</button>
-    <button class="tab" [class.active]="$activeTab() === 'plugins'" (click)="selectTab('plugins')">Plugins</button>
-    <button class="tab" [class.active]="$activeTab() === 'sparkline'"
-      (click)="selectTab('sparkline')">Sparkline</button>
-  </div>
+    <div class="tabs">
+      <button class="tab" [class.active]="$activeTab() === 'diagnostics'"
+        (click)="selectTab('diagnostics')">Diagnostics</button>
+      <button class="tab" [class.active]="$activeTab() === 'timeline'" (click)="selectTab('timeline')">Timeline</button>
+      <button class="tab" [class.active]="$activeTab() === 'profiler'" (click)="selectTab('profiler')">Profiler</button>
+      <button class="tab" [class.active]="$activeTab() === 'heatmap'" (click)="selectTab('heatmap')">Heatmap</button>
+      <button class="tab" [class.active]="$activeTab() === 'inspector'"
+        (click)="selectTab('inspector')">Inspector</button>
+      <button class="tab" [class.active]="$activeTab() === 'frames'" (click)="selectTab('frames')">Frames</button>
+      <button class="tab" [class.active]="$activeTab() === 'plugins'" (click)="selectTab('plugins')">Plugins</button>
+      <button class="tab" [class.active]="$activeTab() === 'sparkline'"
+        (click)="selectTab('sparkline')">Sparkline</button>
+    </div>
 
-  @if($rendererState() !== undefined){
-  <div class="body">
+    <!-- @if($rendererState() !== undefined){ -->
+
 
     @if($activeTab() === 'diagnostics'){
     <!-- Disgnostics -->
@@ -152,5 +156,5 @@
     }
 
   </div>
-  }
+  <!-- } -->
 </div>
