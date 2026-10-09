@@ -1,14 +1,5 @@
-// src/ulde/configurator/ulde-configurator.html
+<!-- src/ulde/configurator/ulde-configurator.html -->
 
-<div class="configurator-layout">
-  <div class="viewer-pane">
-    <ulde-viewer
-      [$rendererStateInput]="rendererState"
-      ($stateChange)="onViewerStateChange($event)"
-    ></ulde-viewer>
-  </div>
-
-  <div class="controls-pane">
-    <!-- controls for ULDE-MODEL-01 -->
-  </div>
-</div>
+<ulde-viewer [$rendererStateInput]="$rendererState()" ($stateChange)="onViewerStateChange($event)"
+  ($error)="onError($event)">
+</ulde-viewer>

@@ -1,6 +1,6 @@
 // src/app/demo/ulde-demo-01/ulde-demo-01.ts
 
-import { AfterViewInit, Component, ElementRef, OnInit, signal, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnInit, signal, computed } from '@angular/core';
 
 import { ULDELifecycleService } from '@ulde/core';
 import { ULDEPageContext, ULDERenderContext } from '@ulde/types/context';
@@ -22,9 +22,16 @@ export class UldeDemo01 implements AfterViewInit, OnInit {
 
   component = 'UldeDemo01';
 
-  renderContext: ULDERenderContext | undefined = undefined;
+  // renderContext: ULDERenderContext | undefined = undefined;
 
-  $pageId = signal<string>('docs/index'); // initila value
+  pageId: string = 'docs/index'; // initila value
+  // $pageId = signal<string>('docs/index'); // initila value
+
+  $reload = signal<number>(0);
+  $page = computed(() => {
+    return {id: this.pageId, reload: this.$reload()};
+  })
+
 
   $rendererState = signal<ULDERendererState>({
     modelId: 'ulde-demo-01',
@@ -32,8 +39,8 @@ export class UldeDemo01 implements AfterViewInit, OnInit {
     zoom: 1,
     rotation: { x: 0, y: 0, z: 0 },
 
-    // executionContext: undefined,
-    // devtoolsSnapshot: undefined
+    executionContext: undefined,
+    devtoolsSnapshot: undefined
   });
 
   // private md = new MarkdownIt();
@@ -41,14 +48,14 @@ export class UldeDemo01 implements AfterViewInit, OnInit {
   private async buildDemoPageContext(): Promise<ULDEPageContext | void> {
 
     // load markdown file
-    const markdown = await this.contenEngine.load(this.$pageId());
+    const markdown = await this.contenEngine.load(this.$page().id);
     if (!markdown) return;
 
     const tokens = await this.contenEngine.transform(markdown);
     // const tokens = this.md.parse(markdown, {});
 
     return {
-      pageId: this.$pageId(),
+      pageId: this.$page().id,
       source: {
         raw: markdown,
         tokens: tokens
@@ -67,14 +74,12 @@ export class UldeDemo01 implements AfterViewInit, OnInit {
     return executionContext;
   }
 
-
-  @ViewChild('hostUldeViewerRef', { static: true }) hostUldeViewerRef!: ElementRef<HTMLElement>;
   constructor(
     private contenEngine: ContentEngineService,
     private lifecycle: ULDELifecycleService) { }
 
   async ngOnInit() {
-    // this.renderContext = await this.runUldeDemo(this.lifecycle);
+    this.$reload.update(n => n+1); // load current pageId
   }
 
   async ngAfterViewInit() {

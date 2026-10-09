@@ -7,12 +7,35 @@
 // @use './styles/ulde-viewer-theme-light.scss';
 // @use './styles/ulde-viewer-theme-dark.scss';
 
-.ulde-viewer-root {
-  position: relative;
-
-  
+.ulde-pane-container {
+  display: flex;
+  flex-direction: column;
 }
 
-.viewer-host {
-  min-height: 400px;
+.ulde-markdown-viewer-pane {
+  display: flex;
+
+  .viewer-host {
+    padding-left: 15px;
+    min-height: 400px;
+  }
+
+}
+
+.ulde-graph-viewer-pane {
+  display: flex;
+  align-content: center;
+  visibility: hidden;
+  cursor:pointer;
+
+  &.visible {
+    width: 600px;
+    height: 400px;
+    visibility: visible;
+  }
+
+}
+
+.udel-devtools-viewer-pane {
+  display: flex;
 }

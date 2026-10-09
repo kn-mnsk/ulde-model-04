@@ -1,6 +1,13 @@
 <!-- src/ulde/viewer/ulde-viewer.html -->
+<div class="ulde-pane-container">
+  <div class="ulde-markdown-viewer-pane">
+    <div #viewerHost class="viewer-host"></div>
+  </div>
 
-<div class="ulde-viewer-root">
-  <div #viewerHost class="viewer-host"></div>
-  <ulde-devtools [$rendererState]="$rendererState()"></ulde-devtools>
+  <!-- hidden for the time being: To be changed as Directive -->
+  <div class="ulde-graph-viewer-pane" #graphDirective dragga="true" [class.visible]="false"></div>
+
+  <div class="ulde-devtools-viewer-pane">
+    <ulde-devtools [$rendererState]="$rendererState()"></ulde-devtools>
+  </div>
 </div>

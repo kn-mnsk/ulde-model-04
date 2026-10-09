@@ -20,15 +20,23 @@ export class ULDEOverlayCustomPanelPlugin implements ULDEPluginInstance {
     if (ctx.lifecyclePhase !== 'afterRender') return;
     if (!ctx.render) return;
 
-    const customPanel: string = `
-      <div class="ulde-custom-panel">
-      <strong>Custom ULDE Panel</strong>
-      </div>
-      `;
 
-    const html = ctx.render.html;
-    ctx.render.html = html + customPanel;
+    const panel = document.createElement("div");
+    panel.className = "ulde-devtools-panel";
+    panel.innerHTML = "<strong>Custom DevTools Panel</strong>";
+    const appRoot = document.querySelector('app-root');
+    appRoot?.appendChild(panel);
+    // document.body.appendChild(panel);
 
+    // const customPanel: string = `
+    //   <div class="ulde-custom-panel">
+    //   <strong>Custom ULDE Panel</strong>
+    //   </div>
+    //   `;
+
+    // const html = ctx.render.html;
+    // ctx.render.html = html + customPanel;
+    // ctx.html = customPanel;
 
   };
 
